@@ -12,305 +12,305 @@
 template<class keyT, int k, class key_orderT = std::less<keyT>>
 class kway_min_id_heap{
 public:
-	typedef keyT key_type;
-	typedef key_orderT key_order_type;
+  typedef keyT key_type;
+  typedef key_orderT key_order_type;
 
-	explicit kway_min_id_heap(int id_count, key_order_type order = key_order_type()):
-		heap_end(0), heap(id_count), id_pos(id_count, -1), order(std::move(order)){
-		check_id_invariants();
-		check_order_invariants();
-	}
+  explicit kway_min_id_heap(int id_count, key_order_type order = key_order_type()):
+    heap_end(0), heap(id_count), id_pos(id_count, -1), order(std::move(order)){
+    check_id_invariants();
+    check_order_invariants();
+  }
 
-	explicit kway_min_id_heap(key_order_type order = key_order_type()):
-		heap_end(0), order(std::move(order)){
-		check_id_invariants();
-		check_order_invariants();
-	}
+  explicit kway_min_id_heap(key_order_type order = key_order_type()):
+    heap_end(0), order(std::move(order)){
+    check_id_invariants();
+    check_order_invariants();
+  }
 
-	void clear(){
-		heap_end = 0;
-		std::fill(id_pos.begin(), id_pos.end(), -1);
+  void clear(){
+    heap_end = 0;
+    std::fill(id_pos.begin(), id_pos.end(), -1);
 
-		check_id_invariants();
-		check_order_invariants();
-	}
+    check_id_invariants();
+    check_order_invariants();
+  }
 
-	void reorder(key_order_type new_order){
+  void reorder(key_order_type new_order){
 
-		check_id_invariants();
-		check_order_invariants();
+    check_id_invariants();
+    check_order_invariants();
 
-		order = std::move(new_order);
-		rebuild_heap();
+    order = std::move(new_order);
+    rebuild_heap();
 
-		check_id_invariants();
-		check_order_invariants();
-	}
+    check_id_invariants();
+    check_order_invariants();
+  }
 
-	void reset(int new_id_count = 0, key_order_type new_order = key_order_type()){
-		heap.resize(new_id_count);
-		id_pos.resize(new_id_count);
-		clear();
+  void reset(int new_id_count = 0, key_order_type new_order = key_order_type()){
+    heap.resize(new_id_count);
+    id_pos.resize(new_id_count);
+    clear();
 
-		check_id_invariants();
-		check_order_invariants();
-	}
+    check_id_invariants();
+    check_order_invariants();
+  }
 
-	void reset(key_order_type new_order){
-		clear();
-		order = std::move(new_order);
-	}
+  void reset(key_order_type new_order){
+    clear();
+    order = std::move(new_order);
+  }
 
-	bool empty()const{
-		check_id_invariants();
-		check_order_invariants();
+  bool empty()const{
+    check_id_invariants();
+    check_order_invariants();
 
-		return heap_end == 0;
-	}
+    return heap_end == 0;
+  }
 
-	bool contains(int id)const{
-		assert(0 <= id && id < (int)id_pos.size() && "id is in range");
+  bool contains(int id)const{
+    assert(0 <= id && id < (int)id_pos.size() && "id is in range");
 
-		check_id_invariants();
-		check_order_invariants();
+    check_id_invariants();
+    check_order_invariants();
 
-		return id_pos[id] != -1;
-	}
+    return id_pos[id] != -1;
+  }
 
-	const key_type&get_key(int id)const{
-		assert(0 <= id && id < (int)id_pos.size() && "id is in range");
-		assert(contains(id) && "id is contained");
+  const key_type&get_key(int id)const{
+    assert(0 <= id && id < (int)id_pos.size() && "id is in range");
+    assert(contains(id) && "id is contained");
 
-		check_id_invariants();
-		check_order_invariants();
+    check_id_invariants();
+    check_order_invariants();
 
-		return heap[id_pos[id]].key;
-	}
+    return heap[id_pos[id]].key;
+  }
 
-	bool push_or_decrease_key(int id, key_type key){
-		assert(0 <= id && id < (int)id_pos.size() && "id is in range");
+  bool push_or_decrease_key(int id, key_type key){
+    assert(0 <= id && id < (int)id_pos.size() && "id is in range");
 
-		check_id_invariants();
-		check_order_invariants();
-		
-		if(!contains(id)){
-			int new_pos = heap_end;
-			++heap_end;
-			heap[new_pos].id = id;
-			heap[new_pos].key = std::move(key);
-			id_pos[id] = new_pos;
-			move_up(new_pos);
+    check_id_invariants();
+    check_order_invariants();
+    
+    if(!contains(id)){
+      int new_pos = heap_end;
+      ++heap_end;
+      heap[new_pos].id = id;
+      heap[new_pos].key = std::move(key);
+      id_pos[id] = new_pos;
+      move_up(new_pos);
 
-			check_id_invariants();
-			check_order_invariants();
-		
-			return true;
-		}else{
-			if(order(key, heap[id_pos[id]].key)){
-				heap[id_pos[id]].key = std::move(key);
-				move_up(id_pos[id]);
+      check_id_invariants();
+      check_order_invariants();
+    
+      return true;
+    }else{
+      if(order(key, heap[id_pos[id]].key)){
+        heap[id_pos[id]].key = std::move(key);
+        move_up(id_pos[id]);
 
-				check_id_invariants();
-				check_order_invariants();
-		
-				return true;
-			}
-		}
-		return false;
-	}
+        check_id_invariants();
+        check_order_invariants();
+    
+        return true;
+      }
+    }
+    return false;
+  }
 
-	bool push_or_increase_key(int id, key_type key){
-		assert(0 <= id && id < (int)id_pos.size() && "id is in range");
-		
-		check_id_invariants();
-		check_order_invariants();
-		
-		if(!contains(id)){
-			int new_pos = heap_end;
-			++heap_end;
-			heap[new_pos].id = id;
-			heap[new_pos].key = std::move(key);
-			id_pos[id] = new_pos;
-			move_up(new_pos);
+  bool push_or_increase_key(int id, key_type key){
+    assert(0 <= id && id < (int)id_pos.size() && "id is in range");
+    
+    check_id_invariants();
+    check_order_invariants();
+    
+    if(!contains(id)){
+      int new_pos = heap_end;
+      ++heap_end;
+      heap[new_pos].id = id;
+      heap[new_pos].key = std::move(key);
+      id_pos[id] = new_pos;
+      move_up(new_pos);
 
-			check_id_invariants();
-			check_order_invariants();
-		
-			return true;
-		}else{
-			if(order(heap[id_pos[id]].key, key)){
-				heap[id_pos[id]].key = std::move(key);
-				move_down(id_pos[id]);
-				
-				check_id_invariants();
-				check_order_invariants();
-		
-				return true;
-			}
-		}
-		return false;
-	}
+      check_id_invariants();
+      check_order_invariants();
+    
+      return true;
+    }else{
+      if(order(heap[id_pos[id]].key, key)){
+        heap[id_pos[id]].key = std::move(key);
+        move_down(id_pos[id]);
+        
+        check_id_invariants();
+        check_order_invariants();
+    
+        return true;
+      }
+    }
+    return false;
+  }
 
-	key_type peek_min_key()const{
-		assert(!empty() && "heap is not empty");
-		
-		check_id_invariants();
-		check_order_invariants();
-		
-		return heap[0].key;
-	}
+  key_type peek_min_key()const{
+    assert(!empty() && "heap is not empty");
+    
+    check_id_invariants();
+    check_order_invariants();
+    
+    return heap[0].key;
+  }
 
-	int peek_min_id()const{
-		assert(!empty() && "heap is not empty");
+  int peek_min_id()const{
+    assert(!empty() && "heap is not empty");
 
-		check_id_invariants();
-		check_order_invariants();
-		
-		return heap[0].id;
-	}
+    check_id_invariants();
+    check_order_invariants();
+    
+    return heap[0].id;
+  }
 
-	int pop(){
-		assert(!empty() && "heap is not empty");
+  int pop(){
+    assert(!empty() && "heap is not empty");
 
-		check_id_invariants();
-		check_order_invariants();
-		
-		if(heap_end == 1){
-			heap_end = 0;
-			id_pos[heap[0].id] = -1;
+    check_id_invariants();
+    check_order_invariants();
+    
+    if(heap_end == 1){
+      heap_end = 0;
+      id_pos[heap[0].id] = -1;
 
-			check_id_invariants();
-			check_order_invariants();
-			
-			return heap[0].id;
-		}else{	
-			int ret = heap[0].id;
-			--heap_end;
-			#ifdef INTERNAL_HEAP_CHECKS
-			assert(ret != heap[heap_end].id);
-			#endif
-			heap[0].id = heap[heap_end].id;
-			heap[0].key = std::move(heap[heap_end].key);
-			id_pos[heap[0].id] = 0;
-			id_pos[ret] = -1;
-			move_down(0);
+      check_id_invariants();
+      check_order_invariants();
+      
+      return heap[0].id;
+    }else{  
+      int ret = heap[0].id;
+      --heap_end;
+      #ifdef INTERNAL_HEAP_CHECKS
+      assert(ret != heap[heap_end].id);
+      #endif
+      heap[0].id = heap[heap_end].id;
+      heap[0].key = std::move(heap[heap_end].key);
+      id_pos[heap[0].id] = 0;
+      id_pos[ret] = -1;
+      move_down(0);
 
-			check_id_invariants();
-			check_order_invariants();
+      check_id_invariants();
+      check_order_invariants();
 
-			return ret;
-		}
-	}
+      return ret;
+    }
+  }
 
 private:
 
-	static int parent(int pos){
-		assert(pos != 0);
-		return (pos-1) / k;
-	}
+  static int parent(int pos){
+    assert(pos != 0);
+    return (pos-1) / k;
+  }
 
-	static int children_begin(int pos){
-		return k*pos+1;
-	}
+  static int children_begin(int pos){
+    return k*pos+1;
+  }
 
-	static int children_end(int pos){
-		return k*(pos+1)+1;
-	}
+  static int children_end(int pos){
+    return k*(pos+1)+1;
+  }
 
-	void rebuild_heap(){
-		for(int i=heap_end-1; i>=0; --i)
-			move_down(i);
-	}
+  void rebuild_heap(){
+    for(int i=heap_end-1; i>=0; --i)
+      move_down(i);
+  }
 
-	void move_up(int pos){
-		if(pos != 0){
-			key_type key = std::move(heap[pos].key);
-			int id = heap[pos].id;
+  void move_up(int pos){
+    if(pos != 0){
+      key_type key = std::move(heap[pos].key);
+      int id = heap[pos].id;
 
-			int parent_pos = parent(pos);
-			while(order(key, heap[parent_pos].key)){
-				heap[pos].id = heap[parent_pos].id;
-				heap[pos].key = std::move(heap[parent_pos].key);
-				id_pos[heap[parent_pos].id] = pos;
+      int parent_pos = parent(pos);
+      while(order(key, heap[parent_pos].key)){
+        heap[pos].id = heap[parent_pos].id;
+        heap[pos].key = std::move(heap[parent_pos].key);
+        id_pos[heap[parent_pos].id] = pos;
 
-				pos = parent_pos;
-				if(pos == 0)
-					break;
-				parent_pos = parent(pos);
-			}
+        pos = parent_pos;
+        if(pos == 0)
+          break;
+        parent_pos = parent(pos);
+      }
 
-			heap[pos].id = id;
-			heap[pos].key = std::move(key);
-			id_pos[id] = pos;
-		}
-	}
+      heap[pos].id = id;
+      heap[pos].key = std::move(key);
+      id_pos[id] = pos;
+    }
+  }
 
-	void move_down(int pos){
-		key_type key = std::move(heap[pos].key);
-		int id = heap[pos].id;
+  void move_down(int pos){
+    key_type key = std::move(heap[pos].key);
+    int id = heap[pos].id;
 
-		for(;;){
-			int begin = std::min(heap_end, children_begin(pos));
-			int end = std::min(heap_end, children_end(pos));
+    for(;;){
+      int begin = std::min(heap_end, children_begin(pos));
+      int end = std::min(heap_end, children_end(pos));
 
-			if(begin == end)
-				break;
+      if(begin == end)
+        break;
 
-			int min_child_pos = begin;
-			for(int i=begin+1; i<end; ++i){
-				if(order(heap[i].key, heap[min_child_pos].key))
-					min_child_pos = i;
-			}
+      int min_child_pos = begin;
+      for(int i=begin+1; i<end; ++i){
+        if(order(heap[i].key, heap[min_child_pos].key))
+          min_child_pos = i;
+      }
 
-			if(!order(heap[min_child_pos].key, key))
-				break;
+      if(!order(heap[min_child_pos].key, key))
+        break;
 
-			heap[pos].id = heap[min_child_pos].id;
-			heap[pos].key = std::move(heap[min_child_pos].key);
-			id_pos[heap[min_child_pos].id] = pos;
+      heap[pos].id = heap[min_child_pos].id;
+      heap[pos].key = std::move(heap[min_child_pos].key);
+      id_pos[heap[min_child_pos].id] = pos;
 
-			pos = min_child_pos;
-		}
-		heap[pos].id = id;
-		heap[pos].key = std::move(key);
-		id_pos[id] = pos;
-	}
+      pos = min_child_pos;
+    }
+    heap[pos].id = id;
+    heap[pos].key = std::move(key);
+    id_pos[id] = pos;
+  }
 
-	struct id_key_pair{
-		int id;
-		key_type key;
-	};
+  struct id_key_pair{
+    int id;
+    key_type key;
+  };
 
-	int heap_end;
-	std::vector<id_key_pair>heap;
-	std::vector<int>id_pos;
-	key_order_type order;
+  int heap_end;
+  std::vector<id_key_pair>heap;
+  std::vector<int>id_pos;
+  key_order_type order;
 
-	void check_id_invariants()const{
-		#ifdef INTERNAL_HEAP_CHECKS
-		for(int i=0; i<heap_end; ++i){
-			assert(heap[i].id != -1);
-			assert(0 <= heap[i].id);
-			assert(heap[i].id < (int)id_pos.size());
-			assert(id_pos[heap[i].id] == i);
-		}
+  void check_id_invariants()const{
+    #ifdef INTERNAL_HEAP_CHECKS
+    for(int i=0; i<heap_end; ++i){
+      assert(heap[i].id != -1);
+      assert(0 <= heap[i].id);
+      assert(heap[i].id < (int)id_pos.size());
+      assert(id_pos[heap[i].id] == i);
+    }
 
-		for(int i=0; i<(int)id_pos.size(); ++i){
-			if(id_pos[i] != -1){
-				assert(0 <= id_pos[i]);
-				assert(id_pos[i] < heap_end);
-				assert(heap[id_pos[i]].id == i);
-			}
-		}
-		#endif
-	}
+    for(int i=0; i<(int)id_pos.size(); ++i){
+      if(id_pos[i] != -1){
+        assert(0 <= id_pos[i]);
+        assert(id_pos[i] < heap_end);
+        assert(heap[id_pos[i]].id == i);
+      }
+    }
+    #endif
+  }
 
-	void check_order_invariants()const{
-		#ifdef INTERNAL_HEAP_CHECKS
-		for(int i=1; i<heap_end; ++i)
-			assert(!order(heap[i].key, heap[parent(i)].key));
-		#endif
-	}
+  void check_order_invariants()const{
+    #ifdef INTERNAL_HEAP_CHECKS
+    for(int i=1; i<heap_end; ++i)
+      assert(!order(heap[i].key, heap[parent(i)].key));
+    #endif
+  }
 };
 
 

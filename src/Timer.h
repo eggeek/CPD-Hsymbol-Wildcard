@@ -45,21 +45,21 @@ class Timer {
 
 struct CycleCounter {
 public:
-	union {
-		uint64_t c8;
-		struct { uint32_t l, h; } c4;
-	} count_;
-	
-	void stamp() {
+  union {
+    uint64_t c8;
+    struct { uint32_t l, h; } c4;
+  } count_;
+  
+  void stamp() {
 #ifdef __i386__
-		__asm__ __volatile__ (".byte 0x0f,0x31" : "=a"(count_.c4.l),"=d"(count_.c4.h));
+    __asm__ __volatile__ (".byte 0x0f,0x31" : "=a"(count_.c4.l),"=d"(count_.c4.h));
 #else
-		count_.c8 = 0;
+    count_.c8 = 0;
 #endif    
-	}
-	
-	uint64_t count() const { return count_.c8; }
-	CycleCounter() { stamp(); }
+  }
+  
+  uint64_t count() const { return count_.c8; }
+  CycleCounter() { stamp(); }
 };
 
 #endif
@@ -73,19 +73,19 @@ private:
   uint64_t startTime;
 #else
   struct timeval startTime;
-#endif		
+#endif    
 
-	double elapsedTime;
+  double elapsedTime;
 
-	float getCPUSpeed();
+  float getCPUSpeed();
 
 public:
-	Timer();
-	~Timer(){}
+  Timer();
+  ~Timer(){}
 
-	void StartTimer();
-	double EndTimer();
-	double GetElapsedTime(){return elapsedTime;}
+  void StartTimer();
+  double EndTimer();
+  double GetElapsedTime(){return elapsedTime;}
 
 };
 

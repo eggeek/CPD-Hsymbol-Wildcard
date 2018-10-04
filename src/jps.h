@@ -25,15 +25,15 @@ namespace jps
 
 typedef enum
 {
-	NONE = 0,
-	NORTH = 1,
-	SOUTH = 2,
-	EAST = 4,
-	WEST = 8,
-	NORTHEAST = 16,
-	NORTHWEST = 32, 
-	SOUTHEAST = 64,
-	SOUTHWEST = 128
+  NONE = 0,
+  NORTH = 1,
+  SOUTH = 2,
+  EAST = 4,
+  WEST = 8,
+  NORTHEAST = 16,
+  NORTHWEST = 32, 
+  SOUTHEAST = 64,
+  SOUTHWEST = 128
 } direction;
 
 // Computes the set of "forced" directions in which to search for jump points
@@ -60,8 +60,8 @@ compute_natural(warthog::jps::direction d, uint32_t tiles);
 inline uint32_t
 compute_successors(warthog::jps::direction d, uint32_t tiles)
 {
-	return warthog::jps::compute_forced(d, tiles) |
-	   	warthog::jps::compute_natural(d, tiles);
+  return warthog::jps::compute_forced(d, tiles) |
+      warthog::jps::compute_natural(d, tiles);
 }
 
 
