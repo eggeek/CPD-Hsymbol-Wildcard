@@ -13,6 +13,7 @@
 #include "dijkstra.h"
 #include "balanced_min_cut.h"
 #include "prefer_zero_cut.h"
+#include "constants.h"
 #include <cstdio>
 
 using namespace std;
@@ -52,7 +53,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 		AdjGraph g(extract_graph(mapper));
 		
 		{
-			Dijkstra dij(g);
+			Dijkstra dij(g, mapper);
 			Timer t;
 			t.StartTimer();
 			dij.run(0);
@@ -61,7 +62,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 		}
 
 		#ifndef USE_PARALLELISM
-		Dijkstra dij(g);
+		Dijkstra dij(g, mapper);
 		for(int source_node=0; source_node < g.node_count(); ++source_node){
 			if(source_node % (g.node_count()/10) == 0)
 				printf("%d of %d done\n", source_node, g.node_count());
@@ -85,7 +86,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 			int node_end = (node_count*(thread_id+1)) / thread_count;
 
 			AdjGraph thread_adj_g(g);
-			Dijkstra thread_dij(thread_adj_g);
+			Dijkstra thread_dij(thread_adj_g, mapper);
 			for(int source_node=node_begin; source_node < node_end; ++source_node){
 				thread_cpd[thread_id].append_row(source_node, thread_dij.run(source_node));
 				#pragma omp critical 
@@ -145,15 +146,14 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 	return state;
 }
 
-std::int16_t dx[] = {0, 0, 1, -1, 1, -1, 1, -1};
-std::int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, +1};
-
-void GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle)//, int &callCPD)
+double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle)//, int &callCPD)
 {
 	State*state = static_cast<State*>(data);
 	int current_source = state->mapper(s);
 	int current_target = state->mapper(t);
-
+  const int16_t* dx = warthog::dx;
+  const int16_t* dy = warthog::dy;
+  double cost = 0.0;
 	unsigned char move = state->cpd.get_first_move(current_source, current_target);
 
 	if(move != 0xF && current_source != current_target){
@@ -169,6 +169,7 @@ void GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jp
 			for(int i = 0; i < number_step_to_turn; i++){
 				s.x += dx[move];
 				s.y += dy[move];
+        cost += warthog::doublew[move];
 				current_source = state->mapper(s);
 				path.push_back(s);
 				if(current_source == current_target)
@@ -180,11 +181,16 @@ void GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jp
 //			callCPD++;
 
 			move = state->cpd.get_first_move(current_source, current_target);
+      // decode the heuristic move
+      if ((1 << move) == warthog::HMASK) {
+        move = Dijkstra::get_heuristic_move(current_source, current_target, state->mapper);
+      }
 			direction = (warthog::jps::direction)(1 << move);
 			number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
 
 		}
 	}
+  return cost;
 }
 
 

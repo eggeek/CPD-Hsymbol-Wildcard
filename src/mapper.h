@@ -5,6 +5,7 @@
 #include "list_graph.h"
 #include "Entry.h"
 #include "order.h"
+#include "constants.h"
 
 class Mapper{
 public:
@@ -66,10 +67,10 @@ private:
 
 inline
 ListGraph extract_graph(const Mapper&mapper){
-  std::int16_t dx[] = {0, 0, 1, -1, 1, -1, 1, -1};
-    std::int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, 1};
+  static const int16_t* dx = warthog::dx;
+  static const int16_t* dy = warthog::dy;
+  static const int* dw = warthog::dw;
 
-    int dw[] = {1000, 1000, 1000, 1000, 1414, 1414, 1414, 1414};
   ListGraph g(mapper.node_count());
   for(int u=0; u<mapper.node_count(); ++u){
     auto u_pos = mapper(u);

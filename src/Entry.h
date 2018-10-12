@@ -10,7 +10,7 @@ struct xyLoc {
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename);
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);
-void GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle);//, int &callCPD);
+double GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle);//, int &callCPD);
 const char *GetName();
 
 #endif

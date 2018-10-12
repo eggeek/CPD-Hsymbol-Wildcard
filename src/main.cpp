@@ -7,6 +7,7 @@
 #include "Entry.h"
 #include <iostream>
 #include "jpsp_oracle.h"
+#include "constants.h"
 #include <sys/stat.h>
 
 void LoadMap(const char *fname, std::vector<bool> &map, int &w, int &h);
@@ -270,18 +271,22 @@ int main(int argc, char **argv)
 		thePath.resize(0);
 		experimentStats.resize(x+1);
 		int callCPD = 0;
+    double dist = scen.GetNthExperiment(x).GetDistance();
 		xyLoc s, g;
 		s.x = scen.GetNthExperiment(x).GetStartX();
 		s.y = scen.GetNthExperiment(x).GetStartY();
 		g.x = scen.GetNthExperiment(x).GetGoalX();
 		g.y = scen.GetNthExperiment(x).GetGoalY();
 
-
 //		for(int i = 0; i < 100; i++){
 
 		t.StartTimer();
-			GetPath(reference, s, g, thePath, oracle);//, callCPD);
+			double plen = GetPath(reference, s, g, thePath, oracle);//, callCPD);
 		t.EndTimer();
+    if (fabs(dist - plen) > warthog::EPS) {
+      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, plen);
+      assert(false);
+    }
 //			tmp += t.GetElapsedTime();
 //			thePath.resize(0);
 //		}
@@ -334,130 +339,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-//	double totalTime = 0.0;
-//	double totalTime20Moves = 0.0;
-//	double totalTimeClass1 = 0.0;
-//	double totalTimeClass2 = 0.0;
-//	double totalTimeClass3 = 0.0;
-//	double totalTimeClass4 = 0.0;
-//	double totalTimeClass5 = 0.0;
-//	double totalTimeClass6 = 0.0;
-//
-//	double totalCall = 0.0;
-//	double totalCallClass1 = 0.0;
-//	double totalCallClass2 = 0.0;
-//	double totalCallClass3 = 0.0;
-//	double totalCallClass4 = 0.0;
-//	double totalCallClass5 = 0.0;
-//	double totalCallClass6 = 0.0;
 	std::ofstream csv_file;
 	csv_file.open (argv[4], std::ios::app);
 	for (unsigned int x = 0; x < experimentStats.size(); x++)
 	{
 		csv_file << filename << "#" << x << "#" << experimentStats[x].GetTotalTime()<< std::endl;
-
-//		printf("%s\ttotal-time\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
-//			   experimentStats[x].GetTotalTime(), experimentStats[x].Get20MoveTime(),
-//			   experimentStats[x].GetPathLength(),
-//			   experimentStats[x].GetPathLength() == scen.GetNthExperiment(x).GetDistance() ? 1.0 :
-//			   experimentStats[x].GetPathLength() / scen.GetNthExperiment(x).GetDistance()
-//		);
-//		if (experimentStats[x].path.size() == 0 ||
-//			(experimentStats[x].ValidatePath(width, height, mapData) &&
-//			 scen.GetNthExperiment(x).GetStartX() == experimentStats[x].path[0].x &&
-//			 scen.GetNthExperiment(x).GetStartY() == experimentStats[x].path[0].y &&
-//			 scen.GetNthExperiment(x).GetGoalX() == experimentStats[x].path.back().x &&
-//			 scen.GetNthExperiment(x).GetGoalY() == experimentStats[x].path.back().y))
-//		{
-//			printf("valid\n");
-//		}
-//		else {
-//			printf("invalid\n");
-//		}
-
-		//Time
-//		totalTime += experimentStats[x].GetTotalTime();
-//		totalTime20Moves += experimentStats[x].Get20MoveTime();
-//		totalTimeClass1 += experimentStats[x].GetTotalTimeByClass(1);
-//		totalTimeClass2 += experimentStats[x].GetTotalTimeByClass(2);
-//		totalTimeClass3 += experimentStats[x].GetTotalTimeByClass(3);
-//		totalTimeClass4 += experimentStats[x].GetTotalTimeByClass(4);
-//		totalTimeClass5 += experimentStats[x].GetTotalTimeByClass(5);
-//		totalTimeClass6 += experimentStats[x].GetTotalTimeByClass(6);
-//
-//		totalCall += experimentStats[x].GetTotalCall();
-//		totalCallClass1 += experimentStats[x].GetTotalCallByClass(1);
-//		totalCallClass2 += experimentStats[x].GetTotalCallByClass(2);
-//		totalCallClass3 += experimentStats[x].GetTotalCallByClass(3);
-//		totalCallClass4 += experimentStats[x].GetTotalCallByClass(4);
-//		totalCallClass5 += experimentStats[x].GetTotalCallByClass(5);
-//		totalCallClass6 += experimentStats[x].GetTotalCallByClass(6);
-
-
-//				for(int i = 0; i < experimentStats[x].path.size(); i++)
-//			printf("(%i, %i) ", experimentStats[x].path[i].x, experimentStats[x].path[i].y);
-//		printf("\n");
 	}
-//	if(countClass1 == 0) countClass1 = 1;
-//	if(countClass2 == 0) countClass2 = 1;
-//	if(countClass3 == 0) countClass3 = 1;
-//	if(countClass4 == 0) countClass4 = 1;
-//	if(countClass5 == 0) countClass5 = 1;
-//	if(countClass6 == 0) countClass6 = 1;
-//	if(countClass7 == 0) countClass7 = 1;
-//	if(countClass8 == 0) countClass8 = 1;
-//
-//	printf("Save data to csv: %s\n\n", argv[4]);
-//	int experiment_size = experimentStats.size();
-//
-//	std::ofstream csv_file;
-//	csv_file.open (argv[4], std::ios::app);
-//
-//	csv_file << filename << "#"
-//
-//			<< totalTime / experiment_size << "#"
-//			<< totalTimeClass1 / countClass1 << "#"
-//			<< totalTimeClass2 / countClass2 << "#"
-//			<< totalTimeClass3 / countClass3 << "#"
-//			<< totalTimeClass4 / countClass4 << "#"
-//			<< totalTimeClass5 / countClass5 << "#"
-//			<< totalTimeClass6 / countClass6
-
-//			<< totalTime20Moves / experiment_size
-
-//			<< totalCall / experiment_size << "#"
-//			<< totalCallClass1 / countClass1 << "#"
-//			<< totalCallClass2 / countClass2 << "#"
-//			<< totalCallClass3 / countClass3 << "#"
-//			<< totalCallClass4 / countClass4 << "#"
-//			<< totalCallClass5 / countClass5 << "#"
-//			<< totalCallClass6 / countClass6
-//
-//	<< std::endl;
 	csv_file.close();
-
-	string jpsFile = argv[2];
-	jpsFile += ".jps+";
-//	struct stat results;
-//	std::ofstream size_file;
-//
-//	size_file.open ("size.csv", std::ios::app);
-//
-//	size_file << filename;
-//
-//	if (stat(filename, &results) == 0)
-//		size_file << "#" << results.st_size;
-//	if (stat(jpsFile.c_str(), &results) == 0)
-//		size_file << "#" << results.st_size;
-//
-//	size_file << std::endl;
-//	size_file.close();
-
-
-	remove(filename);
-	remove(jpsFile.c_str());
-
-
 	return 0;
 }
 

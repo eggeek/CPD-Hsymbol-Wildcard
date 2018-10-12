@@ -7,11 +7,25 @@
 
 #include "adj_graph.h"
 #include "heap.h"
+#include "mapper.h"
+#include "constants.h"
 
 class Dijkstra{
 public:
-  Dijkstra(const AdjGraph&g):
-    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()){}
+  Dijkstra(const AdjGraph&g, const Mapper& mapper):
+    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), mapper(mapper){}
+
+  static int get_heuristic_move(int s, int t, const Mapper& mapper) {
+    xyLoc sloc = mapper(s);
+    xyLoc tloc = mapper(t);
+    int dx = sloc.x - tloc.x;
+    int dy = sloc.y - tloc.y;
+    if (dx < 0) dx = -1;
+    else dx = dx?1: 0;
+    if (dy < 0) dy = -1;
+    else dy = dy?1: 0;
+    return warthog::v2i[dx+1][dy+1];
+  }
 
   const std::vector<unsigned short>&run(int source_node){
     std::fill(dist.begin(), dist.end(), std::numeric_limits<int>::max());
@@ -19,6 +33,7 @@ public:
 
     dist[source_node] = 0;    
     allowed[source_node] = 0;
+    int cnth = 0;
 
     auto reach = [&](int v, int d, unsigned short first_move){
       if(d < dist[v]){
@@ -26,10 +41,17 @@ public:
         dist[v] = d;
         allowed[v] = first_move;
       }else if(d == dist[v]){
-        if((first_move & 16) || (first_move & 32) || (first_move & 64) || (first_move & 128)) {
-          allowed[v] = first_move;
-        }else{
-          allowed[v] |= first_move;
+        // previous
+        ///* my 
+        allowed[v] |= first_move;
+        //*/
+        int hmove = get_heuristic_move(source_node, v, mapper);
+        if (allowed[v] & (1 << hmove)) {
+          allowed[v] |= warthog::HMASK;
+          cnth++;
+        }
+        if (allowed[v] & warthog::DIAGs) {
+          allowed[v] &= warthog::ALLMOVE ^ warthog::NEWSs;
         }
       }
     };
@@ -42,10 +64,11 @@ public:
     while(!q.empty()){
       int x = q.pop();
 
-      for(auto a:g.out(x))
+      for(auto a:g.out(x)) 
         reach(a.target, dist[x] + a.weight, allowed[x]);
     }
 
+    printf("cnth: %d, ratio: %f\n", cnth, (double)cnth / (double)(mapper.node_count()));
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){
@@ -65,7 +88,7 @@ private:
   min_id_heap<int>q;
   std::vector<int>dist;
   std::vector<unsigned short>allowed;
-
+  const Mapper& mapper;
 };
 
 #endif

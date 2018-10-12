@@ -1,4 +1,5 @@
 #include "cpd.h"
+#include "constants.h"
 
 #include <fstream>
 #include <stdexcept>
@@ -18,9 +19,9 @@
 void CPD::append_row(int source_node, const std::vector<unsigned short>&allowed_first_move){
 	auto get_allowed = [&](int x){
 		if(x == source_node)
-			return (unsigned short)0x7FFF;
+			return warthog::ALLMOVE;
 		else if(allowed_first_move[x] == 0)
-			return (unsigned short)0x8000;
+			return warthog::NOMOVE;
 		else
 			return allowed_first_move[x];
 	};
