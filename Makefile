@@ -2,7 +2,7 @@ CXX = g++
 CFLAGS = -ldl -std=c++0x -Xpreprocessor -fopenmp -lomp -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE
 FAST_FLAGS = -O3 -DNDEBUG 
 DEV_FLAGS = -g -ggdb -O0 -fno-omit-frame-pointer
-DIRS = graph third_party utility
+DIRS = src third_party utility
 INCLUDES = $(addprefix -I,$(DIRS))
 SRC = $(foreach folder,$(DIRS),$(wildcard $(folder)/*.cpp))
 SRC += $(wildcard *.cpp)
