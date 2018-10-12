@@ -11,6 +11,7 @@
 //
 
 #include "jps.h"
+#include "constants.h"
 
 namespace warthog
 {

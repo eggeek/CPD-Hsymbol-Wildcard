@@ -11,8 +11,6 @@
 #include "order.h"
 #include "adj_graph.h"
 #include "dijkstra.h"
-#include "balanced_min_cut.h"
-#include "prefer_zero_cut.h"
 #include "constants.h"
 #include <cstdio>
 
@@ -38,11 +36,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 	printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
 	printf("Computing node order\n");
-	#ifndef USE_CUT_ORDER
 	NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
-	#else
-	NodeOrdering order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));	
-	#endif
 	mapper.reorder(order);
 
 
