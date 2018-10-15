@@ -7,14 +7,17 @@ INCLUDES = $(addprefix -I,$(DIRS))
 SRC = $(foreach folder,$(DIRS),$(wildcard $(folder)/*.cpp))
 SRC += $(wildcard *.cpp)
 OBJ = $(SRC:.cpp=.o)
+TARGET = src_jps_dfs
 
+all: ${OBJ} 
+	$(CXX) ${CFLAGS} ${INCLUDES} $(addprefix obj/,$(notdir $(OBJ))) -o bin/$(TARGET)
 
-src_jps_dfs: ${OBJ} 
-	$(CXX) ${CFLAGS} ${INCLUDES} $(addprefix obj/,$(notdir $(OBJ))) -o bin/$@ 
+fast: CFLAGS += $(FAST_FLAGS)
+dev: CFLAGS += $(DEV_FLAGS)
+fast dev: all
 
 %.o: %.cpp
 	$(CXX) $(CFLAGS) ${INCLUDES} -c $< -o obj/$(notdir $@)
-
 
 clean:
 	rm obj/*o bin/*
