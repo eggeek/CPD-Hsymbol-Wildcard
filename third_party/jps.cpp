@@ -29,56 +29,56 @@
 uint32_t
 warthog::jps::compute_forced(warthog::jps::direction d, uint32_t tiles)
 {
-	// NB: to avoid branching statements, shift operations are
-	// used below. The values of the shift constants correspond to 
-	// direction values. 
-	uint32_t ret = 0;
-	switch(d)
-	{
-		case warthog::jps::NORTH:
-			if((tiles & 65792) == 256)
-			{
-				ret |= (warthog::jps::WEST | warthog::jps::NORTHWEST);
-			}
-			if((tiles & 263168) == 1024)
-			{
-				ret |= (warthog::jps::EAST | warthog::jps::NORTHEAST);
-			}
-			break;
-		case warthog::jps::SOUTH:
-			if((tiles & 257) == 256) 
-			{
-				ret |= (warthog::jps::WEST | warthog::jps::SOUTHWEST);
-			}
-			if((tiles & 1028) == 1024)
-			{
-				ret |= (warthog::jps::EAST | warthog::jps::SOUTHEAST);
-			}
-			break;
-		case warthog::jps::EAST:
-			if((tiles & 3) == 2) 
-			{
-				ret |= (warthog::jps::NORTH | warthog::jps::NORTHEAST);
-			}
-			if((tiles & 196608) == 131072)
-			{
-				ret |= (warthog::jps::SOUTH | warthog::jps::SOUTHEAST);
-			}
-			break;
-		case warthog::jps::WEST:
-			if((tiles & 6) == 2)
-			{
-				ret |= (warthog::jps::NORTH | warthog::jps::NORTHWEST);
-			}
-			if((tiles & 393216) == 131072)
-			{
-				ret |= (warthog::jps::SOUTH | warthog::jps::SOUTHWEST);
-			}
-			break;
-		default:
-			break;
-	}
-	return ret;
+  // NB: to avoid branching statements, shift operations are
+  // used below. The values of the shift constants correspond to 
+  // direction values. 
+  uint32_t ret = 0;
+  switch(d)
+  {
+    case warthog::jps::NORTH:
+      if((tiles & 65792) == 256)
+      {
+        ret |= (warthog::jps::WEST | warthog::jps::NORTHWEST);
+      }
+      if((tiles & 263168) == 1024)
+      {
+        ret |= (warthog::jps::EAST | warthog::jps::NORTHEAST);
+      }
+      break;
+    case warthog::jps::SOUTH:
+      if((tiles & 257) == 256) 
+      {
+        ret |= (warthog::jps::WEST | warthog::jps::SOUTHWEST);
+      }
+      if((tiles & 1028) == 1024)
+      {
+        ret |= (warthog::jps::EAST | warthog::jps::SOUTHEAST);
+      }
+      break;
+    case warthog::jps::EAST:
+      if((tiles & 3) == 2) 
+      {
+        ret |= (warthog::jps::NORTH | warthog::jps::NORTHEAST);
+      }
+      if((tiles & 196608) == 131072)
+      {
+        ret |= (warthog::jps::SOUTH | warthog::jps::SOUTHEAST);
+      }
+      break;
+    case warthog::jps::WEST:
+      if((tiles & 6) == 2)
+      {
+        ret |= (warthog::jps::NORTH | warthog::jps::NORTHWEST);
+      }
+      if((tiles & 393216) == 131072)
+      {
+        ret |= (warthog::jps::SOUTH | warthog::jps::SOUTHWEST);
+      }
+      break;
+    default:
+      break;
+  }
+  return ret;
 }
 
 // Computes the natural neighbours of a node. 
@@ -97,54 +97,54 @@ warthog::jps::compute_forced(warthog::jps::direction d, uint32_t tiles)
 uint32_t 
 warthog::jps::compute_natural(warthog::jps::direction d, uint32_t tiles)
 {
-	// In the shift operations below the constant values
-	// correspond to bit offsets for warthog::jps::direction
-	uint32_t ret = 0;
-	switch(d)
-	{
-		case warthog::jps::NORTH:
-			ret |= ((tiles & 2) == 2) << 0;
-			break;
-		case warthog::jps::SOUTH:
-			ret |= ((tiles & 131072) == 131072) << 1;
-			break;
-		case warthog::jps::EAST: 
-			ret |= ((tiles & 1024) == 1024) << 2;
-			break;
-		case warthog::jps::WEST:
-			ret |= ((tiles & 256) == 256) << 3;
-			break;
-		case warthog::jps::NORTHWEST:
-			ret |= ((tiles & 2) == 2) << 0;
-			ret |= ((tiles & 256) == 256) << 3;
-			ret |= ((tiles & 259) == 259) << 5;
-			break;
-		case warthog::jps::NORTHEAST:
-			ret |= ((tiles & 2) == 2) << 0;
-			ret |= ((tiles & 1024) == 1024) << 2;
-			ret |= ((tiles & 1030) == 1030) << 4;
-			break;
-		case warthog::jps::SOUTHWEST:
-			ret |= ((tiles & 131072) == 131072) << 1;
-			ret |= ((tiles & 256) == 256) << 3;
-			ret |= ((tiles & 196864) == 196864) << 7;
-			break;
-		case warthog::jps::SOUTHEAST:
-			ret |= ((tiles & 131072) == 131072) << 1;
-			ret |= ((tiles & 1024) == 1024) << 2;
-			ret |= ((tiles & 394240) == 394240) << 6;
-			break;
-		default:
-			ret |= ((tiles & 2) == 2) << 0;
-			ret |= ((tiles & 131072) == 131072) << 1;
-			ret |= ((tiles & 1024) == 1024) << 2;
-			ret |= ((tiles & 256) == 256) << 3;
-			ret |= ((tiles & 259) == 259) << 5;
-			ret |= ((tiles & 1030) == 1030) << 4;
-			ret |= ((tiles & 196864) == 196864) << 7;
-			ret |= ((tiles & 394240) == 394240) << 6;
-			break;
-	}
-	return ret;
+  // In the shift operations below the constant values
+  // correspond to bit offsets for warthog::jps::direction
+  uint32_t ret = 0;
+  switch(d)
+  {
+    case warthog::jps::NORTH:
+      ret |= ((tiles & 2) == 2) << 0;
+      break;
+    case warthog::jps::SOUTH:
+      ret |= ((tiles & 131072) == 131072) << 1;
+      break;
+    case warthog::jps::EAST: 
+      ret |= ((tiles & 1024) == 1024) << 2;
+      break;
+    case warthog::jps::WEST:
+      ret |= ((tiles & 256) == 256) << 3;
+      break;
+    case warthog::jps::NORTHWEST:
+      ret |= ((tiles & 2) == 2) << 0;
+      ret |= ((tiles & 256) == 256) << 3;
+      ret |= ((tiles & 259) == 259) << 5;
+      break;
+    case warthog::jps::NORTHEAST:
+      ret |= ((tiles & 2) == 2) << 0;
+      ret |= ((tiles & 1024) == 1024) << 2;
+      ret |= ((tiles & 1030) == 1030) << 4;
+      break;
+    case warthog::jps::SOUTHWEST:
+      ret |= ((tiles & 131072) == 131072) << 1;
+      ret |= ((tiles & 256) == 256) << 3;
+      ret |= ((tiles & 196864) == 196864) << 7;
+      break;
+    case warthog::jps::SOUTHEAST:
+      ret |= ((tiles & 131072) == 131072) << 1;
+      ret |= ((tiles & 1024) == 1024) << 2;
+      ret |= ((tiles & 394240) == 394240) << 6;
+      break;
+    default:
+      ret |= ((tiles & 2) == 2) << 0;
+      ret |= ((tiles & 131072) == 131072) << 1;
+      ret |= ((tiles & 1024) == 1024) << 2;
+      ret |= ((tiles & 256) == 256) << 3;
+      ret |= ((tiles & 259) == 259) << 5;
+      ret |= ((tiles & 1030) == 1030) << 4;
+      ret |= ((tiles & 196864) == 196864) << 7;
+      ret |= ((tiles & 394240) == 394240) << 6;
+      break;
+  }
+  return ret;
 }
 

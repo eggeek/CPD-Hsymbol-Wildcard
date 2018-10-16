@@ -41,15 +41,14 @@ public:
         dist[v] = d;
         allowed[v] = first_move;
       }else if(d == dist[v]){
-        // previous
-        ///* my 
         allowed[v] |= first_move;
-        //*/
+        // add h symbol
         int hmove = get_heuristic_move(source_node, v, mapper);
         if (allowed[v] & (1 << hmove)) {
           allowed[v] |= warthog::HMASK;
           cnth++;
         }
+        // remove non-diagonal direction
         if (allowed[v] & warthog::DIAGs) {
           allowed[v] &= warthog::ALLMOVE ^ warthog::NEWSs;
         }

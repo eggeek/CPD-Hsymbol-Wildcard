@@ -18,7 +18,7 @@ using std::ofstream;
  */
 ScenarioLoader::ScenarioLoader(const char* fname)
 {
-	strncpy(scenName, fname, 1024);
+  strncpy(scenName, fname, 1024);
   ifstream sfile(fname,std::ios::in);
   
   float ver;
@@ -61,23 +61,23 @@ ScenarioLoader::ScenarioLoader(const char* fname)
 
 void ScenarioLoader::Save(const char *fname)
 {
-//	strncpy(scenName, fname, 1024);
-	ofstream ofile(fname);
-	
-	float ver = 1.0;
-	ofile<<"version "<<ver<<std::endl;
-	
-	
-	for (unsigned int x = 0; x < experiments.size(); x++)
-	{
-		ofile<<experiments[x].bucket<<"\t"<<experiments[x].map<<"\t"<<experiments[x].scaleX<<"\t";
-		ofile<<experiments[x].scaleY<<"\t"<<experiments[x].startx<<"\t"<<experiments[x].starty<<"\t";
-		ofile<<experiments[x].goalx<<"\t"<<experiments[x].goaly<<"\t"<<experiments[x].distance<<std::endl;
-	}
+//  strncpy(scenName, fname, 1024);
+  ofstream ofile(fname);
+  
+  float ver = 1.0;
+  ofile<<"version "<<ver<<std::endl;
+  
+  
+  for (unsigned int x = 0; x < experiments.size(); x++)
+  {
+    ofile<<experiments[x].bucket<<"\t"<<experiments[x].map<<"\t"<<experiments[x].scaleX<<"\t";
+    ofile<<experiments[x].scaleY<<"\t"<<experiments[x].startx<<"\t"<<experiments[x].starty<<"\t";
+    ofile<<experiments[x].goalx<<"\t"<<experiments[x].goaly<<"\t"<<experiments[x].distance<<std::endl;
+  }
 }
 
 void ScenarioLoader::AddExperiment(Experiment which)
 {
-	experiments.push_back(which);
+  experiments.push_back(which);
 }
 
