@@ -41,22 +41,6 @@ void CPD::append_row(int source_node, const std::vector<unsigned short>&allowed_
   entry.push_back((node_begin << 4) | find_first_allowed_out_arc(allowed_up_to_now));
 
   begin.push_back(entry.size());
-
-
-  #ifndef NDEBUG
-  int pos = 0;
-  const int node_count = allowed_first_move.size();
-  
-  for(int target_node = 0; target_node < node_count; ++target_node){
-    if(begin[source_node]+pos+1 != (int)begin[source_node+1] && entry[begin[source_node]+pos+1] <= ((target_node << 4) | 0xF)){
-      ++pos;
-    }
-
-    if(target_node != source_node && allowed_first_move[target_node] != 0){
-      assert(allowed_first_move[target_node] & (1<<(entry[begin[source_node]+pos] & 0xF)));
-    }
-  }
-  #endif
 }
 
 void CPD::append_rows(const CPD&other){
