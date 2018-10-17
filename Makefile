@@ -1,23 +1,37 @@
+MAKEFLAGS += -r
+PA_FOLDERS = src utility third_party test 
+PA_SRC = $(foreach folder,$(PA_FOLDERS),$(wildcard $(folder)/*.cpp))
+PA_OBJ = $(PA_SRC:.cpp=.o)
+PA_INCLUDES = $(addprefix -I,$(PA_FOLDERS))
+
+
 CXX = g++
-CFLAGS = -ldl -std=c++0x -Xpreprocessor -fopenmp -lomp -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE
-FAST_FLAGS = -O3 -DNDEBUG 
-DEV_FLAGS = -g -ggdb -O0 -fno-omit-frame-pointer
-DIRS = src third_party utility
-INCLUDES = $(addprefix -I,$(DIRS))
-SRC = $(foreach folder,$(DIRS),$(wildcard $(folder)/*.cpp))
-SRC += $(wildcard *.cpp)
-OBJ = $(SRC:.cpp=.o)
-TARGET = src_jps_dfs
+CXXFLAGS = -ldl -std=c++0x -Xpreprocessor -fopenmp -lomp -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE
+FAST_CXXFLAGS = -O3 -DNDEBUG 
+DEV_CXXFLAGS = -g -ggdb -O0 -fno-omit-frame-pointer
 
-all: ${OBJ} 
-	$(CXX) ${CFLAGS} ${INCLUDES} $(addprefix obj/,$(notdir $(OBJ))) -o bin/$(TARGET)
+TARGETS = test main 
+BIN_TARGETS = $(addprefix bin/,$(TARGETS))
 
-fast: CFLAGS += $(FAST_FLAGS)
-dev: CFLAGS += $(DEV_FLAGS)
+all: $(TARGETS)
+fast: CXXFLAGS += $(FAST_CXXFLAGS)
+dev: CXXFLAGS += $(DEV_CXXFLAGS)
 fast dev: all
 
-%.o: %.cpp
-	$(CXX) $(CFLAGS) ${INCLUDES} -c $< -o obj/$(notdir $@)
-
 clean:
-	rm obj/*o bin/*
+	rm -rf ./bin/*
+	rm -f $(PA_OBJ:.o=.d)
+	rm -f $(PA_OBJ)
+
+.PHONY: $(TARGETS)
+$(TARGETS): % : bin/%
+
+$(BIN_TARGETS): bin/%: %.cpp $(PA_OBJ)
+	@mkdir -p ./bin
+	$(CXX) $(CXXFLAGS) $(PA_INCLUDES) $(PA_OBJ) $(@:bin/%=%).cpp -o $(@)
+
+-include $(PA_OBJ:.o=.d)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(PA_INCLUDES) -MM -MP -MT $@ -MF ${@:.o=.d} $<
+	$(CXX) $(CXXFLAGS) $(PA_INCLUDES) $< -c -o $@
