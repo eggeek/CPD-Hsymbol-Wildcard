@@ -187,5 +187,27 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   return cost;
 }
 
-
-
+void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &height)
+{
+  FILE *f;
+  f = fopen(fname, "r");
+  if (f)
+    {
+    fscanf(f, "type octile\nheight %d\nwidth %d\nmap\n", &height, &width);
+    map.resize(height*width);
+    for (int y = 0; y < height; y++)
+    {
+      for (int x = 0; x < width; x++)
+      {
+        char c;
+        do {
+          fscanf(f, "%c", &c);
+        } while (isspace(c));
+        map[y*width+x] = (c == '.' || c == 'G' || c == 'S');
+        //printf("%c", c);
+      }
+      //printf("\n");
+    }
+    fclose(f);
+    }
+}
