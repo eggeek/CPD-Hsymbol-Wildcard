@@ -77,8 +77,11 @@ ListGraph extract_graph(const Mapper&mapper){
     for(int d = 0; d<8; ++d){
       xyLoc v_pos = {static_cast<std::int16_t>(u_pos.x + dx[d]), static_cast<std::int16_t>(u_pos.y + dy[d])};
       int v = mapper(v_pos);
-      if(v != -1 && mapper(xyLoc{u_pos.x, static_cast<std::int16_t>(u_pos.y+dy[d])}) != -1 &&  mapper(xyLoc{static_cast<std::int16_t>(u_pos.x+dx[d]), u_pos.y}) != -1)
+      xyLoc p1 = xyLoc{u_pos.x, static_cast<std::int16_t>(u_pos.y+dy[d])};
+      xyLoc p2 = xyLoc{static_cast<std::int16_t>(u_pos.x+dx[d]), u_pos.y};
+      if(v != -1 && mapper(p1) != -1 &&  mapper(p2) != -1) { // obstacle cut
         g.arc.push_back({u, v, dw[d], d});
+      }
     }
   }
   return g;

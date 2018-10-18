@@ -18,13 +18,14 @@ public:
   static int get_heuristic_move(int s, int t, const Mapper& mapper) {
     xyLoc sloc = mapper(s);
     xyLoc tloc = mapper(t);
-    int dx = sloc.x - tloc.x;
-    int dy = sloc.y - tloc.y;
+    int dx = tloc.x - sloc.x;
+    int dy = tloc.y - sloc.y;
     if (dx < 0) dx = -1;
     else dx = dx?1: 0;
     if (dy < 0) dy = -1;
     else dy = dy?1: 0;
-    return warthog::v2i[dx+1][dy+1];
+    int res = warthog::v2i[dx+1][dy+1];
+    return res;
   }
 
   const std::vector<unsigned short>&run(int source_node){
@@ -33,20 +34,23 @@ public:
 
     dist[source_node] = 0;    
     allowed[source_node] = 0;
-    int cnth = 0;
 
     auto reach = [&](int v, int d, unsigned short first_move){
       if(d < dist[v]){
         q.push_or_decrease_key(v, d);
         dist[v] = d;
-        allowed[v] = first_move;
-      }else if(d == dist[v]){
-        allowed[v] |= first_move;
+        allowed[v] = (first_move & warthog::OCTILE); // remove H from previous
         // add h symbol
         int hmove = get_heuristic_move(source_node, v, mapper);
         if (allowed[v] & (1 << hmove)) {
           allowed[v] |= warthog::HMASK;
-          cnth++;
+        }
+      }else if(d == dist[v]){
+        allowed[v] |= (first_move & warthog::OCTILE);
+        // add h symbol
+        int hmove = get_heuristic_move(source_node, v, mapper);
+        if (allowed[v] & (1 << hmove)) {
+          allowed[v] |= warthog::HMASK;
         }
         // remove non-diagonal direction
         if (allowed[v] & warthog::DIAGs) {
@@ -63,11 +67,10 @@ public:
     while(!q.empty()){
       int x = q.pop();
 
-      for(auto a:g.out(x)) 
+      for(auto a:g.out(x)) {
         reach(a.target, dist[x] + a.weight, allowed[x]);
+      }
     }
-
-    printf("cnth: %d, ratio: %f\n", cnth, (double)cnth / (double)(mapper.node_count()));
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){
@@ -75,7 +78,6 @@ public:
         assert(dist[u] >= dist[v] - uv.weight);
       }
     #endif
-
     return allowed;
   }
 
