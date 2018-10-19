@@ -149,9 +149,11 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
   unsigned char move = state->cpd.get_first_move(current_source, current_target);
+  if ((1 << move) == warthog::HMASK) {
+    move = Dijkstra::get_heuristic_move(current_source, current_target, state->mapper);
+  }
 
   if(move != 0xF && current_source != current_target){
-//    callCPD++;
     oracle.set_goal_location(t.x,t.y);
     warthog::jps::direction direction = (warthog::jps::direction)(1 << move);
     int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
@@ -172,7 +174,6 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
 
       if(current_source == current_target)
         break;
-//      callCPD++;
 
       move = state->cpd.get_first_move(current_source, current_target);
       // decode the heuristic move
@@ -204,9 +205,7 @@ void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &height)
           fscanf(f, "%c", &c);
         } while (isspace(c));
         map[y*width+x] = (c == '.' || c == 'G' || c == 'S');
-        //printf("%c", c);
       }
-      //printf("\n");
     }
     fclose(f);
     }
