@@ -20,8 +20,11 @@ TEST_CASE("ObsFree") {
   CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
+  int s = 0;
   int cnth = 0;
-  auto res = dij.run(0);
+  auto res = dij.run(s);
+  vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
   for (auto i: res) if (i & warthog::HMASK) cnth++;
   REQUIRE(cnth == mapper.node_count() - 1);
 }
@@ -34,10 +37,11 @@ TEST_CASE("OneObs") {
   CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
+  int s = 2;
   int cnth = 0;
-  auto res = dij.run(2);
+  auto res = dij.run(s);
   for (auto i: res) if (i & warthog::HMASK) cnth++;
-  vector<string> vis = Visualizer(mapData, mapper).to_strings(2, res);
+  vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
   REQUIRE(cnth == 13);
 }

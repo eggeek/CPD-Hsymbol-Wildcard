@@ -9,24 +9,14 @@
 #include "heap.h"
 #include "mapper.h"
 #include "constants.h"
+#include "Hsymbol.h"
+
+namespace H = Hsymbol;
 
 class Dijkstra{
 public:
   Dijkstra(const AdjGraph&g, const Mapper& mapper):
     g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), mapper(mapper){}
-
-  static int get_heuristic_move(int s, int t, const Mapper& mapper) {
-    xyLoc sloc = mapper(s);
-    xyLoc tloc = mapper(t);
-    int dx = tloc.x - sloc.x;
-    int dy = tloc.y - sloc.y;
-    if (dx < 0) dx = -1;
-    else dx = dx?1: 0;
-    if (dy < 0) dy = -1;
-    else dy = dy?1: 0;
-    int res = warthog::v2i[dx+1][dy+1];
-    return res;
-  }
 
   const std::vector<unsigned short>&run(int source_node){
     std::fill(dist.begin(), dist.end(), std::numeric_limits<int>::max());
@@ -39,19 +29,9 @@ public:
       if(d < dist[v]){
         q.push_or_decrease_key(v, d);
         dist[v] = d;
-        allowed[v] = (first_move & warthog::OCTILE); // remove H from previous
-        // add h symbol
-        int hmove = get_heuristic_move(source_node, v, mapper);
-        if (allowed[v] & (1 << hmove)) {
-          allowed[v] |= warthog::HMASK;
-        }
+        allowed[v] = first_move;
       }else if(d == dist[v]){
-        allowed[v] |= (first_move & warthog::OCTILE);
-        // add h symbol
-        int hmove = get_heuristic_move(source_node, v, mapper);
-        if (allowed[v] & (1 << hmove)) {
-          allowed[v] |= warthog::HMASK;
-        }
+        allowed[v] |= first_move;
         // remove non-diagonal direction
         if (allowed[v] & warthog::DIAGs) {
           allowed[v] &= warthog::ALLMOVE ^ warthog::STRAIGHTs;
@@ -71,6 +51,7 @@ public:
         reach(a.target, dist[x] + a.weight, allowed[x]);
       }
     }
+    H::encode(source_node, allowed, mapper);
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){

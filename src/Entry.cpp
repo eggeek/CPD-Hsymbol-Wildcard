@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <assert.h>
 #include "Entry.h"
-
 #include "Timer.h"
 #include "list_graph.h"
 #include "mapper.h"
@@ -15,7 +14,6 @@
 #include <cstdio>
 
 using namespace std;
-
 
 #ifdef USE_PARALLELISM
 #include <omp.h>
@@ -150,7 +148,7 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   double cost = 0.0;
   unsigned char move = state->cpd.get_first_move(current_source, current_target);
   if ((1 << move) == warthog::HMASK) {
-    move = Dijkstra::get_heuristic_move(current_source, current_target, state->mapper);
+    move = H::decode(current_source, current_target, state->mapper);
   }
 
   if(move != 0xF && current_source != current_target){
@@ -178,7 +176,7 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
       move = state->cpd.get_first_move(current_source, current_target);
       // decode the heuristic move
       if ((1 << move) == warthog::HMASK) {
-        move = Dijkstra::get_heuristic_move(current_source, current_target, state->mapper);
+        move = H::decode(current_source, current_target, state->mapper);
       }
       direction = (warthog::jps::direction)(1 << move);
       number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
