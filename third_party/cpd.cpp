@@ -7,7 +7,7 @@
 
 // compile with -O3 -DNDEBUG
 
-  static unsigned char find_first_allowed_out_arc(unsigned short allowed){
+static unsigned char find_first_allowed_out_arc(unsigned short allowed){
     assert(allowed != 0);
     for(int i=0; i<=0xF; ++i)
       if(allowed & (1u << i))

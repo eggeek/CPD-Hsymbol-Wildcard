@@ -54,7 +54,7 @@ public:
         }
         // remove non-diagonal direction
         if (allowed[v] & warthog::DIAGs) {
-          allowed[v] &= warthog::ALLMOVE ^ warthog::NEWSs;
+          allowed[v] &= warthog::ALLMOVE ^ warthog::STRAIGHTs;
         }
       }
     };

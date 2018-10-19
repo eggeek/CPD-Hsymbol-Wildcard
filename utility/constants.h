@@ -47,7 +47,7 @@ namespace warthog
 
   // cpd mask
   static const uint16_t DIAGs = 0x00F0; //16 + 32 + 64 + 128;
-  static const uint16_t NEWSs = 0x000F;
+  static const uint16_t STRAIGHTs = 0x000F;
   static const uint16_t ALLMOVE = 0x7FFF;
   static const uint16_t NOMOVE = 0x8000;
   static const uint16_t HMASK = 0x0100;
