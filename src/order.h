@@ -2,7 +2,6 @@
 #define ORDER_H
 #include "list_graph.h"
 #include "adj_array.h"
-#include "cut_utility.h"
 #include "vec_io.h"
 #include <cassert>
 #include <string>

@@ -7,11 +7,16 @@
 
 #include "adj_graph.h"
 #include "heap.h"
+#include "mapper.h"
+#include "constants.h"
+#include "Hsymbol.h"
+
+namespace H = Hsymbol;
 
 class Dijkstra{
 public:
-  Dijkstra(const AdjGraph&g):
-    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()){}
+  Dijkstra(const AdjGraph&g, const Mapper& mapper):
+    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), mapper(mapper){}
 
   const std::vector<unsigned short>&run(int source_node){
     std::fill(dist.begin(), dist.end(), std::numeric_limits<int>::max());
@@ -26,10 +31,10 @@ public:
         dist[v] = d;
         allowed[v] = first_move;
       }else if(d == dist[v]){
-        if((first_move & 16) || (first_move & 32) || (first_move & 64) || (first_move & 128)) {
-          allowed[v] = first_move;
-        }else{
-          allowed[v] |= first_move;
+        allowed[v] |= first_move;
+        // remove non-diagonal direction
+        if (allowed[v] & warthog::DIAGs) {
+          allowed[v] &= warthog::ALLMOVE ^ warthog::STRAIGHTs;
         }
       }
     };
@@ -42,10 +47,11 @@ public:
     while(!q.empty()){
       int x = q.pop();
 
-      for(auto a:g.out(x))
+      for(auto a:g.out(x)) {
         reach(a.target, dist[x] + a.weight, allowed[x]);
+      }
     }
-
+    H::encode(source_node, allowed, mapper);
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){
@@ -53,7 +59,6 @@ public:
         assert(dist[u] >= dist[v] - uv.weight);
       }
     #endif
-
     return allowed;
   }
 
@@ -65,7 +70,7 @@ private:
   min_id_heap<int>q;
   std::vector<int>dist;
   std::vector<unsigned short>allowed;
-
+  const Mapper& mapper;
 };
 
 #endif
