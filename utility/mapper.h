@@ -25,6 +25,7 @@ public:
         }else{
           pos_to_node_[x+y*width_] = -1;
         }
+    init_tiles();
   }
 
   int width()const{
@@ -60,10 +61,73 @@ public:
     }
     new_node_to_pos_.swap(node_to_pos_);
   }
+
+  static inline uint32_t str2tiles(const vector<string>& map) {
+    uint32_t tiles = 0;
+    for (int i=0; i<3; i++) {
+      for (int j=0; j<3; j++) if (map[i][j] != '#') {
+        tiles |= (1 << j) << (i * 8);
+      }
+    }
+    return tiles;
+  }
+
+  static inline vector<string> tiles2str(uint32_t tiles) {
+    vector<string> map = {
+      "...",
+      ".x.",
+      "..."
+    };
+    for (int i=0; i<3; i++, tiles >>= 8) {
+      for (int j=0; j<3; j++) {
+        if (tiles & (1 << j)) map[i][j] = '.';
+        else map[i][j] = '#';
+      }
+    }
+    map[1][1] = 'x';
+    return map;
+  }
+
+  static inline void set2direct(uint32_t moveset) {
+    if (moveset & warthog::jps::NORTH) cout << "north ";
+    if (moveset & warthog::jps::SOUTH) cout << "south ";
+    if (moveset & warthog::jps::EAST) cout << "east ";
+    if (moveset & warthog::jps::WEST) cout << "west ";
+    if (moveset & warthog::jps::NORTHEAST) cout << "northeast ";
+    if (moveset & warthog::jps::NORTHWEST) cout << "northwest ";
+    if (moveset & warthog::jps::SOUTHEAST) cout << "southeast ";
+    if (moveset & warthog::jps::SOUTHWEST) cout << "southwest ";
+    cout << endl;
+  }
+
+
 private:
   int width_, height_, node_count_;
   std::vector<int>pos_to_node_;
   std::vector<xyLoc>node_to_pos_;
+  vector<int> tiles;
+
+  void init_tiles() {
+    tiles.resize(node_count_);
+    for (int i=0; i<node_count_; i++) {
+      vector<string> data = {
+        "...",
+        ".x.",
+        "..."
+      };
+      xyLoc cur = this->operator()(i);
+      for(int j=0; j<8; j++) {
+        xyLoc neighbor = cur;
+        neighbor.x += warthog::dx[j];
+        neighbor.y += warthog::dy[j];
+        if (this->operator()(neighbor) != -1) {
+          data[1 + warthog::dy[j]][1 + warthog::dx[j]] = '.';
+        } else 
+          data[1 + warthog::dy[j]][1 + warthog::dx[j]] = '#';
+      } 
+      tiles[i] = str2tiles(data);
+    }
+  }
 };
 
 inline
@@ -90,42 +154,5 @@ ListGraph extract_graph(const Mapper&mapper){
 
 void dump_map(const Mapper&map, const char*file);
 
-inline uint32_t str2tiles(const vector<string>& map) {
-  uint32_t tiles = 0;
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) if (map[i][j] != '#') {
-      tiles |= (1 << j) << (i * 8);
-    }
-  }
-  return tiles;
-}
-
-inline vector<string> tiles2str(uint32_t tiles) {
-  vector<string> map = {
-    "...",
-    ".x.",
-    "..."
-  };
-  for (int i=0; i<3; i++, tiles >>= 8) {
-    for (int j=0; j<3; j++) {
-      if (tiles & (1 << j)) map[i][j] = '.';
-      else map[i][j] = '#';
-    }
-  }
-  map[1][1] = 'x';
-  return map;
-}
-
-inline void set2direct(uint32_t moveset) {
-  if (moveset & warthog::jps::NORTH) cout << "north ";
-  if (moveset & warthog::jps::SOUTH) cout << "south ";
-  if (moveset & warthog::jps::EAST) cout << "east ";
-  if (moveset & warthog::jps::WEST) cout << "west ";
-  if (moveset & warthog::jps::NORTHEAST) cout << "northeast ";
-  if (moveset & warthog::jps::NORTHWEST) cout << "northwest ";
-  if (moveset & warthog::jps::SOUTHEAST) cout << "southeast ";
-  if (moveset & warthog::jps::SOUTHWEST) cout << "southwest ";
-  cout << endl;
-}
 #endif
 
