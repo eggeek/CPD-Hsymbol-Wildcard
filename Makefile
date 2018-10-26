@@ -24,8 +24,10 @@ clean:
 	rm -f $(PA_OBJ)
 
 clear:
-	rm maps/*-RLE
-	rm maps/*.jps+
+	rm -f maps/*-RLE
+	rm -f maps/*.jps+
+	rm -f test/maps/*-RLE
+	rm -f test/maps/*.jps+
 
 .PHONY: $(TARGETS)
 $(TARGETS): % : bin/%

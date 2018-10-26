@@ -18,7 +18,6 @@ TEST_CASE("ObsFree") {
   file >> mpath;
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
-  CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
   int s = 0;
@@ -35,7 +34,6 @@ TEST_CASE("OneObs") {
   file >> mpath;
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
-  CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
   int s = 2;
@@ -53,82 +51,82 @@ TEST_CASE("canonical_succ") {
   tiles = 65792;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 263168;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 257;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 1028;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 3;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 196608;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 6;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 393216;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 2;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 131072;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 1024;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 256;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 259;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 1030;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 196864;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   tiles = 394240;
   printf("tiles: %d\n", tiles);
   printf("map:\n");
-  for (string i: Visualizer::tiles2str(tiles)) cout << i << endl;
+  for (string i: Mapper::tiles2str(tiles)) cout << i << endl;
 
   printf("Run test cases:\n");
   ifstream file("test/canonical_suc.in");
@@ -141,16 +139,39 @@ TEST_CASE("canonical_succ") {
     for (int j=0; j<3; j++) file >> map[j];
     file >> direct;
     file >> ans;
-    tiles = Visualizer::str2tiles(map);
+    tiles = Mapper::str2tiles(map);
     succ = warthog::jps::compute_successors((warthog::jps::direction)direct, tiles);
 
     printf("map:\n");
     for (string i: map) cout << i << endl;
     printf("tiles: %d\n", tiles);
-    printf("direction (%d): ", direct); Visualizer::set2direct(direct);
-    printf("succ (%d): ", succ); Visualizer::set2direct(succ);
+    printf("direction (%d): ", direct); Mapper::set2direct(direct);
+    printf("succ (%d): ", succ); Mapper::set2direct(succ);
     REQUIRE(succ == ans);
   }
+}
+
+TEST_CASE("canonical_dijk") {
+  mpath = "test/maps/oneobs.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 9, t = 10;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
+  REQUIRE(dij.get_directions(t) == 3);
+
+  s = 13, t = 2;
+  res = dij.run(s);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
+  REQUIRE(dij.get_directions(t) == 48);
 }
 
 int main(int argv, char* args[]) {
