@@ -28,6 +28,7 @@ public:
 
     dist[source_node] = 0;    
     allowed[source_node] = 0;
+    directions[source_node] = warthog::ALLMOVE;
 
     auto reach = [&](const OutArc& a, int d, unsigned short first_move){
       int v = a.target;

@@ -55,11 +55,14 @@ public:
       }
     }
     std::vector<xyLoc>new_node_to_pos_(node_count_);
+    std::vector<int> new_tiles(node_count_);
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];
+      new_tiles[new_node] = tiles[old_node];
     }
     new_node_to_pos_.swap(node_to_pos_);
+    new_tiles.swap(tiles);
   }
 
   static inline uint32_t str2tiles(const vector<string>& map) {
