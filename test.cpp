@@ -18,7 +18,6 @@ TEST_CASE("ObsFree") {
   file >> mpath;
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
-  CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
   int s = 0;
@@ -35,7 +34,6 @@ TEST_CASE("OneObs") {
   file >> mpath;
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
-  CPD cpd;
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
   int s = 2;
@@ -151,6 +149,29 @@ TEST_CASE("canonical_succ") {
     printf("succ (%d): ", succ); Mapper::set2direct(succ);
     REQUIRE(succ == ans);
   }
+}
+
+TEST_CASE("canonical_dijk") {
+  mpath = "test/maps/oneobs.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 9, t = 10;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
+  REQUIRE(dij.get_directions(t) == 3);
+
+  s = 13, t = 2;
+  res = dij.run(s);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
+  REQUIRE(dij.get_directions(t) == 48);
 }
 
 int main(int argv, char* args[]) {

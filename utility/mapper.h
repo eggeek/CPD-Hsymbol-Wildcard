@@ -100,6 +100,10 @@ public:
     cout << endl;
   }
 
+  int get_tiles(int x) const {
+    return this->tiles[x];
+  }
+
 
 private:
   int width_, height_, node_count_;
