@@ -45,6 +45,21 @@ TEST_CASE("OneObs") {
   REQUIRE(cnth == 13);
 }
 
+TEST_CASE("3Obs") {
+  mpath = "test/maps/3obs.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 21;
+  int cnth = 0;
+  auto res = dij.run(s);
+  for (auto i: res) if (i & warthog::HMASK) cnth++;
+  vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  REQUIRE(cnth == 13);
+}
+
 TEST_CASE("canonical_succ") {
   uint32_t tiles, succ;
   vector<string> map;
