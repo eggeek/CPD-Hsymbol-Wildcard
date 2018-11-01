@@ -13,6 +13,42 @@ string mpath;
 int height, width;
 vector<bool> mapData;
 
+bool LoadMap(ifstream& in, xyLoc& s, xyLoc& t) {
+  if (!(in >> height >> width)) return false;
+  mapData.resize(height * width);
+  for (int y=0; y<height; y++) {
+    string row;
+    in >> row;
+    for (int x=0; x<width; x++) {
+      mapData[y*width + x] = (row[x] != '#');
+      if (row[x] == 's') {
+        s.x = x;
+        s.y = y;
+      }
+      if (row[x] == 't') {
+        t.x = x;
+        t.y = y;
+      }
+    }
+  }
+  return true;
+}
+
+TEST_CASE("Hmove") {
+  ifstream file("./test/hmoves.in");
+  xyLoc s, t;
+  int expected;
+  while (LoadMap(file, s, t)) {
+    file >> expected;
+    cout << height << " " << width << endl;
+    Mapper mapper(mapData, width, height);
+    int hmove = Hsymbol::get_heuristic_move(mapper(s), mapper(t), mapper);
+    printf("expected (%d):", expected); Mapper::set2direct(expected);
+    printf("actual (%d):", (1<<hmove)); Mapper::set2direct((1<<hmove));
+    REQUIRE((1 << hmove) == expected);
+  } 
+}
+
 TEST_CASE("ObsFree") {
   ifstream file("test/ObsFree.in");
   file >> mpath;
@@ -57,7 +93,7 @@ TEST_CASE("3Obs") {
   for (auto i: res) if (i & warthog::HMASK) cnth++;
   vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
-  REQUIRE(cnth == 13);
+  REQUIRE(cnth == 29);
 }
 
 TEST_CASE("canonical_succ") {
