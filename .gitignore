@@ -7,3 +7,5 @@ obj/*
 *.aux
 *.pdf
 .DS_Store
+.idea*
+cmake-build*
