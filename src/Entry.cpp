@@ -138,7 +138,7 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
   return state;
 }
 
-double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle)//, int &callCPD)
+double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle, int limit)//, int &callCPD)
 {
   State*state = static_cast<State*>(data);
   int current_source = state->mapper(s);
@@ -167,6 +167,8 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
         current_source = state->mapper(s);
         path.push_back(s);
         if(current_source == current_target)
+          break;
+        if (limit != -1 && (int)path.size() >= limit)
           break;
       }
 

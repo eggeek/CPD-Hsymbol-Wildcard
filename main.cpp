@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <chrono>
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
     return 0;
   }
   if (argc >= 5) outfname = string(argv[4]);
-  else outfname = getMapName(filename) + ".out";
+  else outfname = "outputs/" + getMapName(filename) + ".txt";
 
 
   void *reference = PrepareForSearch(mapData, width, height, filename);
@@ -94,10 +95,10 @@ int main(int argc, char **argv)
 
   Timer t;
   std::vector<Stats> experimentStats;
-  for (int x = 0; x < scen.GetNumExperiments(); x++)
-    {
+  int total_exp = scen.GetNumExperiments();
+  experimentStats.resize(total_exp);
+  for (int x = 0; x < total_exp; x++) {
     thePath.resize(0);
-    experimentStats.resize(x+1);
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
     s.x = scen.GetNthExperiment(x).GetStartX();
@@ -105,22 +106,30 @@ int main(int argc, char **argv)
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
 
-    t.StartTimer();
+    auto stime = std::chrono::steady_clock::now();
       double pcost = GetPath(reference, s, g, thePath, oracle);
-    t.EndTimer();
+    auto etime = std::chrono::steady_clock::now();
+
+    experimentStats[x].time = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+    experimentStats[x].cost = pcost;
+    for (auto i : thePath)
+      experimentStats[x].path.push_back(i);
+
+    thePath.resize(0);
+    stime = std::chrono::steady_clock::now();
+      GetPath(reference, s, g, thePath, oracle, 20);
+    etime = std::chrono::steady_clock::now();
+
+    experimentStats[x].twentyMoveTime = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+
     if (fabs(dist - pcost) > warthog::EPS) {
       printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, pcost);
       assert(false);
     }
-    experimentStats[x].time = t.GetElapsedTime();
-    experimentStats[x].cost = pcost;
-    experimentStats[x].twentyMoveTime = 0;
-    for (auto i : thePath)
-      experimentStats[x].path.push_back(i);
   }
 
   std::ofstream out;
-  string header = "map,scenid,time_total,time_20move,path_size,distance";
+  string header = "map,scenid,time_total,time_20move,distance,path_size";
   out.open (outfname.c_str(), std::ios::app);
   out << header << std::endl;
   string mapname = getMapName(string(filename));
