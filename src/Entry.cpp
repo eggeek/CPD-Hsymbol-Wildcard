@@ -146,14 +146,14 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
-  unsigned char move = state->cpd.get_first_move(current_source, current_target);
+  int move = state->cpd.get_first_move(current_source, current_target);
   if ((1 << move) == warthog::HMASK) {
     move = H::decode(current_source, current_target, state->mapper);
   }
 
   if(move != 0xF && current_source != current_target){
     oracle.set_goal_location(t.x,t.y);
-    warthog::jps::direction direction = (warthog::jps::direction)(1 << move);
+    auto direction = (warthog::jps::direction)(1 << move);
     int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
 
     path.push_back(s);
