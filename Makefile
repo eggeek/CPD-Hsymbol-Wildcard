@@ -25,7 +25,6 @@ clean:
 
 clear:
 	find . -name '*.jps+' -delete
-	find . -name '*-RLE' -delete
 
 .PHONY: $(TARGETS)
 $(TARGETS): % : bin/%

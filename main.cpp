@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <unistd.h>
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
   }
   
   LoadMap(argv[2], mapData, width, height);
-  sprintf(filename, "%s-%s", argv[2], GetName());
+  sprintf(filename, "./index_data/%s.map-%s", getMapName(string(argv[2])).c_str(), GetName());
 
   if (pre)
   {
@@ -109,6 +110,7 @@ int main(int argc, char **argv)
     auto stime = std::chrono::steady_clock::now();
       double pcost = GetPath(reference, s, g, thePath, oracle);
     auto etime = std::chrono::steady_clock::now();
+    usleep(1000);
 
     experimentStats[x].time = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
     experimentStats[x].cost = pcost;
@@ -119,6 +121,7 @@ int main(int argc, char **argv)
     stime = std::chrono::steady_clock::now();
       GetPath(reference, s, g, thePath, oracle, 20);
     etime = std::chrono::steady_clock::now();
+    usleep(1000);
 
     experimentStats[x].twentyMoveTime = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
 
