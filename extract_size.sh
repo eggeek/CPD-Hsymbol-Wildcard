@@ -1,8 +1,10 @@
 #!/bin/bash
-header="map,bytes"
+header="map,hLevel,bytes"
 echo $header
-for i in `find . -name "*-RLE"`; do
+for i in `find . -name "*-RLE-*"`; do
   map=$(basename ${i%.*})
+  hlevel="${i: -1}"
   size=$(du -b $i | awk '{print $1}')
-  echo $map,$size
+  row="$map,$hlevel,$size"
+  echo $row
 done;

@@ -28,7 +28,7 @@ const char *GetName()
   #endif
 }
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename)
+void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel=1)
 {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
@@ -38,7 +38,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
   mapper.reorder(order);
 
 
-  printf("Computing first-move matrix\n");
+  printf("Computing first-move matrix, hLevel: %d\n", hLevel);
 
   CPD cpd;
   {
@@ -59,7 +59,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       if(source_node % (g.node_count()/10) == 0)
         printf("%d of %d done\n", source_node, g.node_count());
 
-      const auto&allowed = dij.run(source_node);
+      const auto&allowed = dij.run(source_node, hLevel);
       cpd.append_row(source_node, allowed);
     }
     #else
@@ -80,7 +80,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       AdjGraph thread_adj_g(g);
       Dijkstra thread_dij(thread_adj_g, mapper);
       for(int source_node=node_begin; source_node < node_end; ++source_node){
-        thread_cpd[thread_id].append_row(source_node, thread_dij.run(source_node));
+        thread_cpd[thread_id].append_row(source_node, thread_dij.run(source_node, hLevel));
         #pragma omp critical 
         {
           ++progress;
