@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include "Entry.h"
-#include "Timer.h"
+#include "timer.h"
 #include "list_graph.h"
 #include "mapper.h"
 #include "cpd.h"
@@ -46,11 +46,11 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
     
     {
       Dijkstra dij(g, mapper);
-      Timer t;
-      t.StartTimer();
+      warthog::timer t;
+      t.start();
       dij.run(0);
-      t.EndTimer();
-      printf("Estimated sequential running time : %dmin\n", static_cast<int>(t.GetElapsedTime()*g.node_count()/60.0));
+      t.stop();
+      printf("Estimated sequential running time : %dmin\n", static_cast<int>(t.elapsed_time_micro()*g.node_count()/60000.0));
     }
 
     #ifndef USE_PARALLELISM
@@ -136,6 +136,34 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 
 
   return state;
+}
+
+double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int limit) {
+  State* state = static_cast<State*>(data);
+  int current_source = state->mapper(s);
+  int current_target = state->mapper(t);
+  const int16_t* dx = warthog::dx;
+  const int16_t* dy = warthog::dy;
+  double cost = 0.0;
+  int steps = 0;
+  oracle.set_goal_location(t.x, t.y);
+  while (current_source != current_target) {
+    int move = state->cpd.get_first_move(current_source, current_target);
+    if ((1 << move) == warthog::HMASK) {
+      move = H::decode(current_source, current_target, state->mapper);
+    }
+    auto direction = (warthog::jps::direction)(1 << move);
+    int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
+    steps += number_step_to_turn;
+    if (limit != -1 && limit <= steps)
+      break;
+    cost += warthog::doublew[move] * number_step_to_turn;
+
+    s.x += dx[move] * number_step_to_turn;
+    s.y += dy[move] * number_step_to_turn;
+    current_source = state->mapper(s);
+  }
+  return cost;
 }
 
 double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle, int limit)//, int &callCPD)

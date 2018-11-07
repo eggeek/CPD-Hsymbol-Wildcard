@@ -1,107 +1,87 @@
-/*
- * $Id: timer.cpp,v 1.6 2006/11/30 20:33:25 nathanst Exp $
- *
- * timer.cpp
- * HOG file
- * 
- * Written by Renee Jansen on 08/28/06
- *
- * This file is part of HOG.
- *
- * HOG is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- * 
- * HOG is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with HOG; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+#include <stdio.h>
+#include "timer.h"
 
-//#include "UnitSimulation.h"
-#include "Timer.h"
-#include <stdint.h>
-#include <cstring>
-
-Timer::Timer()
+warthog::timer::timer()
 {
-  elapsedTime = 0;
+
+#ifdef OS_MAC
+    start_time = stop_time = 0;
+    mach_timebase_info(&timebase);
+
+#else
+    start_time.tv_sec = 0;
+    start_time.tv_nsec = 0;
+    stop_time.tv_sec = 0;
+    stop_time.tv_nsec = 0;
+#endif
+
 }
 
-void Timer::StartTimer()
+double
+warthog::timer::get_time_nano()
 {
 #ifdef OS_MAC
-  startTime = UpTime();
-#elif defined( TIMER_USE_CYCLE_COUNTER )
-  CycleCounter c;
-  startTime = c.count();
+    uint64_t raw_time = mach_absolute_time();
+    return (double)(raw_time * timebase.numer / timebase.denom);
 #else
-  gettimeofday( &startTime, NULL );
+    timespec raw_time;
+    clock_gettime(CLOCK_MONOTONIC , &raw_time);
+    return (double)(raw_time.tv_nsec);
 #endif
 }
 
-#ifdef linux
-
-float Timer::getCPUSpeed()
-{
-  FILE *f;
-
-  static float answer = -1;
-  
-  if (answer != -1)
-    return answer;
-  
-  f = fopen("/proc/cpuinfo", "r");
-  if (f)
-  {
-    while (!feof(f))
-    {
-      char entry[1024];
-      char temp[1024];
-      fgets(entry, 1024, f);
-      if (strstr(entry, "cpu MHz"))
-      {
-        //                              cpu MHz         : 997.399
-        float answer;
-        sscanf(entry, "%[^0-9:] : %f", temp, &answer);
-        //printf("Read CPU speed: %1.2f\n", answer);
-        fclose(f);
-        return answer;
-      }
-    }
-    fclose(f);
-  }
-  return 0;
-}
-
-#endif
-
-double Timer::EndTimer()
+void warthog::timer::start()
 {
 #ifdef OS_MAC
-  AbsoluteTime stopTime = UpTime();
-  Nanoseconds diff = AbsoluteDeltaToNanoseconds(stopTime, startTime);
-  uint64_t nanosecs = UnsignedWideToUInt64(diff);
-  //cout << nanosecs << " ns elapsed (" << (double)nanosecs/1000000.0 << " ms)" << endl;
-  return elapsedTime = (double)(nanosecs/1000000000.0);
-#elif defined( TIMER_USE_CYCLE_COUNTER )
-  Timer::CycleCounter c;
-  double diffTime = (double)(c.count() - startTime);
-  const static double ClocksPerSecond = getCPUSpeed() * 1000000.0;
-  elapsedTime = diffTime / ClocksPerSecond;
-  return elapsedTime;
+    start_time = mach_absolute_time();
+    stop_time = start_time;
 #else
-  struct timeval stopTime;
-  
-  gettimeofday( &stopTime, NULL );
-  uint64_t microsecs = stopTime.tv_sec - startTime.tv_sec;
-  microsecs = microsecs * 1000000 + stopTime.tv_usec - startTime.tv_usec;
-  elapsedTime = (double)microsecs / 1000000.0;
-  return elapsedTime;
+    clock_gettime(CLOCK_MONOTONIC , &start_time);
+    stop_time = start_time;
 #endif
 }
+
+void warthog::timer::stop()
+{
+#ifdef OS_MAC
+    stop_time = mach_absolute_time();
+#else
+    clock_gettime(CLOCK_MONOTONIC , &stop_time);
+#endif
+}
+
+
+double warthog::timer::elapsed_time_nano()
+{
+#ifdef OS_MAC
+    uint64_t elapsed_time = stop_time - start_time;
+    return (double)(elapsed_time * timebase.numer / timebase.denom);
+    //Nanoseconds nanosecs = AbsoluteToNanoseconds(*(AbsoluteTime*)&elapsed_time);
+    //return (double) UnsignedWideToUInt64(nanosecs) ;
+
+#else
+    if ((stop_time.tv_nsec-start_time.tv_nsec)<0)
+        return (double)(1000000000+stop_time.tv_nsec-start_time.tv_nsec);
+    else
+        return (double)(stop_time.tv_nsec - start_time.tv_nsec);
+#endif
+}
+
+void warthog::timer::reset()
+{
+#ifdef OS_MAC
+    start_time = stop_time = 0;
+#else
+    start_time.tv_sec = 0;
+    start_time.tv_nsec = 0;
+    stop_time.tv_sec = 0;
+    stop_time.tv_nsec = 0;
+#endif
+}
+
+double
+warthog::timer::elapsed_time_micro()
+{
+    return elapsed_time_nano() / 1000.0;
+}
+
