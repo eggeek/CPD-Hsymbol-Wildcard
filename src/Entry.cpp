@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include "Entry.h"
-#include "Timer.h"
+#include "timer.h"
 #include "list_graph.h"
 #include "mapper.h"
 #include "cpd.h"
@@ -28,7 +28,7 @@ const char *GetName()
   #endif
 }
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename)
+void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel=1)
 {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
@@ -38,7 +38,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
   mapper.reorder(order);
 
 
-  printf("Computing first-move matrix\n");
+  printf("Computing first-move matrix, hLevel: %d\n", hLevel);
 
   CPD cpd;
   {
@@ -46,11 +46,11 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
     
     {
       Dijkstra dij(g, mapper);
-      Timer t;
-      t.StartTimer();
+      warthog::timer t;
+      t.start();
       dij.run(0);
-      t.EndTimer();
-      printf("Estimated sequential running time : %dmin\n", static_cast<int>(t.GetElapsedTime()*g.node_count()/60.0));
+      t.stop();
+      printf("Estimated sequential running time : %dmin\n", static_cast<int>(t.elapsed_time_micro()*g.node_count()/60000.0));
     }
 
     #ifndef USE_PARALLELISM
@@ -59,7 +59,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       if(source_node % (g.node_count()/10) == 0)
         printf("%d of %d done\n", source_node, g.node_count());
 
-      const auto&allowed = dij.run(source_node);
+      const auto&allowed = dij.run(source_node, hLevel);
       cpd.append_row(source_node, allowed);
     }
     #else
@@ -80,7 +80,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       AdjGraph thread_adj_g(g);
       Dijkstra thread_dij(thread_adj_g, mapper);
       for(int source_node=node_begin; source_node < node_end; ++source_node){
-        thread_cpd[thread_id].append_row(source_node, thread_dij.run(source_node));
+        thread_cpd[thread_id].append_row(source_node, thread_dij.run(source_node, hLevel));
         #pragma omp critical 
         {
           ++progress;
@@ -138,7 +138,35 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
   return state;
 }
 
-double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle)//, int &callCPD)
+double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int limit) {
+  State* state = static_cast<State*>(data);
+  int current_source = state->mapper(s);
+  int current_target = state->mapper(t);
+  const int16_t* dx = warthog::dx;
+  const int16_t* dy = warthog::dy;
+  double cost = 0.0;
+  int steps = 0;
+  oracle.set_goal_location(t.x, t.y);
+  while (current_source != current_target) {
+    int move = state->cpd.get_first_move(current_source, current_target);
+    if ((1 << move) == warthog::HMASK) {
+      move = H::decode(current_source, current_target, state->mapper);
+    }
+    auto direction = (warthog::jps::direction)(1 << move);
+    int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
+    steps += number_step_to_turn;
+    if (limit != -1 && limit <= steps)
+      break;
+    cost += warthog::doublew[move] * number_step_to_turn;
+
+    s.x += dx[move] * number_step_to_turn;
+    s.y += dy[move] * number_step_to_turn;
+    current_source = state->mapper(s);
+  }
+  return cost;
+}
+
+double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle, int limit)//, int &callCPD)
 {
   State*state = static_cast<State*>(data);
   int current_source = state->mapper(s);
@@ -146,14 +174,14 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
-  unsigned char move = state->cpd.get_first_move(current_source, current_target);
+  int move = state->cpd.get_first_move(current_source, current_target);
   if ((1 << move) == warthog::HMASK) {
     move = H::decode(current_source, current_target, state->mapper);
   }
 
   if(move != 0xF && current_source != current_target){
     oracle.set_goal_location(t.x,t.y);
-    warthog::jps::direction direction = (warthog::jps::direction)(1 << move);
+    auto direction = (warthog::jps::direction)(1 << move);
     int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
 
     path.push_back(s);
@@ -167,6 +195,8 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
         current_source = state->mapper(s);
         path.push_back(s);
         if(current_source == current_target)
+          break;
+        if (limit != -1 && (int)path.size() >= limit)
           break;
       }
 

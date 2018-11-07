@@ -60,7 +60,7 @@ namespace warthog
   static const double doublew[] = {1.0, 1.0, 1.0, 1.0, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO};
   static const int v2i[3][3] = {
     {5, 3, 7},
-    {0, -1, 1},
+    {0, 8, 1},
     {4, 2, 6}
   };
 }

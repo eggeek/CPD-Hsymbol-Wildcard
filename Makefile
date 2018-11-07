@@ -6,7 +6,7 @@ PA_INCLUDES = $(addprefix -I,$(PA_FOLDERS))
 
 
 CXX = g++
-CXXFLAGS = -ldl -std=c++0x -Xpreprocessor -fopenmp -lomp -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE
+CXXFLAGS = -std=c++0x -Xpreprocessor -fopenmp -lomp -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE
 FAST_CXXFLAGS = -O3 -DNDEBUG 
 DEV_CXXFLAGS = -g -ggdb -O0 -fno-omit-frame-pointer
 
@@ -24,10 +24,7 @@ clean:
 	rm -f $(PA_OBJ)
 
 clear:
-	rm -f maps/*-RLE
-	rm -f maps/*.jps+
-	rm -f test/maps/*-RLE
-	rm -f test/maps/*.jps+
+	find . -name '*.jps+' -delete
 
 .PHONY: $(TARGETS)
 $(TARGETS): % : bin/%

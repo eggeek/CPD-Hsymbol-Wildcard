@@ -8,9 +8,10 @@ struct xyLoc {
   int16_t y;
 };
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename);
+void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);
-double GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle);//, int &callCPD);
+double GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle, int limit=-1);//, int &callCPD);
+double GetPathCost(void *data, xyLoc s, xyLoc g, warthog::jpsp_oracle& oracle, int limit=-1);
 const char *GetName();
 void LoadMap(const char *fname, std::vector<bool> &map, int &w, int &h);
 
