@@ -94,7 +94,7 @@ void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<S
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
     //t.start();
-    //  double pathcost = GetPathCostSRC(ref, s, g);
+    // GetPathCostSRC(ref, s, g, 20);
     //t.stop();
     //double tcost = t.elapsed_time_nano();
     exps[x].srcTime20moves.push_back(tcost);
@@ -228,6 +228,8 @@ int main(int argc, char **argv) {
   for (int i=0; i<repeat; i++) {
     GetExperimentsTime(reference, oracle, scen, experimentStats);
     GetExperimentsTime20Moves(reference, oracle, scen, experimentStats);
+    GetExperimentsSRCTime(reference, scen, experimentStats);
+    GetExperimentsSRCTime20Moves(reference, scen, experimentStats);
     GetExperimentsPath(reference, oracle, scen, experimentStats);
   }
 
