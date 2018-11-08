@@ -1,0 +1,6 @@
+*.d
+*.o
+*.log
+*.aux
+*.pdf
+.DS_Store
