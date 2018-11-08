@@ -7,15 +7,17 @@
 #include <chrono>
 #include <unistd.h>
 #include "ScenarioLoader.h"
-#include "timer.h"
 #include "Entry.h"
 #include "jpsp_oracle.h"
 #include "constants.h"
+#include "timer.h"
 
 class Stats {
 public:
   std::vector<double> time = std::vector<double>(3);
   std::vector<double> time20moves = std::vector<double>(3);
+  std::vector<double> srcTime = std::vector<double>(3);
+  std::vector<double> srcTime20moves = std::vector<double>(3);
   double pathcost;
   std::vector<xyLoc> path;
 
@@ -23,9 +25,13 @@ public:
     std::ostringstream res;
     sort(time.begin(), time.end());
     sort(time20moves.begin(), time20moves.end());
+    sort(srcTime.begin(), srcTime.end());
+    sort(srcTime20moves.begin(), srcTime20moves.end());
     // get the mean
     res << time[time.size() / 2] << ",";
     res << time20moves[time20moves.size() / 2] << ",";
+    res << srcTime[srcTime.size() / 2] << ",";
+    res << srcTime20moves[srcTime20moves.size() / 2] << ",";
     res << pathcost << "," << path.size();
     return res.str();
   }
@@ -49,6 +55,53 @@ void argHelp(char **argv) {
   printf("\t\t1: H symbol with basic heuristic function\n");
   printf("\t\t2: H symbol with improved heuristic function\n");
 }
+
+void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps) {
+  warthog::timer t;
+  for (int x=0; x<scen.GetNumExperiments(); x++) {
+    double dist = scen.GetNthExperiment(x).GetDistance();
+    xyLoc s, g;
+    s.x = scen.GetNthExperiment(x).GetStartX();
+    s.y = scen.GetNthExperiment(x).GetStartY();
+    g.x = scen.GetNthExperiment(x).GetGoalX();
+    g.y = scen.GetNthExperiment(x).GetGoalY();
+    auto stime = std::chrono::steady_clock::now();
+      double pathcost = GetPathCostSRC(ref, s, g);
+    auto etime = std::chrono::steady_clock::now();
+    double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+    //t.start();
+    //  double pathcost = GetPathCostSRC(ref, s, g);
+    //t.stop();
+    //double tcost = t.elapsed_time_nano();
+    exps[x].srcTime.push_back(tcost);
+    if (fabs(pathcost - dist) > warthog::EPS) {
+      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, pathcost);
+      assert(false);
+    }
+  }
+}
+
+void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps) {
+  warthog::timer t;
+  for (int x=0; x<scen.GetNumExperiments(); x++) {
+    xyLoc s, g;
+    s.x = scen.GetNthExperiment(x).GetStartX();
+    s.y = scen.GetNthExperiment(x).GetStartY();
+    g.x = scen.GetNthExperiment(x).GetGoalX();
+    g.y = scen.GetNthExperiment(x).GetGoalY();
+    auto stime = std::chrono::steady_clock::now();
+      GetPathCostSRC(ref, s, g, 20);
+    auto etime = std::chrono::steady_clock::now();
+    double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+    //t.start();
+    //  double pathcost = GetPathCostSRC(ref, s, g);
+    //t.stop();
+    //double tcost = t.elapsed_time_nano();
+    exps[x].srcTime20moves.push_back(tcost);
+  }
+}
+
+
 
 void GetExperimentsTime(void* ref, warthog::jpsp_oracle& oracle,
     ScenarioLoader& scen, std::vector<Stats>& exps) {
@@ -179,7 +232,7 @@ int main(int argc, char **argv) {
   }
 
   std::ofstream out;
-  string header = "map,scenid,total,20move,distance,path_size,hLevel";
+  string header = "map,scenid,total,20move,total-src,20move-src,distance,path_size,hLevel";
   out.open (outfname.c_str(), std::ios::app);
   out << header << std::endl;
   string mapname = getMapName(string(filename));

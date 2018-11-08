@@ -138,6 +138,30 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
   return state;
 }
 
+double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int limit) {
+  State* state = static_cast<State*>(data);
+  int current_source = state->mapper(s);
+  int current_target = state->mapper(t);
+  const int16_t* dx = warthog::dx;
+  const int16_t* dy = warthog::dy;
+  double cost = 0.0;
+  int steps = 0;
+  while (current_source != current_target) {
+    int move = state->cpd.get_first_move(current_source, current_target);
+    if ((1 << move) == warthog::HMASK) {
+      move = H::decode(current_source, current_target, state->mapper);
+    }
+    cost += warthog::doublew[move];
+    s.x += dx[move];
+    s.y += dy[move];
+    steps ++;
+    if (limit != -1 && limit <= steps)
+      break;
+    current_source = state->mapper(s);
+  }
+  return cost;
+}
+
 double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int limit) {
   State* state = static_cast<State*>(data);
   int current_source = state->mapper(s);
