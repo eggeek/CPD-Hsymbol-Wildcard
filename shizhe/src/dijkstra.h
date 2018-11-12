@@ -21,7 +21,7 @@ public:
     g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), mapper(mapper),
     directions(g.node_count()) {}
 
-  const std::vector<unsigned short>&run(int source_node, int hLevel=1){
+  const std::vector<unsigned short>&run(int source_node, int hLevel){
     std::fill(dist.begin(), dist.end(), std::numeric_limits<int>::max());
     std::fill(allowed.begin(), allowed.end(), 0);
     fill(directions.begin(), directions.end(), 0);
@@ -64,7 +64,7 @@ public:
       }
     }
     if (hLevel)
-      H::encode(source_node, allowed, mapper);
+      H::encode(source_node, allowed, mapper, hLevel);
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){
