@@ -1,0 +1,128 @@
+\documentclass[letterpaper]{article}
+% Required Packages
+\usepackage{aaai17}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{latexsym}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb,amsthm}
+%\usepackage{algorithm}
+%\usepackage[noend]{algorithmic}
+\usepackage{tikz}
+\usepackage{tabularx,colortbl}
+\usepackage{comment}
+\usepackage{subcaption}
+%\setlength{\pdfpagewidth}{8.5in}
+%\setlength{\pdfpageheight}{11in}
+%%%%%%%%%%
+% PDFINFO for PDFL A TEX
+% Uncomment and complete the following for metadata
+%(your paper must compile with PDFL A TEX)
+
+\usepackage{kbordermatrix}% http://www.hss.caltech.edu/~kcb/LaTeX.shtml
+\usetikzlibrary{arrows,automata}
+
+\usepackage{bm}
+
+%\renewcommand{\dbltopfraction}{0.95}     % fit big float above 2-col. text
+%\renewcommand{\textfraction}{0.05}      % allow minimal text w. figs
+%%   Parameters for FLOAT pages (not text pages):
+%\renewcommand{\floatpagefraction}{0.95}  % require fuller float pages
+%% N.B.: floatpagefraction MUST be less than topfraction !!
+%\renewcommand{\dblfloatpagefraction}{0.95}       % require fuller float pages
+
+\newtheorem{theorem}{Theorem} %[section]
+\newtheorem{lemma}{Lemma} %[section]
+\newtheorem{cor}{Corollary} %[section]
+\newtheorem{prop}{Proposition} %[section]
+%{\theorembodyfont{\rmfamily}\newtheorem{example}{Example}} %[section]
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{conjecture}{Conjecture}
+%\newcommand{\proof}{\noindent\textbf{Proof:}}
+
+
+%%%%---- start of Vadim's packages and macros ------
+\usepackage{mathtools}
+\usepackage{booktabs}
+%\usepackage[usenames,dvipsnames]{color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\usepackage{color}
+\usepackage[symbol]{footmisc}
+\usepackage[algoruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{units}
+\newtheorem{df}{Definition}
+\newtheorem{notation}{Notation}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}{Lemma}%[section]
+\newtheorem{col}{Corollary}
+\newtheorem{example}{Example}
+\newcommand{\bt}{\begin{theorem}\em}
+\newcommand{\et}{\end{theorem}}
+\newcommand{\bl}{\begin{lemma}\em}
+\newcommand{\el}{\end{lemma}}
+\newcommand{\bc}{\begin{col}\em}
+\newcommand{\ec}{\end{col}}
+\newcommand{\Qed}{$\blacksquare$}
+%\newcommand{\qed}{$\Box$}
+%\newcommand{\proof}{{\bf Proof. }}
+\newcommand{\nin}{\noindent}
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\bdf}{\begin{df}\em}
+\newcommand{\edf}{\end{df}}
+\newcommand{\ben}{\begin{enumerate}}
+\newcommand{\een}{\end{enumerate}}
+\newcommand{\ie}{\item}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\neighbor}{\operatorname{neighbor}}
+\newcommand{\avg}{\operatornamewithlimits{avg}\limits}
+\renewcommand{\arg}{\operatornamewithlimits{arg}\limits}
+\newcommand{\round}{\operatorname{round}}
+\newcommand{\argmin}{\arg \min}
+%\renewcommand{\min}{\operatornamewithlimits{argmin}\limits}
+\renewcommand{\max}{\operatornamewithlimits{max}\limits}
+\newcommand{\median}{\operatornamewithlimits{median}\limits}
+\newcommand{\lop}{\operatornamewithlimits{lop}\limits}
+\newcommand{\citea}[1]{\citeauthor{#1} (\citeyear{#1})}
+\newcommand{\vb}[1]{{\small\sf \color{blue} [VB]: #1}}
+%%%%---- end of Vadim's macros ------
+\newcommand{\ab}[1]{{\small\sf \color{red} [AB]: #1}}
+
+% Uncomment the following to switch comments OFF
+\renewcommand{\ab}[1]{}
+
+\newcommand{\fs}[1]{\fontsize{#1}{#1}\selectfont}
+\newcommand{\Paragraph}[1]{\par \medskip\noindent \textbf{#1}~~}
+
+
+\setcounter{secnumdepth}{2}
+%\nocopyright
+\sloppy
+
+
+\title{Redundant Symbols in Compressed Path Databases}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\input abstract
+\input intro
+\input centroid-red-symb
+\input h-symb
+\input setup
+\input results
+\input conclusion
+%\input ack
+
+%\bibliography{ref,references,ref2,extra}
+%\bibliographystyle{aaai}
+
+\end{document}
