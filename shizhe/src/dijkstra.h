@@ -59,7 +59,8 @@ public:
         ds -= d;
       }
 
-      for(auto a:g.out(x)) if (neighbors & (1 << a.direction)) {
+      for(auto a:g.out(x)) {
+        //if (neighbors & (1 << a.direction))
         reach(a, dist[x] + a.weight, allowed[x]);
       }
     }

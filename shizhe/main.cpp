@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdint.h>
 #include <numeric>
 #include <algorithm>
 #include <iostream>
@@ -226,11 +224,11 @@ int main(int argc, char **argv) {
   int repeat = 10;
 
   for (int i=0; i<repeat; i++) {
-    GetExperimentsTime(reference, oracle, scen, experimentStats, hLevel);
-    GetExperimentsTime20Moves(reference, oracle, scen, experimentStats, hLevel);
+    //GetExperimentsTime(reference, oracle, scen, experimentStats, hLevel);
+    //GetExperimentsTime20Moves(reference, oracle, scen, experimentStats, hLevel);
     GetExperimentsSRCTime(reference, scen, experimentStats, hLevel);
     GetExperimentsSRCTime20Moves(reference, scen, experimentStats, hLevel);
-    GetExperimentsPath(reference, oracle, scen, experimentStats, hLevel);
+    //GetExperimentsPath(reference, oracle, scen, experimentStats, hLevel);
   }
 
   std::ofstream out;

@@ -17,10 +17,12 @@ static double minimize_hvalue(const xyLoc& sloc, const xyLoc& tloc, const Mapper
       xyLoc nxt = xyLoc{(int16_t)(sloc.x + warthog::dx[d]), (int16_t)(sloc.y + warthog::dy[d])};
       xyLoc p1 = xyLoc{sloc.x, (int16_t)(sloc.y + warthog::dy[d])};
       xyLoc p2 = xyLoc{(int16_t)(sloc.x + warthog::dx[d]), sloc.y};
+      // avoid corner cutting
       if (mapper(nxt) == -1 || mapper(p1) == -1 || mapper(p2) == -1) 
         continue;
-      int common = min(abs(tloc.x - nxt.x), abs(tloc.y - nxt.y));
-      double cost = common * warthog::DBL_ROOT_TWO + abs(tloc.x - nxt.x) + abs(tloc.y - nxt.y) - 2.0 * common;
+      //int common = min(abs(tloc.x - nxt.x), abs(tloc.y - nxt.y));
+      //double cost = common * warthog::DBL_ROOT_TWO + abs(tloc.x - nxt.x) + abs(tloc.y - nxt.y) - 2.0 * common + warthog::doublew[d];
+      double cost = sqrt((tloc.x - nxt.x) * (tloc.x - nxt.x) + (tloc.y - nxt.y) * (tloc.y - nxt.y)) + warthog::doublew[d];
       if (cost < min_cost) {
         min_cost = cost;
         hmove = d;

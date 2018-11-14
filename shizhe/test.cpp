@@ -257,6 +257,52 @@ TEST_CASE("canonical_dijk") {
   REQUIRE(dij.get_directions(t) == 48);
 }
 
+TEST_CASE("random1") {
+  mpath = "./test/maps/random512-10-0.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 62500, hLevel = 1;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+
+TEST_CASE("random2") {
+  mpath = "test/maps/random512-10-0.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 62500, hLevel = 2;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+
+TEST_CASE("hextension") {
+  mpath = "./test/maps/3obs.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+
+  int s = 28, t = 0, hLevel = 2;
+  int move = H::get_heuristic_move(s, t, mapper, hLevel);
+  Mapper::set2direct(1 << move);
+
+  Dijkstra dij(g, mapper);
+  dij.run(s, hLevel);
+  Mapper::set2direct(dij.get_directions(t));
+}
+
+
 int main(int argv, char* args[]) {
 	cout << "Loading data..." << endl;
 	cout << "Running test cases..." << endl;
