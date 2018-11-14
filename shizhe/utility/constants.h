@@ -58,9 +58,17 @@ namespace warthog
   static const int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, 1};
   static const int dw[] = {1000, 1000, 1000, 1000, 1414, 1414, 1414, 1414};
   static const double doublew[] = {1.0, 1.0, 1.0, 1.0, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO};
+  // Clockwise start with north
+  static const int CW[] = {0, 4, 2, 1, 7, 3, 5};
+  // Counter Clockwise start with north
+  static const int CCW[] = {0, 5, 3, 7, 1, 2, 4};
+  static const int INVALID_MOVE = 15;
   static const int v2i[3][3] = {
+    // 0~7 represent valid octile moves direction and 
+    // 0~14 represent valid move id in road network
+    // 15 represent an invalid move
     {5, 3, 7},
-    {0, 8, 1},
+    {0, INVALID_MOVE, 1},
     {4, 2, 6}
   };
 }

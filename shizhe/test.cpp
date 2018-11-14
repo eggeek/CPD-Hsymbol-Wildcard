@@ -38,11 +38,12 @@ TEST_CASE("Hmove") {
   ifstream file("./test/hmoves.in");
   xyLoc s, t;
   int expected;
+  int hLevel = 1;
   while (LoadMap(file, s, t)) {
     file >> expected;
     cout << height << " " << width << endl;
     Mapper mapper(mapData, width, height);
-    int hmove = Hsymbol::get_heuristic_move(mapper(s), mapper(t), mapper);
+    int hmove = Hsymbol::get_heuristic_move(mapper(s), mapper(t), mapper, hLevel);
     printf("expected (%d):", expected); Mapper::set2direct(expected);
     printf("actual (%d):", (1<<hmove)); Mapper::set2direct((1<<hmove));
     REQUIRE((1 << hmove) == expected);
@@ -56,9 +57,10 @@ TEST_CASE("ObsFree") {
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
+  int hLevel = 1;
   int s = 0;
   int cnth = 0;
-  auto res = dij.run(s);
+  auto res = dij.run(s, hLevel);
   vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
   for (auto i: res) if (i & warthog::HMASK) cnth++;
@@ -74,7 +76,8 @@ TEST_CASE("OneObs") {
   Dijkstra dij(g, mapper);
   int s = 2;
   int cnth = 0;
-  auto res = dij.run(s);
+  int hLevel = 1;
+  auto res = dij.run(s, hLevel);
   for (auto i: res) if (i & warthog::HMASK) cnth++;
   vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
@@ -87,13 +90,42 @@ TEST_CASE("3Obs") {
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
-  int s = 21;
-  int cnth = 0;
-  auto res = dij.run(s);
+  int s, cnth, hLevel = 2;
+  s = 21, cnth = 0;
+  auto res = dij.run(s, hLevel);
   for (auto i: res) if (i & warthog::HMASK) cnth++;
   vector<string> vis = Visualizer(mapData, mapper).to_strings(s, res);
+  cout << "=============" << endl;
   for (string i: vis) cout << i << endl;
-  REQUIRE(cnth == 29);
+  //REQUIRE(cnth == 29);
+
+  s = 20, cnth = 0;
+  res = dij.run(s, hLevel);
+  for (auto i: res) if (i & warthog::HMASK) cnth++;
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  cout << "=============" << endl;
+  for (string i: vis) cout << i << endl;
+
+  s = 19, cnth = 0;
+  res = dij.run(s, hLevel);
+  for (auto i: res) if (i & warthog::HMASK) cnth++;
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  cout << "=============" << endl;
+  for (string i: vis) cout << i << endl;
+
+  s = 28, cnth = 0;
+  res = dij.run(s, hLevel);
+  for (auto i: res) if (i & warthog::HMASK) cnth++;
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  cout << "=============" << endl;
+  for (string i: vis) cout << i << endl;
+
+  s = 27, cnth = 0;
+  res = dij.run(s, hLevel);
+  for (auto i: res) if (i & warthog::HMASK) cnth++;
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  cout << "=============" << endl;
+  for (string i: vis) cout << i << endl;
 }
 
 TEST_CASE("canonical_succ") {
@@ -208,22 +240,68 @@ TEST_CASE("canonical_dijk") {
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
-  int s = 9, t = 10;
+  int s = 9, t = 10, hLevel = 1;
   vector<unsigned short> res;
   vector<string> vis;
-  res = dij.run(s);
+  res = dij.run(s, hLevel);
   vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
   printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
   REQUIRE(dij.get_directions(t) == 3);
 
   s = 13, t = 2;
-  res = dij.run(s);
+  res = dij.run(s, hLevel);
   vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
   printf("direction (%d): ", t); Mapper::set2direct(dij.get_directions(t));
   REQUIRE(dij.get_directions(t) == 48);
 }
+
+TEST_CASE("random1") {
+  mpath = "./test/maps/random512-10-0.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 62500, hLevel = 1;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+
+TEST_CASE("random2") {
+  mpath = "test/maps/random512-10-0.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 62500, hLevel = 2;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+
+TEST_CASE("hextension") {
+  mpath = "./test/maps/3obs.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+
+  int s = 28, t = 0, hLevel = 2;
+  int move = H::get_heuristic_move(s, t, mapper, hLevel);
+  Mapper::set2direct(1 << move);
+
+  Dijkstra dij(g, mapper);
+  dij.run(s, hLevel);
+  Mapper::set2direct(dij.get_directions(t));
+}
+
 
 int main(int argv, char* args[]) {
 	cout << "Loading data..." << endl;

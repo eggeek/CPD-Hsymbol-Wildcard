@@ -48,9 +48,10 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       Dijkstra dij(g, mapper);
       warthog::timer t;
       t.start();
-      dij.run(0);
+      dij.run(0, hLevel);
       t.stop();
-      printf("Estimated sequential running time : %dmin\n", static_cast<int>(t.elapsed_time_micro()*g.node_count()/60000.0));
+      double tots = t.elapsed_time_micro()*g.node_count() / 1000000;
+      printf("Estimated sequential running time : %fmin\n", tots / 60.0);
     }
 
     #ifndef USE_PARALLELISM
@@ -138,7 +139,7 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
   return state;
 }
 
-double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int limit) {
+double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
   State* state = static_cast<State*>(data);
   int current_source = state->mapper(s);
   int current_target = state->mapper(t);
@@ -149,7 +150,7 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int limit) {
   while (current_source != current_target) {
     int move = state->cpd.get_first_move(current_source, current_target);
     if ((1 << move) == warthog::HMASK) {
-      move = H::decode(current_source, current_target, state->mapper);
+      move = H::decode(current_source, current_target, state->mapper, hLevel);
     }
     cost += warthog::doublew[move];
     s.x += dx[move];
@@ -162,7 +163,7 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int limit) {
   return cost;
 }
 
-double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int limit) {
+double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int hLevel, int limit) {
   State* state = static_cast<State*>(data);
   int current_source = state->mapper(s);
   int current_target = state->mapper(t);
@@ -174,7 +175,7 @@ double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, i
   while (current_source != current_target) {
     int move = state->cpd.get_first_move(current_source, current_target);
     if ((1 << move) == warthog::HMASK) {
-      move = H::decode(current_source, current_target, state->mapper);
+      move = H::decode(current_source, current_target, state->mapper, hLevel);
     }
     auto direction = (warthog::jps::direction)(1 << move);
     int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
@@ -190,7 +191,8 @@ double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, i
   return cost;
 }
 
-double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle, int limit)//, int &callCPD)
+double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle,
+    int hLevel, int limit)//, int &callCPD)
 {
   State*state = static_cast<State*>(data);
   int current_source = state->mapper(s);
@@ -200,7 +202,7 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
   double cost = 0.0;
   int move = state->cpd.get_first_move(current_source, current_target);
   if ((1 << move) == warthog::HMASK) {
-    move = H::decode(current_source, current_target, state->mapper);
+    move = H::decode(current_source, current_target, state->mapper, hLevel);
   }
 
   if(move != 0xF && current_source != current_target){
@@ -230,7 +232,7 @@ double GetPath(void *data, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::
       move = state->cpd.get_first_move(current_source, current_target);
       // decode the heuristic move
       if ((1 << move) == warthog::HMASK) {
-        move = H::decode(current_source, current_target, state->mapper);
+        move = H::decode(current_source, current_target, state->mapper, hLevel);
       }
       direction = (warthog::jps::direction)(1 << move);
       number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);

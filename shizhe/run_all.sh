@@ -6,7 +6,7 @@ if [ $# -eq 1 ]
     t="-run"
 fi
 
-for ((h=0; h<=1; h++)) {
+for ((h=0; h<=2; h++)) {
   for i in `ls maps/dao/*.map`; do
     name=$(basename "${i%.*}")
     mpath="maps/dao/${name}.map"
