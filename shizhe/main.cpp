@@ -12,10 +12,10 @@
 
 class Stats {
 public:
-  std::vector<double> time = std::vector<double>(3);
-  std::vector<double> time20moves = std::vector<double>(3);
-  std::vector<double> srcTime = std::vector<double>(3);
-  std::vector<double> srcTime20moves = std::vector<double>(3);
+  std::vector<double> time;// = std::vector<double>(3);
+  std::vector<double> time20moves;// = std::vector<double>(3);
+  std::vector<double> srcTime;// = std::vector<double>(3);
+  std::vector<double> srcTime20moves;// = std::vector<double>(3);
   double pathcost;
   std::vector<xyLoc> path;
 
@@ -26,8 +26,8 @@ public:
     sort(srcTime.begin(), srcTime.end());
     sort(srcTime20moves.begin(), srcTime20moves.end());
     // get the mean
-    res << time[time.size() / 2] << ",";
-    res << time20moves[time20moves.size() / 2] << ",";
+    //res << time[time.size() / 2] << ",";
+    //res << time20moves[time20moves.size() / 2] << ",";
     res << srcTime[srcTime.size() / 2] << ",";
     res << srcTime20moves[srcTime20moves.size() / 2] << ",";
     res << pathcost << "," << path.size();
@@ -212,9 +212,9 @@ int main(int argc, char **argv) {
 
 
   void *reference = PrepareForSearch(mapData, width, height, filename);
-  warthog::gridmap gm(mpath.c_str());
-  warthog::jpsp_oracle oracle(&gm);
-  std::cerr << "Sanity Check: "<< (oracle.sanity_check() ? "pass" : "fail") << "\n";
+  //warthog::gridmap gm(mpath.c_str());
+  //warthog::jpsp_oracle oracle(&gm);
+  //std::cerr << "Sanity Check: "<< (oracle.sanity_check() ? "pass" : "fail") << "\n";
 
   ScenarioLoader scen(spath.c_str());
 
@@ -232,7 +232,8 @@ int main(int argc, char **argv) {
   }
 
   std::ofstream out;
-  string header = "map,scenid,total,20move,total-src,20move-src,distance,path_size,hLevel";
+  //string header = "map,scenid,total,20move,total-src,20move-src,distance,path_size,hLevel";
+  string header = "map,scenid,total-src,20move-src,distance,path_size,hLevel";
   out.open (outfname.c_str(), std::ios::app);
   out << header << std::endl;
   string mapname = getMapName(string(filename));
