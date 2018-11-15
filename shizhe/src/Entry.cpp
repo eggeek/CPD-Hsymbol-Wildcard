@@ -149,6 +149,8 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
   int steps = 0;
   while (current_source != current_target) {
     int move = state->cpd.get_first_move(current_source, current_target);
+    // no path exist
+    if (move == 0xF) break;
     if ((1 << move) == warthog::HMASK) {
       move = H::decode(current_source, current_target, state->mapper, hLevel);
     }
@@ -174,6 +176,8 @@ double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, i
   oracle.set_goal_location(t.x, t.y);
   while (current_source != current_target) {
     int move = state->cpd.get_first_move(current_source, current_target);
+    // no path exist
+    if (move == 0xF) break;
     if ((1 << move) == warthog::HMASK) {
       move = H::decode(current_source, current_target, state->mapper, hLevel);
     }
