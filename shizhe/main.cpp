@@ -99,71 +99,6 @@ void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<S
   }
 }
 
-
-
-void GetExperimentsTime(void* ref, warthog::jpsp_oracle& oracle,
-    ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
-  warthog::timer t;
-  for (int x=0; x<scen.GetNumExperiments(); x++) {
-    double dist = scen.GetNthExperiment(x).GetDistance();
-    xyLoc s, g;
-    s.x = scen.GetNthExperiment(x).GetStartX();
-    s.y = scen.GetNthExperiment(x).GetStartY();
-    g.x = scen.GetNthExperiment(x).GetGoalX();
-    g.y = scen.GetNthExperiment(x).GetGoalY();
-    auto stime = std::chrono::steady_clock::now();
-      double pathcost = GetPathCost(ref, s, g, oracle, hLevel);
-    auto etime = std::chrono::steady_clock::now();
-    double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    //  double pathcost = GetPathCost(ref, s, g, oracle);
-    //t.stop();
-    //double tcost = t.elapsed_time_nano();
-    exps[x].time.push_back(tcost);
-    if (fabs(pathcost - dist) > warthog::EPS) {
-      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, pathcost);
-      assert(false);
-    }
-    exps[x].pathcost = pathcost;
-  }
-}
-
-void GetExperimentsTime20Moves(void* ref, warthog::jpsp_oracle& oracle,
-    ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
-  warthog::timer t;
-  for (int x=0; x<scen.GetNumExperiments(); x++) {
-    xyLoc s, g;
-    s.x = scen.GetNthExperiment(x).GetStartX();
-    s.y = scen.GetNthExperiment(x).GetStartY();
-    g.x = scen.GetNthExperiment(x).GetGoalX();
-    g.y = scen.GetNthExperiment(x).GetGoalY();
-    auto stime = std::chrono::steady_clock::now();
-      GetPathCost(ref, s, g, oracle, hLevel, 20);
-    auto etime = std::chrono::steady_clock::now();
-    double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    //  GetPathCost(ref, s, g, oracle, 20);
-    //t.stop(); 
-    //double tcost = t.elapsed_time_nano();
-    exps[x].time20moves.push_back(tcost);
-  }
-}
-
-void GetExperimentsPath(void* ref, warthog::jpsp_oracle& oracle,
-    ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
-  std::vector<xyLoc> thePath;
-  for (int x=0; x<scen.GetNumExperiments(); x++) {
-    thePath.clear();
-    xyLoc s, g;
-    s.x = scen.GetNthExperiment(x).GetStartX();
-    s.y = scen.GetNthExperiment(x).GetStartY();
-    g.x = scen.GetNthExperiment(x).GetGoalX();
-    g.y = scen.GetNthExperiment(x).GetGoalY();
-    GetPath(ref, s, g, thePath, oracle, hLevel);
-    exps[x].path = std::vector<xyLoc>(thePath.begin(), thePath.end());
-  }
-}
-
 int main(int argc, char **argv) {
   char filename[255];
   string outfname;
@@ -212,9 +147,6 @@ int main(int argc, char **argv) {
 
 
   void *reference = PrepareForSearch(mapData, width, height, filename);
-  //warthog::gridmap gm(mpath.c_str());
-  //warthog::jpsp_oracle oracle(&gm);
-  //std::cerr << "Sanity Check: "<< (oracle.sanity_check() ? "pass" : "fail") << "\n";
 
   ScenarioLoader scen(spath.c_str());
 
@@ -224,11 +156,8 @@ int main(int argc, char **argv) {
   int repeat = 10;
 
   for (int i=0; i<repeat; i++) {
-    //GetExperimentsTime(reference, oracle, scen, experimentStats, hLevel);
-    //GetExperimentsTime20Moves(reference, oracle, scen, experimentStats, hLevel);
     GetExperimentsSRCTime(reference, scen, experimentStats, hLevel);
     GetExperimentsSRCTime20Moves(reference, scen, experimentStats, hLevel);
-    //GetExperimentsPath(reference, oracle, scen, experimentStats, hLevel);
   }
 
   std::ofstream out;

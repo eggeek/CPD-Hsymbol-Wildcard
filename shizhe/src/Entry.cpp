@@ -141,6 +141,12 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 
 double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
   State* state = static_cast<State*>(data);
+  int (*heuristic_func)(int, int, const Mapper&);
+  if (hLevel == 1)
+    heuristic_func = Hsymbol::get_heuristic_move1;
+  else if (hLevel == 2)
+    heuristic_func = Hsymbol::get_heuristic_move2;
+
   int current_source = state->mapper(s);
   int current_target = state->mapper(t);
   const int16_t* dx = warthog::dx;
@@ -152,7 +158,7 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
     // no path exist
     if (move == 0xF) break;
     if ((1 << move) == warthog::HMASK) {
-      move = H::decode(current_source, current_target, state->mapper, hLevel);
+      move = H::decode(current_source, current_target, state->mapper, heuristic_func);
     }
     cost += warthog::doublew[move];
     s.x += dx[move];
@@ -160,36 +166,6 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
     steps ++;
     if (limit != -1 && limit <= steps)
       break;
-    current_source = state->mapper(s);
-  }
-  return cost;
-}
-
-double GetPathCost(void *data, xyLoc s, xyLoc t, warthog::jpsp_oracle& oracle, int hLevel, int limit) {
-  State* state = static_cast<State*>(data);
-  int current_source = state->mapper(s);
-  int current_target = state->mapper(t);
-  const int16_t* dx = warthog::dx;
-  const int16_t* dy = warthog::dy;
-  double cost = 0.0;
-  int steps = 0;
-  oracle.set_goal_location(t.x, t.y);
-  while (current_source != current_target) {
-    int move = state->cpd.get_first_move(current_source, current_target);
-    // no path exist
-    if (move == 0xF) break;
-    if ((1 << move) == warthog::HMASK) {
-      move = H::decode(current_source, current_target, state->mapper, hLevel);
-    }
-    auto direction = (warthog::jps::direction)(1 << move);
-    int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
-    steps += number_step_to_turn;
-    if (limit != -1 && limit <= steps)
-      break;
-    cost += warthog::doublew[move] * number_step_to_turn;
-
-    s.x += dx[move] * number_step_to_turn;
-    s.y += dy[move] * number_step_to_turn;
     current_source = state->mapper(s);
   }
   return cost;
