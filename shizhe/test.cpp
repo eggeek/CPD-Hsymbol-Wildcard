@@ -50,6 +50,22 @@ TEST_CASE("Hmove") {
   } 
 }
 
+TEST_CASE("Hmove2") {
+  ifstream file("./test/hmoves2.in");
+  xyLoc s, t;
+  int expected;
+  int hLevel = 2;
+  while (LoadMap(file, s, t)) {
+    file >> expected;
+    cout << height << " " << width << endl;
+    Mapper mapper(mapData, width, height);
+    int hmove = Hsymbol::get_heuristic_move2(mapper(s), mapper(t), mapper);
+    printf("expected (%d): ", expected); Mapper::set2direct(expected);
+    printf("actual (%d): ", (1<< hmove)); Mapper::set2direct(1<<hmove);
+    REQUIRE((1<< hmove) == expected);
+  }
+}
+
 TEST_CASE("ObsFree") {
   ifstream file("test/ObsFree.in");
   file >> mpath;
@@ -286,6 +302,96 @@ TEST_CASE("random2") {
   for (string i: vis) cout << i << endl;
 }
 
+TEST_CASE("brc1") {
+  mpath = "./maps/brc100d.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 11023, hLevel = 1;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+TEST_CASE("brc2") {
+  mpath = "./maps/brc100d.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 11023, hLevel = 2;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+TEST_CASE("den1") {
+  mpath = "./maps/den202d.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 1497, hLevel = 1;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+TEST_CASE("den2") {
+  mpath = "./maps/den202d.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+  int s = 1497, hLevel = 2;
+  vector<unsigned short> res;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+}
+
+TEST_CASE("badcase") {
+  mpath = "./maps/den202d.map";
+  LoadMap(mpath.c_str(), mapData, width, height);
+  Mapper mapper(mapData, width, height);
+  AdjGraph g(extract_graph(mapper));
+  Dijkstra dij(g, mapper);
+
+  vector<unsigned short> res;
+  int worst = -1, v = 0;
+  for (int i=0; i<mapper.node_count(); i++) {
+    int cnth1 = 0;
+    for (auto j: dij.run(i, 1)) if (j & warthog::HMASK) cnth1++;
+
+    int cnth2 = 0;
+    for (auto j: dij.run(i, 2)) if (j & warthog::HMASK) cnth2++;
+
+    if (cnth2 < cnth1) {
+      printf("find id: %d, cnth1: %d, cnth2: %d\n", i, cnth1, cnth2);
+      if (cnth1 - cnth2 > v) {
+        v = cnth1 - cnth2;
+        worst = i;
+      }
+    }
+  }
+  printf("worst id:%d, diff: %d\n", worst, v);
+  /*
+  int s = 10, hLevel = 2;
+  vector<string> vis;
+  res = dij.run(s, hLevel);
+  vis = Visualizer(mapData, mapper).to_strings(s, res);
+  for (string i: vis) cout << i << endl;
+  */
+}
+
 
 TEST_CASE("hextension") {
   mpath = "./test/maps/3obs.map";
@@ -302,6 +408,52 @@ TEST_CASE("hextension") {
   Mapper::set2direct(dij.get_directions(t));
 }
 
+TEST_CASE("bitop") {
+  REQUIRE(signbit(10) == 1);
+  REQUIRE(signbit(0) == 0);
+  REQUIRE(signbit(-1) == -1);
+  REQUIRE(signbit(-0) == 0);
+  REQUIRE(signbit(1<<30) == 1);
+  REQUIRE(signbit(-(1<<30)) == -1);
+
+  REQUIRE(iabs(10) == 10);
+  REQUIRE(iabs(-10) == 10);
+  REQUIRE(iabs(0) == 0);
+  REQUIRE(iabs((1<<30)) == (1<<30));
+  REQUIRE(iabs(-(1<<30)) == (1<<30));
+}
+
+TEST_CASE("quadrant") {
+  auto func = [&](int x, int y) {
+    x = signbit(x);
+    y = signbit(y);
+    return H::quadrant[x+1][y+1];
+  };
+  REQUIRE(func(0, 1) == 0);
+  REQUIRE(func(1, 1) == 0);
+  REQUIRE(func(1, 0) == 1);
+  REQUIRE(func(1, -1) == 1);
+  REQUIRE(func(0, -1) == 2);
+  REQUIRE(func(-1, -1) == 2);
+  REQUIRE(func(-1, 0) == 3);
+  REQUIRE(func(-1, 1) == 3);
+}
+
+TEST_CASE("optDirection") {
+  using namespace warthog::jps;
+  REQUIRE(1 << H::closestDirection(100, 100) == direction::SOUTHEAST);
+  REQUIRE(1 << H::closestDirection(49, 100) == direction::SOUTH);
+  REQUIRE(1 << H::closestDirection(1, 100) == direction::SOUTH);
+  REQUIRE(1 << H::closestDirection(-49, 100) == direction::SOUTH);
+  REQUIRE(1 << H::closestDirection(-100, 100) == direction::SOUTHWEST);
+}
+
+TEST_CASE("coordpart") {
+  REQUIRE(H::get_coord_part(49, 100) == 0);
+  REQUIRE(H::get_coord_part(99, 100) == 1);
+  REQUIRE(H::get_coord_part(101, 100) == 2);
+  REQUIRE(H::get_coord_part(100, 49) == 3);
+}
 
 int main(int argv, char* args[]) {
 	cout << "Loading data..." << endl;

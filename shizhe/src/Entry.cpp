@@ -99,6 +99,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
   }
 
   printf("Saving data to %s\n", filename);
+  printf("begin size: %d, entry size: %d\n", cpd.get_begin_size(), cpd.get_entry_size());
   FILE*f = fopen(filename, "wb");
   order.save(f);
   cpd.save(f);

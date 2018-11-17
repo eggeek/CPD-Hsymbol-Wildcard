@@ -59,6 +59,14 @@ public:
     entry = load_vector<int>(f);
   }
 
+  int get_begin_size() {
+    return begin.size();
+  }
+
+  int get_entry_size() {
+    return entry.size();
+  }
+
 private:
   std::vector<int>begin;
   std::vector<int>entry;
