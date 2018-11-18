@@ -1,0 +1,19 @@
+\section{Compressed Path Databases}
+
+The essence of a compressed path database is a data structure
+that allows us to quickly extract for any pairs of points $S$ and $T$
+in the graph a
+first move to take from $S$ in order to reach $T$ optimally.
+
+We restrict ourselves in the presentation to octile
+grid graphs where the 8 possible moves from any position are
+$N$, $S$, $E$, $W$, $NE$, $NW$, $SE$, and $SW$.
+The ideas are generalizable to any graphs where ...
+
+The compressed data base stores this infomration.
+We assume a function $\textsf{CPD}($S$,$T$) which returns a
+next move from $S$ which is part of some optimal path to $T$.
+
+
+
+

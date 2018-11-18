@@ -51,7 +51,8 @@ In Figure \ref{fig:results} we show the first move matrix and the array containi
     \end{figure}
 
 
-
+\pjs{Why not store the distance, e.g. $side = 1$ instead of $side = 3$.
+  It seems currently $side = 3$ and $side = 4$ give the same result!}
 
 
 \begin{algorithm}
@@ -59,8 +60,23 @@ In Figure \ref{fig:results} we show the first move matrix and the array containi
 \KwOut{$true$, $false$}
 $\delta x$ $\gets$ $|S.x - T.x|$\\
 $\delta y$ $\gets$ $|S.y - T.y|$\\
-\eIf{$\delta x <= (side-1)/2$ $\&$ $\delta y <= (side-1)/2$}{\Return $true$}{\Return $false$}
+\eIf{$\delta x \leq (side-1)/2$ $\&$ $\delta y \leq (side-1)/2$}{\Return $true$}{\Return $false$}
 \caption{is\_in\_square}\label{alg:1}
+\end{algorithm}
+
+ 
+
+\begin{algorithm}
+\KwIn{$S$, $T$$}
+\KwOut{$move$}
+$move$ $\gets$ \textsf{default}($S$,$T$) \\
+$\delta x$ $\gets$ $|S.x - T.x|$\\
+$\delta y$ $\gets$ $|S.y - T.y|$\\
+\If{$\delta x \leq (side-1)/2$ $\&$ $\delta y \leq (side-1)/2$ \vee \textsf{CPD}($S$,$T$) = \heur}
+   {\Return $move$}
+\Return \textsf{CPD}($S$,$T$) \\ 
+\caption{Get next move algorithm for CPDs with squares and heuristic moves.}
+\label{alg:2}
 \end{algorithm}
 
  
