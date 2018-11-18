@@ -51,13 +51,15 @@ public:
     while(!q.empty()){
       int x = q.pop();
 
+      /*
       int ds = directions[x];
       int neighbors = 0;
       while (ds > 0) {
         int d = ds & (-ds); //get the lowest bit
-        neighbors |= warthog::jps::compute_successors((warthog::jps::direction)d, mapper.get_tiles(x));
+        neighbors |= warthog::jps::compute_successors((warthog::jps::direction)d, mapper.get_jps_tiles(x));
         ds -= d;
       }
+      */
 
       for(auto a:g.out(x)) {
         //if (neighbors & (1 << a.direction))

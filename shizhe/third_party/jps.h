@@ -26,14 +26,14 @@ namespace jps
 typedef enum
 {
   NONE = 0,
-  NORTH = 1,
-  SOUTH = 2,
-  EAST = 4,
-  WEST = 8,
-  NORTHEAST = 16,
-  NORTHWEST = 32, 
-  SOUTHEAST = 64,
-  SOUTHWEST = 128
+  NORTH = 1,      // 0
+  SOUTH = 2,      // 1
+  EAST = 4,       // 2
+  WEST = 8,       // 3
+  NORTHEAST = 16, // 4
+  NORTHWEST = 32, // 5
+  SOUTHEAST = 64, // 6
+  SOUTHWEST = 128 // 7
 } direction;
 
 // Computes the set of "forced" directions in which to search for jump points
