@@ -56,10 +56,8 @@ In Figure \ref{fig:results} we show the first move matrix and the array containi
 
 
 \begin{algorithm}
-\KwIn{$S$, $T$, $side$}
-\KwOut{$true$, $false$}
-$\delta x$ $\gets$ $|S.x - T.x|$\\
-$\delta y$ $\gets$ $|S.y - T.y|$\\
+$\delta x$ $\gets$ $|s.x - t.x|$\\
+$\delta y$ $\gets$ $|s.y - t.y|$\\
 \eIf{$\delta x \leq (side-1)/2$ $\&$ $\delta y \leq (side-1)/2$}{\Return $true$}{\Return $false$}
 \caption{is\_in\_square}\label{alg:1}
 \end{algorithm}
@@ -67,15 +65,15 @@ $\delta y$ $\gets$ $|S.y - T.y|$\\
  
 
 \begin{algorithm}
-\KwIn{$S$, $T$}
+\KwIn{$s$, $t$}
 \KwOut{$move$}
-$move$ $\gets$ \textsf{default}($S$,$T$) \\
-$side$ $\gets$ \textsf{square}($S$,$T$) \\
-$\delta x$ $\gets$ $|S.x - T.x|$\\
-$\delta y$ $\gets$ $|S.y - T.y|$\\
+$move$ $\gets$ \textsf{F}($s$,$t$) \\
+$side$ $\gets$ \textsf{square}($s$,$t$) \\
+$\delta x$ $\gets$ $|s.x - t.x|$\\
+$\delta y$ $\gets$ $|s.y - t.y|$\\
 \If{$\delta x \leq (side-1)/2$ $\wedge$ $\delta y \leq (side-1)/2$ $\vee$
-    \textsf{CPD}($S$,$T$) = $\heur$}{\Return $move$}
-\Return \textsf{CPD}($S$,$T$) 
+    \textsf{CPD}($s$,$t$) = $\heur$}{\Return $move$}
+\Return \textsf{CPD}($s$,$t$) 
 \caption{Get next move algorithm for CPDs with squares and heuristic moves.}
 \label{alg:2}
 \end{algorithm}
