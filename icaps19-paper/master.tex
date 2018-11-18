@@ -56,6 +56,7 @@
 \usepackage[symbol]{footmisc}
 \usepackage[algoruled,vlined,linesnumbered]{algorithm2e}
 \usepackage{units}
+\usepackage{phonetic}
 \newtheorem{df}{Definition}
 \newtheorem{notation}{Notation}
 %\newtheorem{theorem}{Theorem}
@@ -102,13 +103,20 @@
 
 \newcommand{\pjs}[1]{\marginpar{\sc Pjs}\textcolor{blue}{[pjs] #1}}
 
+\newcommand{\heur}{H}
+\renewcommand{\heur}{\textcircled{h}}
+\renewcommand{\heur}{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {h}}}}
 \setcounter{secnumdepth}{2}
 %\nocopyright
 \sloppy
 
 
-\title{Redundant Symbols in Compressed Path Databases}
-\author{}
+
+\title{Cutting the Size of Compressed Path Databases With Wildcards and Redundant Symbols}
+\author{Mattia Chiari \and Shizhe Zhao \and  Adi Botea \and
+  Alfonso Gerevini \and
+  Daniel Harabor \and  Alessandro Saetti \and Matteo Salvetti
+  \and Peter J. Stuckey}
 
 \begin{document}
 

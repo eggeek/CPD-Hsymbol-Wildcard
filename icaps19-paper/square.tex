@@ -67,16 +67,19 @@ $\delta y$ $\gets$ $|S.y - T.y|$\\
  
 
 \begin{algorithm}
-\KwIn{$S$, $T$$}
+\KwIn{$S$, $T$}
 \KwOut{$move$}
 $move$ $\gets$ \textsf{default}($S$,$T$) \\
+$side$ $\gets$ \textsf{square}($S$,$T$) \\
 $\delta x$ $\gets$ $|S.x - T.x|$\\
 $\delta y$ $\gets$ $|S.y - T.y|$\\
-\If{$\delta x \leq (side-1)/2$ $\&$ $\delta y \leq (side-1)/2$ \vee \textsf{CPD}($S$,$T$) = \heur}
-   {\Return $move$}
-\Return \textsf{CPD}($S$,$T$) \\ 
+\If{$\delta x \leq (side-1)/2$ $\wedge$ $\delta y \leq (side-1)/2$ $\vee$
+    \textsf{CPD}($S$,$T$) = $\heur$}{\Return $move$}
+\Return \textsf{CPD}($S$,$T$) 
 \caption{Get next move algorithm for CPDs with squares and heuristic moves.}
 \label{alg:2}
 \end{algorithm}
 
- 
+
+
+
