@@ -9,7 +9,7 @@
 using namespace std;
 
 struct ClosestMove {
-  int move[4][4];
+  int move[4][4][2];
 };
 
 class Mapper{
@@ -144,9 +144,9 @@ public:
     return this->neighbors[x];
   }
 
-  inline int get_valid_move(int s, int quad, int part) const {
-    //return getClosestMove(this->neighbors[s], quad, part);
-    return this->mem[this->neighbors[s]].move[quad][part];
+  inline int get_valid_move(int s, int quad, int part, int no_diagnonal) const {
+    //return getClosestMove(this->neighbors[s], quad, part, onaxis);
+    return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
   }
 
 private:
@@ -199,23 +199,39 @@ private:
     }
   }
 
-  int getClosestMove(int mask, int quad, int part) const {
+  int getClosestMove(int mask, int quad, int part, bool no_diagnonal=1) const {
     int dx, dy;
+ 
     switch (part) {
-      case 0:dx=0, dy=100;
+      case 0:dx=25, dy=100;
                 break; 
-      case 1:dx=90, dy=100;
+      case 1:dx=75, dy=100;
                 break;
-      case 2:dx=110, dy=100;
+      case 2:dx=100, dy=75;
                 break;
-      case 3:dx=100, dy=0;
+      case 3:dx=100, dy=25;
     }
+
     if (quad == 3 || quad == 2) dx *= -1;
     if (quad == 2 || quad == 1) dy *= -1;
-    auto octileDist = [&](xyLoc a, xyLoc b) {
-      int common = min(abs(a.x - b.x), abs(a.y - b.y));
-      double res = warthog::DBL_ROOT_TWO * common + abs(a.x - b.x) + abs(a.y - b.y) - 2.0 * common;
-      return res;
+
+    if (!no_diagnonal) {// try diagonal first
+      // get signbit
+      int vx = dx, vy = dy;
+      if (vx > 0) vx = 1;
+      if (vx < 0) vx = -1;
+      if (vy > 0) vy = 1;
+      if (vy < 0) vy = -1;
+      int move = warthog::v2i[1+vx][1+vy];
+      if (mask & (1<<move))
+        return move;
+    }
+
+    auto dist = [&](xyLoc a, xyLoc b) {
+      //int common = min(abs(a.x - b.x), abs(a.y - b.y));
+      //double res = warthog::DBL_ROOT_TWO * common + abs(a.x - b.x) + abs(a.y - b.y) - 2.0 * common;
+      //return res;
+      return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
     };
 
     //double cos = -1;
@@ -226,8 +242,7 @@ private:
       nxt.x = warthog::dx[i];
       nxt.y = warthog::dy[i];
       //nxt.x *= 100, nxt.y *= 100;
-      //double t = edist(nxt, xyLoc{(int16_t)dx, (int16_t)dy}) + warthog::doublew[i];
-      double t = octileDist(nxt, xyLoc{(int16_t)dx, (int16_t)dy}) + warthog::doublew[i];
+      double t = dist(nxt, xyLoc{(int16_t)dx, (int16_t)dy}) + warthog::doublew[i];
       if (t < cost) {
         cost = t;
         move = i;
@@ -251,7 +266,8 @@ private:
     for (int i=0; i<(1<<8); i++) {
       for (int quad=0; quad<4; quad++) {
         for (int part=0; part<4; part++) {
-          mem[i].move[quad][part] = getClosestMove(i, quad, part);
+          for (int axis=0; axis<=1; axis++)
+            mem[i].move[quad][part][axis] = getClosestMove(i, quad, part, axis);
         }
       }
     } 

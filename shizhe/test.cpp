@@ -279,7 +279,7 @@ TEST_CASE("random1") {
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
-  int s = 62500, hLevel = 1;
+  int s = 62500, hLevel = 2;
   vector<unsigned short> res;
   vector<string> vis;
   res = dij.run(s, hLevel);
@@ -294,7 +294,7 @@ TEST_CASE("random2") {
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
-  int s = 62500, hLevel = 2;
+  int s = 62500, hLevel = 3;
   vector<unsigned short> res;
   vector<string> vis;
   res = dij.run(s, hLevel);
@@ -302,64 +302,29 @@ TEST_CASE("random2") {
   for (string i: vis) cout << i << endl;
 }
 
-TEST_CASE("brc1") {
-  mpath = "./maps/brc100d.map";
+TEST_CASE("map") {
+  mpath = "./maps/arena.map";
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
   Dijkstra dij(g, mapper);
-  int s = 11023, hLevel = 1;
+  int s = 182;
+
+  freopen("map2.txt", "w", stdout);
   vector<unsigned short> res;
   vector<string> vis;
-  res = dij.run(s, hLevel);
+  res = dij.run(s, 2);
   vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
-}
 
-TEST_CASE("brc2") {
-  mpath = "./maps/brc100d.map";
-  LoadMap(mpath.c_str(), mapData, width, height);
-  Mapper mapper(mapData, width, height);
-  AdjGraph g(extract_graph(mapper));
-  Dijkstra dij(g, mapper);
-  int s = 11023, hLevel = 2;
-  vector<unsigned short> res;
-  vector<string> vis;
-  res = dij.run(s, hLevel);
-  vis = Visualizer(mapData, mapper).to_strings(s, res);
-  for (string i: vis) cout << i << endl;
-}
-
-TEST_CASE("den1") {
-  mpath = "./maps/den202d.map";
-  LoadMap(mpath.c_str(), mapData, width, height);
-  Mapper mapper(mapData, width, height);
-  AdjGraph g(extract_graph(mapper));
-  Dijkstra dij(g, mapper);
-  int s = 1497, hLevel = 1;
-  vector<unsigned short> res;
-  vector<string> vis;
-  res = dij.run(s, hLevel);
-  vis = Visualizer(mapData, mapper).to_strings(s, res);
-  for (string i: vis) cout << i << endl;
-}
-
-TEST_CASE("den2") {
-  mpath = "./maps/den202d.map";
-  LoadMap(mpath.c_str(), mapData, width, height);
-  Mapper mapper(mapData, width, height);
-  AdjGraph g(extract_graph(mapper));
-  Dijkstra dij(g, mapper);
-  int s = 1497, hLevel = 2;
-  vector<unsigned short> res;
-  vector<string> vis;
-  res = dij.run(s, hLevel);
+  freopen("map3.txt", "w", stdout);
+  res = dij.run(s, 3);
   vis = Visualizer(mapData, mapper).to_strings(s, res);
   for (string i: vis) cout << i << endl;
 }
 
 TEST_CASE("badcase") {
-  mpath = "./maps/den202d.map";
+  mpath = "./maps/arena.map";
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
@@ -369,10 +334,10 @@ TEST_CASE("badcase") {
   int worst = -1, v = 0;
   for (int i=0; i<mapper.node_count(); i++) {
     int cnth1 = 0;
-    for (auto j: dij.run(i, 1)) if (j & warthog::HMASK) cnth1++;
+    for (auto j: dij.run(i, 2)) if (j & warthog::HMASK) cnth1++;
 
     int cnth2 = 0;
-    for (auto j: dij.run(i, 2)) if (j & warthog::HMASK) cnth2++;
+    for (auto j: dij.run(i, 3)) if (j & warthog::HMASK) cnth2++;
 
     if (cnth2 < cnth1) {
       printf("find id: %d, cnth1: %d, cnth2: %d\n", i, cnth1, cnth2);
@@ -383,13 +348,6 @@ TEST_CASE("badcase") {
     }
   }
   printf("worst id:%d, diff: %d\n", worst, v);
-  /*
-  int s = 10, hLevel = 2;
-  vector<string> vis;
-  res = dij.run(s, hLevel);
-  vis = Visualizer(mapData, mapper).to_strings(s, res);
-  for (string i: vis) cout << i << endl;
-  */
 }
 
 

@@ -147,6 +147,8 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
     heuristic_func = Hsymbol::get_heuristic_move1;
   else if (hLevel == 2)
     heuristic_func = Hsymbol::get_heuristic_move2;
+  else if (hLevel == 3)
+    heuristic_func = Hsymbol::get_heuristic_move3;
 
   int current_source = state->mapper(s);
   int current_target = state->mapper(t);
