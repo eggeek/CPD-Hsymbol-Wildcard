@@ -183,9 +183,9 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
       int side = state->square_sides[current_source];
       xyLoc loc_source = state->mapper.operator()(current_source);
       xyLoc loc_x = state->mapper.operator()(current_target);
-      int dx = abs(loc_source.x - loc_x.x);
-      int dy = abs(loc_source.y- loc_x.y);
-      if((dx <= (side-1)/2)&&(dy<= (side-1)/2))
+      int dx = iabs(loc_source.x - loc_x.x);
+      int dy = iabs(loc_source.y- loc_x.y);
+      if(( (dx<<1) <= (side-1)) && ( (dy<<1) <= (side-1)))
       {
         return true;
       }
@@ -196,47 +196,9 @@ double GetPathCostSRC(void *data, xyLoc s, xyLoc t, int hLevel, int limit) {
   {
       xyLoc cs = state->mapper.operator()(current_source);
       xyLoc ct = state->mapper.operator()(current_target);
-      if(ct.x > cs.x)
-      {
-        if(ct.y > cs.y)
-        {
-            return 6;
-        }
-        else if(ct.y < cs.y)
-        {
-            return 4;
-        }
-        else if(ct.y == cs.y)
-        {
-          return 2;
-        }
-      }
-      else if(ct.x < cs.x)
-      {
-        if(ct.y > cs.y)
-        {
-          return 7;
-        }
-        else if(ct.y < cs.y)
-        {
-          return 5;
-        }
-        else if(ct.y == cs.y)
-        {
-          return 3;
-        }
-      }
-      else if(ct.x == cs.x)
-      {
-        if(ct.y > cs.y)
-        {
-          return 1;
-        }
-        else if(ct.y < cs.y)
-        {
-          return 0;
-        }
-      }
+      int vx = signbit(ct.x - cs.x);
+      int vy = signbit(ct.y - cs.y);
+      return warthog::v2i[1+vx][1+vy];
   };
 
   while (current_source != current_target) {
