@@ -10,3 +10,4 @@ obj/*
 .idea*
 cmake-build*
 index_data/*
+index_data

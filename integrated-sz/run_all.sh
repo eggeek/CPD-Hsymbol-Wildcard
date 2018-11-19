@@ -9,7 +9,7 @@ fi
 
 for i in `ls -rS maps/*.map`; do
   name=$(basename "${i%.*}")
-  mpath="small_maps/${name}.map"
+  mpath="maps/${name}.map"
   spath="scens/${name}.map.scen"
 
   # run l3 + pure
