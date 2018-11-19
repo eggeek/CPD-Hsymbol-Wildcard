@@ -50,8 +50,9 @@ void argHelp(char **argv) {
   printf("\t-run : Run scenario without preprocessing\n");
   printf("\t[hLevel] : int (defualt=1)\n");
   printf("\t\t0: no H symbol\n");
-  printf("\t\t1: H symbol with basic heuristic function\n");
-  printf("\t\t2: H symbol with improved heuristic function\n");
+  printf("\t\t1: H symbol with level1 heuristic function\n");
+  printf("\t\t2: H symbol with level2 heuristic function\n");
+  printf("\t\t3: H symbol with level3 heuristic function\n");
 }
 
 void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
