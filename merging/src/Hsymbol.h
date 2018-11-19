@@ -3,9 +3,9 @@
 #include "mapper.h"
 using namespace std;
 const uint32_t MASK = ((uint32_t)1<<31) - 1;
-#define signbit(x) (((x) >> 31) - (-(x) >> 31))
-#define iabs(x) ( (((x) >> 31) ^ (x)) - (((x) >> 31)) )
-#define iabs2(x) (((x) & MASK) - ((x) >> 31))
+//#define signbit(x) (((x) >> 31) - (-(x) >> 31))
+//#define iabs(x) ( (((x) >> 31) ^ (x)) - (((x) >> 31)) )
+//#define iabs2(x) (((x) & MASK) - ((x) >> 31))
 namespace Hsymbol {
 /*            y+ 
  *

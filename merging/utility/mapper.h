@@ -296,6 +296,15 @@ ListGraph extract_graph(const Mapper&mapper){
   return g;
 }
 
+static inline int signbit(int num) {
+  return (num >> 31) - (-num >> 31);
+}
+
+static inline int iabs(int num) {
+  int mask = num >> 31;
+  return (num ^ mask) - mask;
+}
+
 void dump_map(const Mapper&map, const char*file);
 
 #endif
