@@ -1,2 +1,2 @@
 map,scenid,total-src,20move-src,distance,path_size,hLevel
-den200n,0,46,44,0,0,1
+den200n,0,62,65,0,0,1
