@@ -160,7 +160,11 @@ int main(int argc, char **argv) {
     outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
 
-  void *reference = PrepareForSearch(mapData, width, height, filename);
+  void *reference;
+  if (pure)
+    reference = PrepareForSearchPurely(mapData, width, height, filename);
+  else
+    reference = PrepareForSearch(mapData, width, height, filename);
 
   ScenarioLoader scen(spath.c_str());
 

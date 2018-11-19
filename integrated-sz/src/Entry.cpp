@@ -217,6 +217,30 @@ struct State{
   int target_node;
 };
 
+void *PrepareForSearchPurely(std::vector<bool> &bits, int w, int h, const char *filename)
+{
+  printf("Loading preprocessing data\n");
+  State*state = new State;
+  
+  state->mapper = Mapper(bits, w, h);
+
+  FILE*f = fopen(filename, "rb");
+  NodeOrdering order;
+  order.load(f);
+  state->cpd.load(f);
+  fclose(f);
+
+  state->mapper.reorder(order);
+
+  state->graph = AdjGraph(extract_graph(state->mapper));
+  state->current_node = -1;
+
+  printf("Loading done\n");
+
+
+  return state;
+}
+
 void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filename)
 {
   printf("Loading preprocessing data\n");
