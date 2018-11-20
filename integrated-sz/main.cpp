@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
   out << header << std::endl;
   string mapname = getMapName(string(filename));
   for (unsigned int x = 0; x < experimentStats.size(); x++) {
-    out << mapname << "," << x << "," <<  experimentStats[x].to_string() << "," << hLevel << pure << std::endl;
+    out << mapname << "," << x << "," <<  experimentStats[x].to_string() << "," << hLevel << "," << pure << std::endl;
   }
   out.close();
   return 0;
