@@ -105,6 +105,8 @@ private:
 
     int computeMaxSquare(Mapper mapper, xyLoc loc)
     {
+	const int16_t* dxv = warthog::dx;
+  	const int16_t* dyv = warthog::dy;
         int x = loc.x;
         int y = loc.y;
         if(mapper.operator()(loc) == -1)
@@ -126,8 +128,12 @@ private:
                 {
                     if((allowed[mapper.operator()(loc1)]&(1 << j)) != 0)
                     {
-                        int dest = g.out(mapper.operator()(loc), j).target;
-                        if(is_nat(loc, mapper.operator()(dest), loc1))
+                        xyLoc d;
+			d.x = loc.x;
+			d.y = loc.y;
+			d.x += dxv[j];
+      			d.y += dyv[j];
+                        if(is_nat(loc, d, loc1))
                         {
                             return 1;
                         }
