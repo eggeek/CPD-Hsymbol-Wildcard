@@ -1,4 +1,4 @@
-* `shizhe/index_data`: stores all precomputed CPDs
+* `./index_data`: stores all precomputed CPDs (untracked)
   * index file names are in format `*-RLE-{int}`, where `{int}` indicates the heuristic level
     of H symbol
     * `*-RLE-0`: no H symbol
