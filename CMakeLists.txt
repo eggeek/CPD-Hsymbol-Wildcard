@@ -13,7 +13,7 @@ include_directories(tests)
 include_directories(third_party)
 include_directories(utility)
 
-
+# config for source code
 set(SOURCE_FILES
     src/adj_array.h
     src/adj_graph.h
@@ -51,16 +51,19 @@ set(SOURCE_FILES
     utility/vec_io.h
     utility/visualizer.h)
 
-set(TESTING_FILES
-    tests/test-operations.cpp
-    tests/test-heuristic.cpp
-    tests/catch.hpp)
-
 add_executable(main
         ${SOURCE_FILES}
         main.cpp)
 
 target_link_libraries(main ${OpenMP_omp_LIBRARY})
+
+
+# config for tests
+set(TESTING_FILES
+    tests/test-operations.cpp
+    tests/test-heuristic.cpp
+    tests/catch.hpp)
+
 
 add_executable(testing
         ${SOURCE_FILES}
