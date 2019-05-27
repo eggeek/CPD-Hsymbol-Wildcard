@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEV_CXX_FLAGS}")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 
 include_directories(src)
-include_directories(testcases)
+include_directories(tests)
 include_directories(third_party)
 include_directories(utility)
 
@@ -52,9 +52,9 @@ set(SOURCE_FILES
     utility/visualizer.h)
 
 set(TESTING_FILES
-    testcases/test-operations.cpp
-    testcases/test-heuristic.cpp
-    testcases/catch.hpp)
+    tests/test-operations.cpp
+    tests/test-heuristic.cpp
+    tests/catch.hpp)
 
 add_executable(main
         ${SOURCE_FILES}

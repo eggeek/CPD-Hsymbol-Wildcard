@@ -86,7 +86,7 @@ flags = [
 '-I',
 'src',
 '-I',
-'testcases',
+'tests',
 '-I',
 'third_party',
 '-I',

@@ -9,7 +9,8 @@
 using namespace std;
 
 namespace TEST_HEURISTIC {
-
+const string default_testcase_path = "./tests/input/test-heuristic/";
+const string default_map_path = "./tests/maps/";
 string mpath;
 int height, width;
 vector<bool> mapData;
@@ -35,8 +36,8 @@ bool LoadScen(ifstream& in, xyLoc& s, xyLoc& t) {
   return true;
 }
 
-TEST_CASE("Hmove") {
-  ifstream file("./testcases/input/hmoves.in");
+TEST_CASE("Hmove", "[hsymbol]") {
+  ifstream file(default_testcase_path + "hmoves_0.in");
   xyLoc s, t;
   int expected;
   int hLevel = 1;
@@ -51,8 +52,8 @@ TEST_CASE("Hmove") {
   } 
 }
 
-TEST_CASE("Hmove2") {
-  ifstream file("./testcases/input/hmoves2.in");
+TEST_CASE("Hmove2", "[hsymbol]") {
+  ifstream file(default_testcase_path + "hmoves2_0.in");
   xyLoc s, t;
   int expected;
   int hLevel = 2;
@@ -67,8 +68,8 @@ TEST_CASE("Hmove2") {
   }
 }
 
-TEST_CASE("badcase") {
-  mpath = "./maps/arena.map";
+TEST_CASE("badcase", "[.findworst]") {
+  mpath = "./tests/maps/arena.map";
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
@@ -94,8 +95,8 @@ TEST_CASE("badcase") {
 }
 
 
-TEST_CASE("hextension") {
-  mpath = "./test/maps/3obs.map";
+TEST_CASE("hextension", "[hsymbol]") {
+  mpath = default_map_path + "3obs.map";
   LoadMap(mpath.c_str(), mapData, width, height);
   Mapper mapper(mapData, width, height);
   AdjGraph g(extract_graph(mapper));
