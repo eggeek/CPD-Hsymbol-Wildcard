@@ -65,6 +65,6 @@ target_link_libraries(main ${OpenMP_omp_LIBRARY})
 add_executable(testing
         ${SOURCE_FILES}
         ${TESTING_FILES}
-        testing.cpp)
+        tests/main.cpp)
 
 target_link_libraries(testing ${OpenMP_omp_LIBRARY})
