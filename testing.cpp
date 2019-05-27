@@ -20,7 +20,7 @@ TEST_CASE("canonical_succ") {
   vector<string> map;
   SECTION("testing") {
     printf("Run test cases:\n");
-    ifstream file("testcases/canonical_suc.in");
+    ifstream file("testcases/input/canonical_suc.in");
     int cas, direct, ans;
     warthog::jps::direction d;
     file >> cas;

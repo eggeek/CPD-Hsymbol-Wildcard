@@ -36,7 +36,7 @@ bool LoadScen(ifstream& in, xyLoc& s, xyLoc& t) {
 }
 
 TEST_CASE("Hmove") {
-  ifstream file("./test/hmoves.in");
+  ifstream file("./testcases/input/hmoves.in");
   xyLoc s, t;
   int expected;
   int hLevel = 1;
@@ -52,7 +52,7 @@ TEST_CASE("Hmove") {
 }
 
 TEST_CASE("Hmove2") {
-  ifstream file("./test/hmoves2.in");
+  ifstream file("./testcases/input/hmoves2.in");
   xyLoc s, t;
   int expected;
   int hLevel = 2;
