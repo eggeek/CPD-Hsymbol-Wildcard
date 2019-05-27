@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
-project(topping)
+project(CPD-Hsymbol-Wildcard)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-L/usr/local/opt/libomp/lib -I/usr/local/opt/libomp/include -DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE -lomp")
 set(DEV_CXX_FLAGS "-g -ggdb -O0 -fno-omit-frame-pointer")
+set(RELEASE_CXX_FLAGS "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEV_CXX_FLAGS}")
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
+
 include_directories(src)
-include_directories(test)
+include_directories(testcases)
 include_directories(third_party)
 include_directories(utility)
 
@@ -21,7 +24,6 @@ set(SOURCE_FILES
     src/list_graph.h
     src/order.cpp
     src/order.h
-    test/catch.hpp
     third_party/cpd.cpp
     third_party/cpd.h
     third_party/gm_parser.cpp
@@ -49,14 +51,20 @@ set(SOURCE_FILES
     utility/vec_io.h
     utility/visualizer.h)
 
+set(TESTING_FILES
+    testcases/test-operations.cpp
+    testcases/test-heuristic.cpp
+    testcases/catch.hpp)
+
 add_executable(main
         ${SOURCE_FILES}
         main.cpp)
 
 target_link_libraries(main ${OpenMP_omp_LIBRARY})
 
-add_executable(test
+add_executable(testing
         ${SOURCE_FILES}
-        test.cpp)
+        ${TESTING_FILES}
+        testing.cpp)
 
-target_link_libraries(test ${OpenMP_omp_LIBRARY})
+target_link_libraries(testing ${OpenMP_omp_LIBRARY})
