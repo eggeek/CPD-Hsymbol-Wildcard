@@ -1,6 +1,8 @@
 build_dir="cmake-build"
+
 all: dev
 dev:
+	@mkdir -p ${build_dir}
 	@echo "cmake -B${build_dir} -H. -DCMAKE_BUILD_TYPE=Debug"
 	@eval "cmake -B${build_dir} -H. -DCMAKE_BUILD_TYPE=Debug"
 
@@ -8,6 +10,7 @@ dev:
 	@eval "cd ${build_dir} && make -j8"
 
 fast:
+	@mkdir -p ${build_dir}
 	@echo "cmake -B${build_dir} -H. -DCMAKE_BUILD_TYPE=Release"
 	@eval "cmake -B${build_dir} -H. -DCMAKE_BUILD_TYPE=Release"
 
