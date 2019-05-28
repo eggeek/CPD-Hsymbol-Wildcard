@@ -55,6 +55,11 @@ add_executable(main
         ${SOURCE_FILES}
         main.cpp)
 
+find_package(Boost COMPONENTS program_options REQUIRED )
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    target_link_libraries(main ${Boost_LIBRARIES})
+endif()
 target_link_libraries(main ${OpenMP_omp_LIBRARY})
 
 
@@ -71,3 +76,5 @@ add_executable(testing
         tests/main.cpp)
 
 target_link_libraries(testing ${OpenMP_omp_LIBRARY})
+
+

@@ -1,3 +1,4 @@
+#include <boost/program_options.hpp>
 #include <numeric>
 #include <algorithm>
 #include <iostream>
@@ -101,40 +102,41 @@ void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<S
 }
 
 int main(int argc, char **argv) {
+  // process command line
+  string mpath, spath;
+  int pre=0, run=0, hLevel=1;
+
+  namespace po = boost::program_options;
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help,H", "help message")
+    ("full,F", "preprocess map then run scenario")
+    ("preprocess,P", "preprocess map")
+    ("run,R", "run scenario without preprocessing")
+    ("hLevel,L", po::value<int>(&hLevel)->default_value(1), "Level of heuristic")
+    ("map,M", po::value<string>(&mpath)->required(), "path of map")
+    ("scen,S", po::value<string>(&spath)->required(), "path of scenario")
+  ;
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+
+  if (vm.count("help")) {
+    std::cout << desc << std::endl;
+    return 1;
+  }
+
+  po::notify(vm);
+  if (vm.count("full"))       pre = run = true;
+  if (vm.count("preprocess")) pre = true;
+  if (vm.count("run"))        run = true;
+  // done
+
   char filename[255];
   string outfname;
-  string mpath, spath;
   std::vector<xyLoc> thePath;
   std::vector<bool> mapData;
   int width, height;
-  bool pre = false;
-  bool run = false;
-  int hLevel = 1;
-
-  if (argc < 4) {
-    argHelp(argv);
-    exit(0);
-  }
-  mpath = argv[argc-2];
-  spath = argv[argc-1];
-  for (int i=1; i<argc-2; i++) {
-    if (strcmp(argv[i], "-full") == 0) {
-      pre = run = true;
-    }
-    else if (strcmp(argv[i], "-pre") == 0) {
-      pre = true; run = false;
-    }
-    else if (strcmp(argv[i], "-run") == 0) {
-      run = true; pre = false;
-    }
-    else if (isdigit(argv[i][0])) {
-      hLevel = atoi(argv[i]);
-    }
-    else {
-      argHelp(argv);
-      exit(0);
-    }
-  }
 
   LoadMap(mpath.c_str(), mapData, width, height);
   sprintf(filename, "./index_data/%s.map-%s-%d", getMapName(mpath).c_str() , GetName(), hLevel);
