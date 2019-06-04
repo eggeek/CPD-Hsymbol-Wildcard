@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <assert.h>
+#include <iostream>
+#include <iomanip>
 #include "Entry.h"
 #include "timer.h"
 #include "list_graph.h"
@@ -97,9 +99,11 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
         #pragma omp critical 
         {
           ++progress;
-          if(progress % (g.node_count()/10) == 0){
-            printf("%d of %d done\n", progress, g.node_count());
-            fflush(stdout);
+          if(progress % 100 == 0) {
+            double ratio = (double)progress / g.node_count() * 100.0;
+            cout << "Progress: [" << progress << "/" << g.node_count() << "] "
+                 << setprecision(3) << ratio << "% \r";
+            cout.flush();
           }
         }
       }
