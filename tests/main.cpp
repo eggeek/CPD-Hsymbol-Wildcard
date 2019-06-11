@@ -129,7 +129,7 @@ TEST_CASE("canonical_succ") {
 
 
 int main(int argv, char* args[]) {
-	cout << "Running test cases..." << endl;
+	cerr << "Running test cases..." << endl;
 	Catch::Session session;
 	int res = session.run(argv, args);
   return res;

@@ -88,6 +88,7 @@ class SquareWildcard {
           }
         }
       }
+      return -1;
     }
 
     bool is_nat(xyLoc source, xyLoc target, xyLoc node)

@@ -27,7 +27,7 @@ public:
     std::fill(allowed.begin(), allowed.end(), 0);
     fill(directions.begin(), directions.end(), 0);
 
-    dist[source_node] = 0;    
+    dist[source_node] = 0;
     allowed[source_node] = 0;
     directions[source_node] = warthog::ALLMOVE;
 

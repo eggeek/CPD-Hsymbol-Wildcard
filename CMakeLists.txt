@@ -29,6 +29,8 @@ set(SOURCE_FILES
     src/list_graph.h
     src/order.cpp
     src/order.h
+    src/square_wildcard.h
+    src/rect_wildcard.h
     third_party/cpd.cpp
     third_party/cpd.h
     third_party/gm_parser.cpp
@@ -72,6 +74,7 @@ target_link_libraries(main ${OpenMP_omp_LIBRARY})
 set(TESTING_FILES
     tests/test-operations.cpp
     tests/test-heuristic.cpp
+    tests/test-visual.cpp
     tests/catch.hpp)
 
 
