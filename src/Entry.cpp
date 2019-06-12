@@ -209,16 +209,6 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 
 }
 
-struct State{
-  CPD cpd;
-  Mapper mapper;
-  AdjGraph graph;
-  vector<int> row_ordering;
-  vector<int> square_sides;
-  vector<unsigned char> reverse_moves;
-  int current_node;
-  int target_node;
-};
 
 void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filename)
 {
@@ -243,6 +233,26 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
   printf("Loading done\n");
 
 
+  return state;
+}
+
+
+State LoadRectWildCard(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  State state;
+  state.mapper = Mapper(bits, w, h);
+
+  FILE* f = fopen(fname, "rb");
+  state.rects = load_vector<RectInfo>(f);
+  NodeOrdering order;
+  order.load(f);
+  state.cpd.load(f);
+  state.row_ordering = load_vector<int>(f);
+  fclose(f);
+
+  state.mapper.reorder(order);
+  state.graph = AdjGraph(extract_graph(state.mapper));
+  printf("Loading done\n");
   return state;
 }
 

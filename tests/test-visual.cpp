@@ -8,6 +8,7 @@
 #include "dijkstra.h"
 #include "rect_wildcard.h"
 #include "jps.h"
+#include "order.h"
 using namespace std;
 
 namespace TEST_VISUAL {
@@ -29,7 +30,7 @@ namespace TEST_VISUAL {
     ifstream file(default_testcase_path + "visual.in");
 
     while (file >> mpath >> s.x >> s.y) {
-      ofstream output("visual_" + to_string(cnt) + ".out");
+      ofstream output("visual-" + to_string(cnt) + ".out");
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
       AdjGraph g(extract_graph(mapper));
@@ -58,16 +59,16 @@ namespace TEST_VISUAL {
 
   TEST_CASE("rect", "[.fmoves]") {
     xyLoc s;
-    int cnt = 0;
+    int cnt = 0, hLevel = 0;
     ifstream file(default_testcase_path + "rect.in");
-    while (file >> mpath >> s.x >> s.y) {
+    while (file >> mpath >> hLevel >> s.x >> s.y) {
       int lats = s.x, lons = s.y, pch=0;
-      ofstream output("rect_" + to_string(cnt) + ".out");
+      ofstream output("rect-" + to_string(cnt) + ".out");
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
       AdjGraph g(extract_graph(mapper));
       Dijkstra dij(g, mapper);
-      const auto& fmoves = dij.run(mapper(s), 0);
+      const auto& fmoves = dij.run(mapper(s), hLevel);
       RectWildcard rw(mapper, s, fmoves);
       vector<RectInfo> rects = rw.computeRects();
 
@@ -142,4 +143,57 @@ namespace TEST_VISUAL {
       cnt++;
     }
   }
+
+TEST_CASE("rect-used", "[.fmoves]") {
+  xyLoc s;
+  int cnt = 0, hLevel;
+  ifstream file(default_testcase_path + "rect-used.in");
+  while (file >> mpath >> hLevel >> s.x >> s.y) {
+    int lats = s.x, lons = s.y, pch=0;
+    ofstream output("rect-used-" + to_string(cnt) + ".out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Mapper mapper(mapData, width, height);
+    NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+    mapper.reorder(order);
+    vector<int> row_ordering = order.get_old_array();
+    AdjGraph g(extract_graph(mapper));
+    Dijkstra dij(g, mapper);
+    vector<RectInfo> rects;
+    const auto& fmoves = dij.run(mapper(s), hLevel, rects);
+    CPD cpd;
+    vector<RectInfo> used = cpd.append_row(mapper(s), fmoves, mapper, rects, row_ordering);
+    vector<vector<bool>> flag(height, vector<bool>(width, false));
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    output << header << endl;
+    // In R plot, pch=0: square, pch=15: solid square
+    for (const auto& it: used) {
+      int r = it.y(width); 
+      int c = it.x(width);
+      for (int x=0; x<it.L; x++) 
+      for (int y=0; y<it.U; y++) {
+        flag[r-y][c-x] = true;
+        int latt = c-x, lont = r-y;
+        pch = 15;
+        string hexcolor = mask2hexcolor(it.mask);
+        output << lats << "," << lons << "," << latt << "," << lont << ","
+               << pch << "," << hexcolor << "," << it.mask << endl;
+      }
+    }
+
+    for (int y=0; y<height; y++) {
+      for (int x=0; x<width; x++) {
+        if (flag[y][x]) continue;
+        int latt = x, lont = y, color, mask;
+        int id = mapper(xyLoc{(int16_t)x, (int16_t)y});
+        color = id == -1?0: fmoves[id];
+        mask = id == -1?warthog::ALLMOVE: fmoves[id];
+        pch = id == -1?15: 0;
+        string hexcolor = mask2hexcolor(mask);
+        output << lats << "," << lons << "," << latt << "," << lont << ","
+               << pch << "," <<  hexcolor << "," << mask << endl;
+      }
+    }
+    cnt++;
+  }
+}
 }

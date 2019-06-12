@@ -71,14 +71,13 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
   };
 
   int  width = mapper.width();
-  for (int i=0; i<(int)rects.size(); i++) {
-    if (i) assert(rects[i].size() <= rects[i-1].size());
+  for (const auto& it: rects) {
     if (!used.empty()) {
       const RectInfo& pre = used.back();
-      int xl0 = rects[i].x(width) - rects[i].L+1;
-      int xr0 = rects[i].x(width);
-      int yl0 = rects[i].y(width) - rects[i].U+1;
-      int yr0 = rects[i].y(width);
+      int xl0 = it.x(width) - it.L+1;
+      int xr0 = it.x(width);
+      int yl0 = it.y(width) - it.U+1;
+      int yr0 = it.y(width);
 
       int xl1 = pre.x(width) - pre.L+1;
       int xr1 = pre.x(width);
@@ -89,11 +88,11 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
         continue;
     }
 
-    vector<int> tmp = compress(s, allowed, rects[i], mapper, row_ordering);
+    vector<int> tmp = compress(s, allowed, it, mapper, row_ordering);
     if (tmp.size() * sizeof(int) + sizeof(RectInfo) < cur.size() * sizeof(int)) {
       cur = tmp;
-      fill_rect(rects[i]);
-      used.push_back(rects[i]);
+      fill_rect(it);
+      used.push_back(it);
     }
   }
   entry.insert(entry.end(), cur.begin(), cur.end());

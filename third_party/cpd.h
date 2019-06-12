@@ -1,6 +1,4 @@
-#ifndef CPD_H
-#define CPD_H
-
+#pragma once
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -83,5 +81,3 @@ inline
 bool operator!=(const CPD&l, const CPD&r){
   return !(l == r);
 }
-
-#endif
