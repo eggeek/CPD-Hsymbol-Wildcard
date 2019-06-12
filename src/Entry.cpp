@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iostream>
 #include <iomanip>
+#include <omp.h>
 #include "Entry.h"
 #include "timer.h"
 #include "list_graph.h"
@@ -19,9 +20,6 @@
 
 using namespace std;
 
-#ifdef USE_PARALLELISM
-#include <omp.h>
-#endif
 
 const char *GetName()
 {
@@ -30,6 +28,89 @@ const char *GetName()
   #else
   return "METIS-CUT-SRC-RLE";
   #endif
+}
+
+void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const char* filename, int hLevel=1) {
+  Mapper mapper(bits, width, height);
+  printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
+
+  printf("Computing node order\n");
+  NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+  mapper.reorder(order);
+  printf("Computing Row Order\n");
+  AdjGraph g(extract_graph(mapper));
+  vector<int> row_ordering;
+  row_ordering = order.get_old_array();
+
+  printf("Computing first-move matrix, hLevel: %d\n", hLevel);
+  CPD cpd;
+  vector<RectInfo> used;
+  {
+    {
+      Dijkstra dij(g, mapper);
+      vector<RectInfo> rects;
+      vector<unsigned short> tmpfmoves;
+      CPD tmpcpd;
+      warthog::timer t;
+      t.start();
+      tmpfmoves = dij.run(0, hLevel, rects);
+      tmpcpd.append_row(0, tmpfmoves, mapper, rects, row_ordering);
+      t.stop();
+      double tots = t.elapsed_time_micro()*g.node_count() / 1000000;
+      printf("Estimated sequential running time : %fmin\n", tots / 60.0);
+    }
+
+    printf("Using %d threads\n", omp_get_max_threads());
+    vector<CPD>thread_cpd(omp_get_max_threads());
+    vector<vector<RectInfo>> thread_rects(omp_get_max_threads());
+    vector<vector<RectInfo>> thread_used(omp_get_max_threads());
+
+    int progress = 0;
+
+    #pragma omp parallel
+    {
+      const int thread_count = omp_get_num_threads();
+      const int thread_id = omp_get_thread_num();
+      const int node_count = g.node_count();
+
+      int node_begin = (node_count*thread_id) / thread_count;
+      int node_end = (node_count*(thread_id+1)) / thread_count;
+
+      AdjGraph thread_adj_g(g);
+      Dijkstra thread_dij(thread_adj_g, mapper);
+      Mapper thread_mapper = mapper;
+
+      for(int source_node=node_begin; source_node < node_end; ++source_node){
+        vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_rects[thread_id]);
+        thread_used[thread_id] = thread_cpd[thread_id].append_row(source_node, allowed, thread_mapper, thread_rects[thread_id], row_ordering);
+        #pragma omp critical 
+        {
+          ++progress;
+          if(progress % 100 == 0) {
+            double ratio = (double)progress / g.node_count() * 100.0;
+            cout << "Progress: [" << progress << "/" << g.node_count() << "] "
+                 << setprecision(3) << ratio << "% \r";
+            cout.flush();
+          }
+        }
+      }
+    }
+
+    for(auto&x:thread_cpd)
+      cpd.append_rows(x);
+    for(auto&x: thread_used)
+      used.insert(used.end(), x.begin(), x.end());
+  }
+
+  printf("Saving data to %s\n", filename);
+  printf("begin size: %d, entry size: %d\n", cpd.get_begin_size(), cpd.get_entry_size());
+  FILE*f = fopen(filename, "wb");
+  save_vector(f, used);
+  order.save(f);
+  cpd.save(f);
+  save_vector(f, row_ordering);
+  fclose(f);
+  printf("Done\n");
 }
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel=1)

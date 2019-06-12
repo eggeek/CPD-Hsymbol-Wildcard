@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "Hsymbol.h"
 #include "square_wildcard.h"
+#include "rect_wildcard.h"
 
 using namespace std;
 
@@ -87,10 +88,21 @@ public:
     return directions[t];
   }
 
-  const std::vector<unsigned short>&run(int source_node, int hLevel, vector<int>&square_side){
+  const std::vector<unsigned short>& run(int source_node, int hLevel, vector<int>&square_side){
     allowed = run(source_node, hLevel);
     int side = SquareWildcard(mapper, mapper(source_node)).computeMaxSquare(allowed);
     square_side.push_back(side);
+    return allowed;
+  }
+
+  const std::vector<unsigned short>& run(int source_node, int hLevel, vector<RectInfo>& rects) {
+    allowed = run(source_node, hLevel);
+    RectWildcard rw(mapper, mapper(source_node), allowed);
+    rects = rw.computeRects();
+    auto cmp = [&](RectInfo& a, RectInfo& b) {
+      return a.size() > b.size();
+    };
+    sort(rects.begin(), rects.end(), cmp);
     return allowed;
   }
 

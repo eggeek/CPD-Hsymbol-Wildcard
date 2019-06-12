@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <map>
 #include "mapper.h"
@@ -14,6 +15,7 @@ struct RectInfo {
   int pos, mask, U, L;
   inline int x(int w) const { return pos % w; }
   inline int y(int w) const { return pos / w; }
+  inline int size() const { return L * U; }
 };
 
 class RectWildcard {

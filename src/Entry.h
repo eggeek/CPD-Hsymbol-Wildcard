@@ -9,6 +9,7 @@ struct xyLoc {
 };
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);
+void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);
 double GetPathCostSRC(void *data, xyLoc s, xyLoc g, int hLevel, int limit=-1);
 double GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path,

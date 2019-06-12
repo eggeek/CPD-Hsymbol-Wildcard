@@ -9,6 +9,7 @@
 #include "range.h"
 #include "vec_io.h"
 #include "mapper.h"
+#include "rect_wildcard.h"
 
 //! Compressed Path database. Allows to quickly query the first out arc id of
 //! any shortest source-target-path. There may be at most 15 outgoing arcs for
@@ -26,6 +27,10 @@ public:
 
   void append_rows(const CPD&other);
 
+  vector<RectInfo> append_row(int s, const vector<unsigned short>& allowed, const Mapper& mapper, 
+      const vector<RectInfo>& rects, const vector<int>& row_ordering);
+  vector<int> compress(int s, const vector<unsigned short>& allowed,
+      const RectInfo& rect, const Mapper& mapper, const vector<int>& row_ordering);
   //! Get the first move. 
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 

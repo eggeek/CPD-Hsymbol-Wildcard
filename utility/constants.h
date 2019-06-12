@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <cmath>
 #include <climits>
+#include <unordered_map>
 #include <stdint.h>
 
 namespace warthog
@@ -53,6 +54,14 @@ namespace warthog
   static const uint16_t HMASK = 0x0100;
   static const uint16_t OCTILE = 0xFF;
 
+  // mask to int
+  static const std::unordered_map<int, int> m2i = {
+    {1<<0, 0}, {1<<1, 1}, {1<<2, 2}, {1<<3, 3},
+    {1<<4, 4}, {1<<5, 5}, {1<<6, 6}, {1<<7, 7},
+    {1<<8, 8}, {1<<9, 9}, {1<<10, 10}, {1<<11, 11},
+    {1<<12, 12}, {1<<13, 13}, {1<<14, 14}, {1<<15, 15},
+  };
+
   // graph mapper
   static const int16_t dx[] = {0, 0, 1, -1, 1, -1, 1, -1};
   static const int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, 1};
@@ -70,6 +79,10 @@ namespace warthog
     {5, 3, 7},
     {0, INVALID_MOVE, 1},
     {4, 2, 6}
+  };
+
+  static inline int lowb(int mask) {
+    return mask & (-mask);
   };
 }
 
