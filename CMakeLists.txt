@@ -23,8 +23,11 @@ set(SOURCE_FILES
     src/adj_array.h
     src/adj_graph.h
     src/dijkstra.h
-    src/Entry.cpp
-    src/Entry.h
+    src/preprocessing.h
+    src/preprocessing.cpp
+    src/loader.h
+    src/query.h
+    src/query.cpp
     src/Hsymbol.h
     src/list_graph.h
     src/order.cpp

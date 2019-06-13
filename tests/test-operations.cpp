@@ -1,6 +1,6 @@
 #include <vector>
 #include "catch.hpp"
-#include "Entry.h"
+#include "preprocessing.h"
 #include "cpd.h"
 #include "mapper.h"
 #include "dijkstra.h"

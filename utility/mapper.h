@@ -1,15 +1,19 @@
-#ifndef MAPPER_H
-#define MAPPER_H
+#pragma once
 #include <vector>
-#include <cstdint>
+#include <iostream>
 #include "list_graph.h"
-#include "Entry.h"
 #include "order.h"
+#include "jps.h"
 #include "constants.h"
 using namespace std;
 
 struct ClosestMove {
   int move[4][4][2];
+};
+
+struct xyLoc {
+  int16_t x;
+  int16_t y;
 };
 
 class Mapper{
@@ -306,6 +310,3 @@ static inline int iabs(int num) {
 }
 
 void dump_map(const Mapper&map, const char*file);
-
-#endif
-

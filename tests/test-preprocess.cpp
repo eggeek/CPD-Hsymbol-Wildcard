@@ -2,7 +2,8 @@
 #include <iomanip>
 #include <fstream>
 #include "catch.hpp"
-#include "Entry.h"
+#include "preprocessing.h"
+#include "loader.h"
 using namespace std;
 
 namespace TEST_PREPROCESS {

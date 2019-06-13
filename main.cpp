@@ -6,7 +6,9 @@
 #include <chrono>
 #include <unistd.h>
 #include "ScenarioLoader.h"
-#include "Entry.h"
+#include "preprocessing.h"
+#include "query.h"
+#include "loader.h"
 #include "jpsp_oracle.h"
 #include "constants.h"
 #include "timer.h"
@@ -36,6 +38,15 @@ public:
   }
 };
 
+const char *GetName()
+{
+  #ifndef USE_CUT_ORDER
+  return "DFS-SRC-RLE";
+  #else
+  return "METIS-CUT-SRC-RLE";
+  #endif
+}
+
 string getMapName(string filename) {
   auto pos = filename.find_last_of('/');
   const string mapfile = filename.substr(pos + 1);
@@ -56,7 +67,7 @@ void argHelp(char **argv) {
   printf("\t\t3: H symbol with level3 heuristic function\n");
 }
 
-void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+void GetExperimentsSRCTime(Index ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
@@ -81,7 +92,7 @@ void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& 
   }
 }
 
-void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+void GetExperimentsSRCTime20Moves(Index ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     xyLoc s, g;
@@ -149,7 +160,7 @@ int main(int argc, char **argv) {
   outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
 
-  void *reference = PrepareForSearch(mapData, width, height, filename);
+  Index reference = PrepareForSearch(mapData, width, height, filename);
 
   ScenarioLoader scen(spath.c_str());
 

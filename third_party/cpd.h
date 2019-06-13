@@ -8,7 +8,7 @@
 #include "vec_io.h"
 #include "mapper.h"
 #include "rect_wildcard.h"
-
+using namespace std;
 //! Compressed Path database. Allows to quickly query the first out arc id of
 //! any shortest source-target-path. There may be at most 15 outgoing arcs for
 //! any node.

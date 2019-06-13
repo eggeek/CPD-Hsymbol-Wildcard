@@ -2,13 +2,11 @@
 #include <iomanip>
 #include <sstream>
 #include "catch.hpp"
-#include "Entry.h"
 #include "cpd.h"
-#include "mapper.h"
 #include "dijkstra.h"
-#include "rect_wildcard.h"
 #include "jps.h"
 #include "order.h"
+#include "loader.h"
 using namespace std;
 
 namespace TEST_VISUAL {
