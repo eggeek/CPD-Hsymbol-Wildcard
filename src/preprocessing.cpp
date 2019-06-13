@@ -72,7 +72,8 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
 
       for(int source_node=node_begin; source_node < node_end; ++source_node){
         vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_rects[thread_id]);
-        thread_used[thread_id] = thread_cpd[thread_id].append_row(source_node, allowed, thread_mapper, thread_rects[thread_id], row_ordering);
+        vector<RectInfo> tmp_used = thread_cpd[thread_id].append_row(source_node, allowed, thread_mapper, thread_rects[thread_id], row_ordering);
+        thread_used[thread_id].insert(thread_used[thread_id].end(), tmp_used.begin(), tmp_used.end());
         #pragma omp critical 
         {
           ++progress;
