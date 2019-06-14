@@ -1,0 +1,2 @@
+./maps/arena.map ./rwcard0.out ./scens/arena.map.scen 0
+./maps/arena.map ./rwcard1.out ./scens/arena.map.scen 1

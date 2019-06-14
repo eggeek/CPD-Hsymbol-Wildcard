@@ -59,7 +59,7 @@ inline Index LoadRectWildCard(vector<bool>& bits, int w, int h, const char* fnam
   state.mapper = Mapper(bits, w, h);
 
   FILE* f = fopen(fname, "rb");
-  state.rects = load_vector<RectInfo>(f);
+  state.rwobj.load(f);
   NodeOrdering order;
   order.load(f);
   state.cpd.load(f);

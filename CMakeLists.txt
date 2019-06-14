@@ -79,6 +79,7 @@ set(TESTING_FILES
     tests/test-heuristic.cpp
     tests/test-visual.cpp
     tests/test-preprocess.cpp
+    tests/test-query.cpp
     tests/catch.hpp)
 
 

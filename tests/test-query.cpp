@@ -8,7 +8,7 @@
 #include "loader.h"
 using namespace std;
 
-namespace TEST_PREPROCESS {
+namespace TEST_QUERY{
   const string default_testcase_path = "./tests/input/test-query/";
   string mpath, spath, indexpath;
   int height, width;
@@ -25,18 +25,40 @@ namespace TEST_PREPROCESS {
 
     int curs = data.mapper(s);
     int curt = data.mapper(t);
+    int move;
     const int16_t* dx = warthog::dx;
     const int16_t* dy = warthog::dy;
     double cost = 0.0;
 
-    while (curs != curt) {
-      if (data.row_ordering[curs] >= data.row_ordering[curt]) {
+    auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
+      const RectInfo* rect = data.rwobj.get_rects(sid, data.mapper, target);
+      if (rect == NULL) {
+        move = data.cpd.get_first_move(sid, tid);
       }
       else {
-      
+        move = rect->mask? warthog::m2i.at(warthog::lowb(rect->mask)): warthog::NOMOVE;
+      }
+      if (move == warthog::NOMOVE) return;
+      if ((1<<move) == warthog::HMASK) {
+        move = Hsymbol::decode(sid, tid, data.mapper, heuristic_func);
+      }
+      cost += warthog::doublew[move];
+      source.x += dx[move];
+      source.y += dy[move];
+      sid = data.mapper(source);
+    };
+
+    while (curs != curt) {
+      if (data.row_ordering[curs] >= data.row_ordering[curt]) {
+        to_next_pos(s, t, curs, curt);
+        if (move == warthog::NOMOVE) break;
+      }
+      else {
+        to_next_pos(t, s, curt, curs); 
+        if (move == warthog::NOMOVE) break;
       }
     }
-    return 0;
+    return cost;
   }
 
   TEST_CASE("rw-query", "[.run]") {
@@ -45,7 +67,7 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> indexpath >> spath >> hLevel) {
       string output = "rw-query" + to_string(cnt) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Index state = LoadRectWildCard(mapData, width, height, indexpath.c_str());
+      Index data = LoadRectWildCard(mapData, width, height, indexpath.c_str());
       ScenarioLoader scens(spath.c_str());
       for (int i=0; i<scens.GetNumExperiments(); i++) {
         double dist = scens.GetNthExperiment(i).GetDistance();
@@ -54,6 +76,8 @@ namespace TEST_PREPROCESS {
         s.y = scens.GetNthExperiment(i).GetStartY();
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
+        double pathcost = getpath(data, s, g, hLevel);
+        REQUIRE(fabs(pathcost - dist) <= warthog::EPS);
       }
     }
   }

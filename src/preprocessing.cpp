@@ -34,7 +34,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
 
   printf("Computing first-move matrix, hLevel: %d\n", hLevel);
   CPD cpd;
-  vector<RectInfo> used;
+  map<int, vector<RectInfo>> used;
   {
     {
       Dijkstra dij(g, mapper);
@@ -53,7 +53,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
     printf("Using %d threads\n", omp_get_max_threads());
     vector<CPD>thread_cpd(omp_get_max_threads());
     vector<vector<RectInfo>> thread_rects(omp_get_max_threads());
-    vector<vector<RectInfo>> thread_used(omp_get_max_threads());
+    vector<map<int,vector<RectInfo>>> thread_used(omp_get_max_threads());
 
     int progress = 0;
 
@@ -73,7 +73,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
       for(int source_node=node_begin; source_node < node_end; ++source_node){
         vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_rects[thread_id]);
         vector<RectInfo> tmp_used = thread_cpd[thread_id].append_row(source_node, allowed, thread_mapper, thread_rects[thread_id], row_ordering);
-        thread_used[thread_id].insert(thread_used[thread_id].end(), tmp_used.begin(), tmp_used.end());
+        thread_used[thread_id][source_node].insert(thread_used[thread_id][source_node].end(), tmp_used.begin(), tmp_used.end());
         #pragma omp critical 
         {
           ++progress;
@@ -89,14 +89,18 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
 
     for(auto&x:thread_cpd)
       cpd.append_rows(x);
-    for(auto&x: thread_used)
-      used.insert(used.end(), x.begin(), x.end());
+    for(auto&x: thread_used) {
+      for (const auto& it: x) {
+        used[it.first].insert(used[it.first].end(), it.second.begin(), it.second.end());
+      }
+    }
   }
 
   printf("Saving data to %s\n", filename);
   printf("begin size: %d, entry size: %d\n", cpd.get_begin_size(), cpd.get_entry_size());
   FILE*f = fopen(filename, "wb");
-  save_vector(f, used);
+  RectWildcardIndex rwobj(used);
+  rwobj.save(f);
   order.save(f);
   cpd.save(f);
   save_vector(f, row_ordering);

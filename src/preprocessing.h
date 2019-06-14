@@ -10,12 +10,13 @@ struct Index {
   CPD cpd;
   Mapper mapper;
   AdjGraph graph;
+  RectWildcardIndex rwobj;
   vector<int> row_ordering;
   vector<int> square_sides;
-  vector<RectInfo> rects;
   vector<unsigned char> reverse_moves;
   int current_node;
   int target_node;
+  Index(){}
 };
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);

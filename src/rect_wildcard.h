@@ -1,8 +1,10 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <cstdio>
 #include "mapper.h"
 #include "constants.h"
+#include "vec_io.h"
 using namespace std;
 
 struct RectInfo {
@@ -16,6 +18,47 @@ struct RectInfo {
   inline int x(int w) const { return pos % w; }
   inline int y(int w) const { return pos / w; }
   inline int size() const { return L * U; }
+};
+
+class RectWildcardIndex {
+  public:
+  vector<int> begin;
+  vector<RectInfo> rects;
+
+  RectWildcardIndex(){};
+  RectWildcardIndex(const map<int, vector<RectInfo>>& data) {
+    begin.clear();
+    rects.clear();
+    int tot = 0;
+    for (auto it = data.begin(); it!=data.end(); it++) {
+      begin.push_back(tot);
+      tot += it->second.size();
+      rects.insert(rects.end(), it->second.begin(), it->second.end());
+    }
+  }
+
+  const RectInfo* get_rects(int sid, const Mapper& mapper, const xyLoc& t) const {
+    int end = sid+1 == (int)begin.size()? begin.size()-1: begin[sid+1]-1;
+    for (int i=begin[sid]; i<=end; i++) {
+      int x = rects[i].x(mapper.width());
+      int y = rects[i].y(mapper.width());
+      if (t.x >= x-rects[i].L+1 && t.x <= x && t.y >= y-rects[i].U+1 && t.y <= y) {
+        return (&rects[i]);
+      }
+    }
+    return NULL;
+  }
+
+  void save(FILE* file) {
+    save_vector<int>(file, begin);
+    save_vector<RectInfo>(file, rects);
+  }
+
+
+  void load(FILE* file) {
+    begin = load_vector<int>(file);
+    rects = load_vector<RectInfo>(file);
+  }
 };
 
 class RectWildcard {

@@ -12,6 +12,7 @@
 #include "jpsp_oracle.h"
 #include "constants.h"
 #include "timer.h"
+#include "rect_wildcard.h"
 
 class Stats {
 public:
@@ -67,7 +68,7 @@ void argHelp(char **argv) {
   printf("\t\t3: H symbol with level3 heuristic function\n");
 }
 
-void GetExperimentsSRCTime(Index ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
@@ -92,7 +93,7 @@ void GetExperimentsSRCTime(Index ref, ScenarioLoader& scen, std::vector<Stats>& 
   }
 }
 
-void GetExperimentsSRCTime20Moves(Index ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+void GetExperimentsSRCTime20Moves(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     xyLoc s, g;
@@ -160,7 +161,7 @@ int main(int argc, char **argv) {
   outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
 
-  Index reference = PrepareForSearch(mapData, width, height, filename);
+  const Index& reference = PrepareForSearch(mapData, width, height, filename);
 
   ScenarioLoader scen(spath.c_str());
 
