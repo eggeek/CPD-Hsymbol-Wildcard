@@ -22,10 +22,10 @@ namespace TEST_VISUAL {
     return sstream.str();
   }
 
-  TEST_CASE("pure", "[.fmoves]") {
+  TEST_CASE("pure", "[.fmoves-visual]") {
     xyLoc s;
     int cnt = 0;
-    ifstream file(default_testcase_path + "visual.in");
+    ifstream file(default_testcase_path + "pure.in");
 
     while (file >> mpath >> s.x >> s.y) {
       ofstream output("visual-" + to_string(cnt) + ".out");
@@ -55,7 +55,7 @@ namespace TEST_VISUAL {
     }
   }
 
-  TEST_CASE("rect", "[.fmoves]") {
+  TEST_CASE("rect", "[.fmoves-visual]") {
     xyLoc s;
     int cnt = 0, hLevel = 0;
     ifstream file(default_testcase_path + "rect.in");
@@ -142,7 +142,7 @@ namespace TEST_VISUAL {
     }
   }
 
-TEST_CASE("rect-used", "[.fmoves]") {
+TEST_CASE("rect-used", "[.fmoves-visual]") {
   xyLoc s;
   int cnt = 0, hLevel;
   ifstream file(default_testcase_path + "rect-used.in");
