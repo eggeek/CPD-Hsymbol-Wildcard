@@ -157,9 +157,10 @@ TEST_CASE("rect-used", "[.fmoves-visual]") {
     AdjGraph g(extract_graph(mapper));
     Dijkstra dij(g, mapper);
     vector<RectInfo> rects;
-    const auto& fmoves = dij.run(mapper(s), hLevel, rects);
+    vector<int> sides;
+    const auto& fmoves = dij.run(mapper(s), hLevel, rects, sides);
     CPD cpd;
-    vector<RectInfo> used = cpd.append_row(mapper(s), fmoves, mapper, rects, row_ordering);
+    vector<RectInfo> used = cpd.append_row(mapper(s), fmoves, mapper, rects, row_ordering, sides.back());
     vector<vector<bool>> flag(height, vector<bool>(width, false));
     string header = "lats,lons,latt,lont,pch,hex,mask";
     output << header << endl;

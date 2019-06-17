@@ -26,9 +26,11 @@ public:
   void append_rows(const CPD&other);
 
   vector<RectInfo> append_row(int s, const vector<unsigned short>& allowed, const Mapper& mapper, 
-      const vector<RectInfo>& rects, const vector<int>& row_ordering);
+      const vector<RectInfo>& rects, const vector<int>& row_ordering,
+      const int side);
   vector<int> compress(int s, const vector<unsigned short>& allowed,
-      const RectInfo& rect, const Mapper& mapper, const vector<int>& row_ordering);
+      const RectInfo& rect, const Mapper& mapper, const vector<int>& row_ordering,
+      const int side);
   //! Get the first move. 
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 

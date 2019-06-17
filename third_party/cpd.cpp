@@ -16,7 +16,8 @@ inline vector<int> CPD::compress(int source_node,
     const vector<unsigned short>& fmoves,
     const RectInfo& rect,
     const Mapper& mapper,
-    const vector<int>& row_ordering) {
+    const vector<int>& row_ordering,
+    const int side) {
 
   auto in_rect = [&](int id) {
     const xyLoc& loc = mapper(id);
@@ -25,10 +26,25 @@ inline vector<int> CPD::compress(int source_node,
     return (loc.x >= x-rect.L+1 && loc.x <= x && loc.y >= y-rect.U+1 && loc.y <= y);
   };
 
+  auto in_square = [&](int x) {
+      xyLoc loc_source = mapper.operator()(source_node);
+      xyLoc loc_x = mapper.operator()(x);
+      int dx = abs(loc_source.x - loc_x.x);
+      int dy = abs(loc_source.y- loc_x.y);
+      if((dx <= (side-1)/2)&&(dy<= (side-1)/2))
+      {
+        return true;
+      }
+      return false;
+  };
+
+
   auto get_allowed = [&](int x){
     if(x == source_node)
       return warthog::ALLMOVE;
     else if(row_ordering[source_node] < row_ordering[x])
+      return warthog::ALLMOVE;
+    else if (in_square(x))
       return warthog::ALLMOVE;
     else if (in_rect(x))
       return warthog::ALLMOVE;
@@ -55,10 +71,11 @@ inline vector<int> CPD::compress(int source_node,
 }
 
 vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, const Mapper& mapper,
-    const vector<RectInfo>& rects, const vector<int>& row_ordering) {
+    const vector<RectInfo>& rects, const vector<int>& row_ordering,
+    const int side) {
   vector<RectInfo> used;
   vector<unsigned short> fmoves = vector<unsigned short>(allowed.begin(), allowed.end());
-  vector<int> cur = compress(s, allowed, {0, 0, 0, 0}, mapper, row_ordering);
+  vector<int> cur = compress(s, allowed, {0, 0, 0, 0}, mapper, row_ordering, side);
 
   auto fill_rect = [&](const RectInfo& rect) {
     int x = rect.x(mapper.width());
@@ -88,7 +105,7 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
         continue;
     }
 
-    vector<int> tmp = compress(s, allowed, it, mapper, row_ordering);
+    vector<int> tmp = compress(s, allowed, it, mapper, row_ordering, side);
     if (tmp.size() * sizeof(int) + sizeof(RectInfo) < cur.size() * sizeof(int)) {
       cur = tmp;
       fill_rect(it);

@@ -95,13 +95,15 @@ public:
     return allowed;
   }
 
-  const std::vector<unsigned short>& run(int source_node, int hLevel, vector<RectInfo>& rects) {
+  const std::vector<unsigned short>& run(int source_node, int hLevel, vector<RectInfo>& rects, vector<int>& square_side) {
     allowed = run(source_node, hLevel);
     RectWildcard rw(mapper, mapper(source_node), allowed);
     rects = rw.computeRects();
     auto cmp = [&](RectInfo& a, RectInfo& b) {
       return a.size() > b.size();
     };
+    int side = SquareWildcard(mapper, mapper(source_node)).computeMaxSquare(allowed);
+    square_side.push_back(side);
     sort(rects.begin(), rects.end(), cmp);
     return allowed;
   }

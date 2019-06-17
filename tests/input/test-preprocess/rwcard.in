@@ -1,5 +1,6 @@
 ./tests/maps/arena.map 0
 ./tests/maps/arena.map 1
+./tests/maps/arena.map 3
 ./maps/dao/brc300d.map 0
 ./maps/dao/brc300d.map 1
 ./maps/dao/den009d.map 0
