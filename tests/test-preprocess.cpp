@@ -17,7 +17,7 @@ namespace TEST_PREPROCESS {
     int cnt = 0, hLevel = 0;
     ifstream file(default_testcase_path + "rwcard.in");
     while (file >> mpath >> hLevel) {
-      string output = "rwcard" + to_string(cnt) + ".out";
+      string output = getMapName(mpath) + "-" + to_string(hLevel) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       PreprocessRectWildcard(mapData, width, height, output.c_str(), hLevel);
       cnt++;

@@ -1,8 +1,16 @@
 #pragma once
 #include <iostream>
+#include <string>
 #include "mapper.h"
 #include "preprocessing.h"
 using namespace std;
+
+inline string getMapName(string filename) {
+  auto pos = filename.find_last_of('/');
+  const string mapfile = filename.substr(pos + 1);
+  auto suff = mapfile.find('.');
+  return mapfile.substr(0, suff);
+}
 
 inline void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &height)
 {

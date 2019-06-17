@@ -48,13 +48,6 @@ const char *GetName()
   #endif
 }
 
-string getMapName(string filename) {
-  auto pos = filename.find_last_of('/');
-  const string mapfile = filename.substr(pos + 1);
-  auto suff = mapfile.find('.');
-  return mapfile.substr(0, suff);
-}
-
 void argHelp(char **argv) {
   printf("Invalid Arguments\nUsage %s <flags> <map> <scenario>\n", argv[0]);
   printf("Flags:\n");
