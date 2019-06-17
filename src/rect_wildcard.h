@@ -38,7 +38,7 @@ class RectWildcardIndex {
   }
 
   const RectInfo* get_rects(int sid, const Mapper& mapper, const xyLoc& t) const {
-    int end = sid+1 == (int)begin.size()? begin.size()-1: begin[sid+1]-1;
+    int end = sid+1 == (int)begin.size()? rects.size()-1: begin[sid+1]-1;
     for (int i=begin[sid]; i<=end; i++) {
       int x = rects[i].x(mapper.width());
       int y = rects[i].y(mapper.width());

@@ -67,8 +67,8 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
       int node_end = (node_count*(thread_id+1)) / thread_count;
 
       AdjGraph thread_adj_g(g);
-      Dijkstra thread_dij(thread_adj_g, mapper);
       Mapper thread_mapper = mapper;
+      Dijkstra thread_dij(thread_adj_g, thread_mapper);
 
       for(int source_node=node_begin; source_node < node_end; ++source_node){
         vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_rects[thread_id]);
