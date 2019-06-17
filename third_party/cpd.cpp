@@ -22,7 +22,7 @@ inline vector<int> CPD::compress(int source_node,
     const xyLoc& loc = mapper(id);
     int y = rect.y(mapper.width());
     int x = rect.x(mapper.width());
-    return (loc.y - y < rect.U && loc.x - x < rect.L);
+    return (loc.x >= x-rect.L+1 && loc.x <= x && loc.y >= y-rect.U+1 && loc.y <= y);
   };
 
   auto get_allowed = [&](int x){

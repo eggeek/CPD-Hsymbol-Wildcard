@@ -6,6 +6,7 @@
 #include "preprocessing.h"
 #include "Hsymbol.h"
 #include "loader.h"
+#include "dijkstra.h"
 using namespace std;
 
 namespace TEST_QUERY{
@@ -31,9 +32,32 @@ namespace TEST_QUERY{
     double cost = 0.0;
 
     auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
+
       const RectInfo* rect = data.rwobj.get_rects(sid, data.mapper, target);
+
+      Dijkstra dij(data.graph, data.mapper);
+      CPD cpd;
+      vector<RectInfo> rects;
+      vector<unsigned short> fmoves = dij.run(data.mapper(source), hLevel, rects);
+      vector<RectInfo> used = cpd.append_row(sid, fmoves, data.mapper, rects, data.row_ordering);
+      if (rect != NULL) {
+        bool flag = false;
+        for (const auto& it: used) {
+          if (it.mask == rect->mask && it.pos == rect->pos && it.U == rect->U && it.L == rect->L) {
+            flag = true;
+            break;
+          }
+        }
+        if (flag != true) {
+          rect = data.rwobj.get_rects(sid, data.mapper, target);
+        }
+        REQUIRE(flag == true);
+      }
+
       if (rect == NULL) {
         move = data.cpd.get_first_move(sid, tid);
+        int move2 = cpd.get_first_move(0, tid);
+        REQUIRE(move == move2);
       }
       else {
         move = rect->mask? warthog::m2i.at(warthog::lowb(rect->mask)): warthog::NOMOVE;
@@ -42,6 +66,7 @@ namespace TEST_QUERY{
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(sid, tid, data.mapper, heuristic_func);
       }
+      REQUIRE((fmoves[tid] & (1<<move)) > 0);
       cost += warthog::doublew[move];
       source.x += dx[move];
       source.y += dy[move];
