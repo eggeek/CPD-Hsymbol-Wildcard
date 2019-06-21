@@ -66,12 +66,11 @@ public:
     entry = load_vector<int>(f);
   }
 
-  int get_begin_size() {
-    return begin.size();
-  }
-
   int get_entry_size() {
     return entry.size();
+  }
+  const vector<int>& get_entry() const {
+    return entry;
   }
 
 private:

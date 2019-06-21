@@ -104,7 +104,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
   }
 
   printf("Saving data to %s\n", filename);
-  printf("begin size: %d, entry size: %d\n", cpd.get_begin_size(), cpd.get_entry_size());
+  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(filename, "wb");
   save_vector(f, square_sides);
   RectWildcardIndex rwobj(used);
@@ -201,7 +201,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
   }
 
   printf("Saving data to %s\n", filename);
-  printf("begin size: %d, entry size: %d\n", cpd.get_begin_size(), cpd.get_entry_size());
+  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(filename, "wb");
   save_vector(f, square_sides);
   order.save(f);

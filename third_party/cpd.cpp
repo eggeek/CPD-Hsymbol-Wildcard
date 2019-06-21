@@ -87,7 +87,8 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
     }
   };
 
-  int  width = mapper.width();
+  int width = mapper.width();
+  int limit = 5;
   for (const auto& it: rects) {
     if (!used.empty()) {
       const RectInfo& pre = used.back();
@@ -108,9 +109,10 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
     vector<int> tmp = compress(s, allowed, it, mapper, row_ordering, side);
     if (tmp.size() * sizeof(int) + sizeof(RectInfo) < cur.size() * sizeof(int)) {
       cur = tmp;
-      fill_rect(it);
       used.push_back(it);
+      if ((int)used.size() >= limit) break;
     }
+    fill_rect(it);
   }
   entry.insert(entry.end(), cur.begin(), cur.end());
   begin.push_back(entry.size());

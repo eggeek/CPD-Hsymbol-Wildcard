@@ -1,8 +1,8 @@
-./tests/maps/arena.map
+./tests/maps/arena.map 0
 6 12
-./maps/brc000d.map
+./maps/brc000d.map 0
 10 34
-./tests/maps/arena.map
+./tests/maps/arena.map 0
 1 13
-./tests/maps/arena.map
+./tests/maps/arena.map 0
 4 12
