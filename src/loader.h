@@ -39,9 +39,7 @@ inline Index PrepareForSearch(std::vector<bool> &bits, int w, int h, const char 
 {
   printf("Loading preprocessing data\n");
   Index state;
-  
   state.mapper = Mapper(bits, w, h);
-
   FILE*f = fopen(filename, "rb");
   state.square_sides = load_vector<int>(f);
   NodeOrdering order;
@@ -49,15 +47,9 @@ inline Index PrepareForSearch(std::vector<bool> &bits, int w, int h, const char 
   state.cpd.load(f);
   state.row_ordering = load_vector<int>(f);
   fclose(f);
-
   state.mapper.reorder(order);
-
   state.graph = AdjGraph(extract_graph(state.mapper));
-  state.current_node = -1;
-
   printf("Loading done\n");
-
-
   return state;
 }
 
@@ -79,4 +71,20 @@ inline Index LoadRectWildCard(vector<bool>& bits, int w, int h, const char* fnam
   state.graph = AdjGraph(extract_graph(state.mapper));
   printf("Loading done\n");
   return state;
+}
+
+inline Index LoadInvCPD(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  Index data;
+  data.mapper = Mapper(bits, w, h);
+  FILE* f = fopen(fname, "rb");
+  data.square_sides = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  fclose(f);
+  data.mapper.reorder(order);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+  printf("Loading done\n");
+  return data;
 }

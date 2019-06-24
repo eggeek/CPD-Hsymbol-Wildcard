@@ -14,8 +14,6 @@ struct Index {
   vector<int> row_ordering;
   vector<int> square_sides;
   vector<unsigned char> reverse_moves;
-  int current_node;
-  int target_node;
   Index(){}
 };
 
