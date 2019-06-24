@@ -19,5 +19,5 @@ struct Index {
   Index(){}
 };
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);
-void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel);
+void PreprocessMap(std::vector<bool> &bits, int width, int height, string filename, int hLevel);
+void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, string filename, int hLevel);

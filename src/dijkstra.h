@@ -20,34 +20,34 @@ namespace H = Hsymbol;
 class Dijkstra{
 public:
   Dijkstra(const AdjGraph&g, const Mapper& mapper):
-    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), mapper(mapper),
-    directions(g.node_count()) {}
+    g(g), q(g.node_count()), dist(g.node_count()), allowed(g.node_count()), 
+    inv_allowed(g.node_count()), mapper(mapper){}
 
   const std::vector<unsigned short>&run(int source_node, int hLevel){
     std::fill(dist.begin(), dist.end(), std::numeric_limits<int>::max());
     std::fill(allowed.begin(), allowed.end(), 0);
-    fill(directions.begin(), directions.end(), 0);
+    fill(inv_allowed.begin(), inv_allowed.end(), 0);
 
     dist[source_node] = 0;
     allowed[source_node] = 0;
-    directions[source_node] = warthog::ALLMOVE;
+    inv_allowed[source_node] = warthog::ALLMOVE;
 
-    auto reach = [&](const OutArc& a, int d, unsigned short first_move){
+    auto reach = [&](const OutArc& a, int d, int fmove, int inv_fmove){
       int v = a.target;
       if(d < dist[v]){
         q.push_or_decrease_key(v, d);
         dist[v] = d;
-        allowed[v] = first_move;
-        directions[v] = 1 << a.direction;
+        allowed[v] = fmove;
+        inv_allowed[v] = inv_fmove;
       }else if(d == dist[v]){
-        allowed[v] |= first_move;
-        directions[v] |= 1 << a.direction;
+        allowed[v] |= fmove;
+        inv_allowed[v] |= inv_fmove;
       }
     };
 
     for(int i=0; i<g.out_deg(source_node); ++i){
       auto a = g.out(source_node, i);
-      reach(a, a.weight, (1 << a.direction));
+      reach(a, a.weight, 1<<a.direction, 1<<(warthog::INV_MOVE[a.direction]));
     }
 
     while(!q.empty()){
@@ -65,11 +65,13 @@ public:
 
       for(auto a:g.out(x)) {
         //if (neighbors & (1 << a.direction))
-        reach(a, dist[x] + a.weight, allowed[x]);
+        reach(a, dist[x] + a.weight, allowed[x], 1 << (warthog::INV_MOVE[a.direction]));
       }
     }
-    if (hLevel)
+    if (hLevel) {
       H::encode(source_node, allowed, mapper, hLevel);
+      H::encode(source_node, inv_allowed, mapper, hLevel);
+    }
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)
       for(auto uv : g.out(u)){
@@ -85,7 +87,19 @@ public:
   }
 
   int get_directions(int t) {
-    return directions[t];
+    return allowed[t];
+  }
+
+  int get_inv_directions(int t) {
+    return inv_allowed[t];
+  }
+
+  const vector<unsigned short>& get_allowed() const {
+    return allowed;
+  }
+
+  const vector<unsigned short>& get_inv_allowed() const {
+    return inv_allowed;
   }
 
   const std::vector<unsigned short>& run(int source_node, int hLevel, vector<int>&square_side){
@@ -113,8 +127,8 @@ private:
   min_id_heap<int>q;
   std::vector<int>dist;
   std::vector<unsigned short>allowed;
+  std::vector<unsigned short>inv_allowed;
   const Mapper& mapper;
-  vector<int> directions;
 };
 
 #endif

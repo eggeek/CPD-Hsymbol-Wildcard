@@ -158,6 +158,15 @@ static inline void encode(const int source, vector<unsigned short>& allowed, con
   }
 }
 
+static inline void encode_inv(const int target, vector<unsigned short>& inv_allowed, const Mapper& mapper,
+    int hLevel) {
+  for (int v=0; v<(int)inv_allowed.size(); v++) if (v != target) {
+    int hmove = get_heuristic_move(v, target, mapper, hLevel);
+    if (inv_allowed[v] & (1<<hmove))
+      inv_allowed[v] |= warthog::HMASK;
+  }
+}
+
 static inline int decode(int s, int t, const Mapper& mapper, int hLevel) {
   return get_heuristic_move(s, t, mapper, hLevel);
 }

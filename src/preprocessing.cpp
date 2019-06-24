@@ -20,7 +20,7 @@
 
 using namespace std;
 
-void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const char* filename, int hLevel=1) {
+void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string filename, int hLevel=1) {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
@@ -103,9 +103,9 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
     }
   }
 
-  printf("Saving data to %s\n", filename);
+  printf("Saving data to %s\n", filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
-  FILE*f = fopen(filename, "wb");
+  FILE*f = fopen(filename.c_str(), "wb");
   save_vector(f, square_sides);
   RectWildcardIndex rwobj(used);
   rwobj.save(f);
@@ -116,7 +116,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const cha
   printf("Done\n");
 }
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename, int hLevel=1)
+void PreprocessMap(std::vector<bool> &bits, int width, int height, string filename, int hLevel=1)
 {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
@@ -137,6 +137,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
   printf("Computing first-move matrix, hLevel: %d\n", hLevel);
   vector<int> square_sides;
   CPD cpd;
+  CPD inv_cpd;
   {
     {
       Dijkstra dij(g, mapper);
@@ -155,11 +156,12 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
         printf("%d of %d done\n", source_node, g.node_count());
 
       const auto&allowed = dij.run(source_node, hLevel, square_sides);
-      cpd.append_row(source_node, allowed, row_ordering, mapper, square_sides[source_node]);
+      cpd.append_row(source_node, allowed, mapper, square_sides[source_node]);
     }
     #else
     printf("Using %d threads\n", omp_get_max_threads());
     vector<CPD>thread_cpd(omp_get_max_threads());
+    vector<CPD>thread_cpd_inv(omp_get_max_threads());
     vector<vector<int>> thread_square_side(omp_get_max_threads());
 
     int progress = 0;
@@ -178,8 +180,9 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
       Mapper thread_mapper = mapper;
 
       for(int source_node=node_begin; source_node < node_end; ++source_node){
-        vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_square_side[thread_id]);
-        thread_cpd[thread_id].append_row(source_node, allowed, row_ordering, thread_mapper, *(thread_square_side[thread_id].end()-1));
+        thread_dij.run(source_node, hLevel, thread_square_side[thread_id]);
+        thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
+        thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
         #pragma omp critical 
         {
           ++progress;
@@ -195,19 +198,28 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 
     for(auto&x:thread_cpd)
       cpd.append_rows(x);
+    for (auto&x: thread_cpd_inv)
+      inv_cpd.append_rows(x);
     for(auto&x:thread_square_side)
       square_sides.insert(square_sides.end(), x.begin(), x.end());
     #endif
   }
 
-  printf("Saving data to %s\n", filename);
+  printf("Saving data to %s\n", filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
-  FILE*f = fopen(filename, "wb");
+  FILE*f = fopen(filename.c_str(), "wb");
   save_vector(f, square_sides);
   order.save(f);
   cpd.save(f);
-  save_vector(f, row_ordering);
   fclose(f);
   printf("Done\n");
 
+  filename += "-inv";
+  printf("Saving data to %s\n", filename.c_str());
+  f = fopen(filename.c_str(), "wb");
+  save_vector(f, square_sides);
+  order.save(f);
+  inv_cpd.save(f);
+  fclose(f);
+  printf("Done\n");
 }

@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
   sprintf(filename, "./index_data/%s.map-%s-%d", getMapName(mpath).c_str() , GetName(), hLevel);
 
   if (pre)
-    PreprocessMap(mapData, width, height, filename, hLevel);
+    PreprocessMap(mapData, width, height, string(filename), hLevel);
   
   if (!run)
     return 0;

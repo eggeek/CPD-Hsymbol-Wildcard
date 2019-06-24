@@ -62,7 +62,7 @@ namespace warthog
     {1<<12, 12}, {1<<13, 13}, {1<<14, 14}, {1<<15, 15},
   };
 
-  // graph mapper
+  // graph mapper              0, 1, 2, 3, 4,  5, 6, 7
   static const int16_t dx[] = {0, 0, 1, -1, 1, -1, 1, -1};
   static const int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, 1};
   static const int dw[] = {1000, 1000, 1000, 1000, 1414, 1414, 1414, 1414};
@@ -71,6 +71,7 @@ namespace warthog
   static const int CW[] = {0, 4, 2, 1, 7, 3, 5};
   // Counter Clockwise start with north
   static const int CCW[] = {0, 5, 3, 7, 1, 2, 4};
+  static const int INV_MOVE[] = {1, 0, 3, 2, 6, 7, 4, 5};
   static const int INVALID_MOVE = 15;
   static const int v2i[3][3] = {
     // 0~7 represent valid octile moves direction and 

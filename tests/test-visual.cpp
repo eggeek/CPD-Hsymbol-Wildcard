@@ -133,6 +133,35 @@ namespace TEST_VISUAL {
     }
   }
 
+  TEST_CASE("inv-pure", "[.fmoves-visual]") {
+    xyLoc s;
+    int cnt = 0, hLevel;
+    ifstream file(default_testcase_path + "pure.in");
+
+    while (file >> mpath >> hLevel >> s.x >> s.y) {
+      ofstream output("visual-" + to_string(cnt) + ".out");
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      AdjGraph g(extract_graph(mapper));
+      Dijkstra dij(g, mapper);
+      vector<int> sides;
+      vector<RectInfo> rects;
+      CPD cpd, cpd_inv;
+      dij.run(mapper(s), hLevel, rects, sides);
+      cpd.append_row(mapper(s), dij.get_allowed(), mapper, sides.back());
+      const auto& fmoves = dij.get_inv_allowed();
+
+      string header = "lats,lons,latt,lont,pch,hex,mask";
+      // In R plot, pch=0: square, pch=15: solid square
+      output << header << endl;
+      int lats = s.x, lons = s.y, pch=0;
+      vector<vector<bool>> flag(height+1, vector<bool>(width+1, false));
+      print_obstacle(lats, lons, mapper, flag, output);
+      print_fmoves(lats,lons, mapper, flag, fmoves, output);
+      cnt++;
+    }
+  }
+
   TEST_CASE("rect", "[.fmoves-visual]") {
     xyLoc s;
     int cnt = 0, hLevel = 0;
@@ -185,6 +214,7 @@ namespace TEST_VISUAL {
       cnt++;
     }
   }
+
 
 TEST_CASE("rect-used", "[.fmoves-visual]") {
   xyLoc s;

@@ -20,7 +20,7 @@ public:
   //! maps every target node onto a 15-bit bitfield that has a bit set
   //! for every valid first move. get_first_move is free to return any of
   //! them.
-  void append_row(int source_node, const std::vector<unsigned short>&first_move, const std::vector<int>&row_ordering,
+  void append_row(int source_node, const std::vector<unsigned short>&first_move,
                   Mapper mapper, const int side);
 
   void append_rows(const CPD&other);

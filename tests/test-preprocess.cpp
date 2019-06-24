@@ -19,7 +19,7 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> hLevel) {
       string output = getMapName(mpath) + "-" + to_string(hLevel) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      PreprocessRectWildcard(mapData, width, height, output.c_str(), hLevel);
+      PreprocessRectWildcard(mapData, width, height, output, hLevel);
       cnt++;
     }
   }

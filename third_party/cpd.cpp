@@ -120,7 +120,7 @@ vector<RectInfo> CPD::append_row(int s, const vector<unsigned short>& allowed, c
 }
 
 
-void CPD::append_row(int source_node, const std::vector<unsigned short>&allowed_first_move, const std::vector<int>&row_ordering,
+void CPD::append_row(int source_node, const std::vector<unsigned short>&allowed_first_move,
         Mapper mapper, const int side){
   auto is_in_square = [&](int x)
   {
@@ -139,8 +139,6 @@ void CPD::append_row(int source_node, const std::vector<unsigned short>&allowed_
     if(x == source_node)
       return warthog::ALLMOVE;
     else if(is_in_square(x))
-      return warthog::ALLMOVE;
-    else if(row_ordering[source_node] < row_ordering[x])
       return warthog::ALLMOVE;
     else if(allowed_first_move[x] == 0)
       return warthog::NOMOVE;
