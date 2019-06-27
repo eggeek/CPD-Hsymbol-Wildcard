@@ -44,6 +44,26 @@ public:
     )&0xF;
   }
 
+  vector<int>::const_iterator get_first_iter(int s, int t) const {
+    t <<= 4;
+    t |= 0xF;
+    return binary_find_last_true(
+        entry.begin() + begin[s],
+        entry.begin() + begin[s+1],
+        [=](int x){return x <= t;}
+    );
+  }
+
+  void get_interval(int s, int t, int& lhs, int& rhs, int& move) const {
+    auto it = get_first_iter(s, t);
+    lhs = (*it) >> 4;
+    if (std::next(it) == entry.end() || std::next(it) == entry.begin() + begin[s+1])
+      rhs = begin.size() - 1;
+    else
+      rhs = ((*std::next(it))>>4)-1;
+    move = (*it)&0xF;
+  }
+
   int node_count()const{
     return begin.size()-1;
   }
@@ -71,6 +91,30 @@ public:
   }
   const vector<int>& get_entry() const {
     return entry;
+  }
+
+  const vector<int>& get_begin() const {
+    return begin;
+  }
+
+  int get_heuristic_cnt(int row) const {
+    int hcnt = 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::HMASK)) {
+        int node_begin = entry[i]>>4;
+        int node_end = i+1==begin[row+1]?node_count(): entry[i+1]>>4;
+        hcnt += node_end - node_begin;
+      }
+    }
+    return hcnt;
+  }
+
+  int get_heuristic_run(int row) const {
+    int hrun= 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::HMASK)) hrun++;
+    }
+    return hrun;
   }
 
 private:
