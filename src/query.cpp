@@ -1,7 +1,7 @@
 #include "Hsymbol.h"
 #include "query.h"
 
-double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, int limit) {
+double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -15,7 +15,6 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, int limi
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
-  int steps = 0;
 
   auto is_in_square = [&](int current_source, int current_target)
   {
@@ -42,52 +41,27 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, int limi
 
   while (current_source != current_target) {
     int move;
-    if(state.row_ordering[current_source] >= state.row_ordering[current_target])
+    if(is_in_square(current_source, current_target))
     {
-      if(is_in_square(current_source, current_target))
-      {
-        move = next_move(current_source, current_target);
-      }
-      else
-      {
-        move = state.cpd.get_first_move(current_source, current_target);
-      }
-      // no path exist
-      if (move == 0xF) break;
-      if ((1 << move) == warthog::HMASK) {
-        move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
-      }
-      cost += warthog::doublew[move];
-      s.x += dx[move];
-      s.y += dy[move];
-      steps ++;
-      if (limit != -1 && limit <= steps)
-        break;
-      current_source = state.mapper(s);
+      move = next_move(current_source, current_target);
     }
     else
     {
-      if(is_in_square(current_target, current_source))
-      {
-        move = next_move(current_target, current_source);
-      }
-      else
-      {
-        move = state.cpd.get_first_move(current_target, current_source);
-      }
-      if (move == 0xF) break;
-      if ((1 << move) == warthog::HMASK) {
-        move = Hsymbol::decode(current_target, current_source, state.mapper, heuristic_func);
-      }
-      cost += warthog::doublew[move];
-      t.x += dx[move];
-      t.y += dy[move];
-      steps ++;
-      if (limit != -1 && limit <= steps)
-        break;
-      current_target = state.mapper(t);
+      move = state.cpd.get_first_move(current_source, current_target);
+      c.access_cnt++;
     }
-
+    // no path exist
+    if (move == 0xF) break;
+    if ((1 << move) == warthog::HMASK) {
+      move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
+    }
+    cost += warthog::doublew[move];
+    s.x += dx[move];
+    s.y += dy[move];
+    c.steps++;
+    if (limit != -1 && limit <= c.steps)
+      break;
+    current_source = state.mapper(s);
   }
   return cost;
 }
@@ -143,7 +117,7 @@ double GetPath(const Index& state, xyLoc s, xyLoc t, std::vector<xyLoc> &path, w
 }
 
 
-double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
+double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -194,6 +168,7 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
       const RectInfo* rect = data.rwobj.get_rects(sid, data.mapper, target);
       if (rect == NULL) {
         move = data.cpd.get_first_move(sid, tid);
+        c.access_cnt++;
       }
       else {
         move = rect->mask? warthog::m2i.at(warthog::lowb(rect->mask)): 0xF;
@@ -218,11 +193,13 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
       to_next_pos(t, s, curt, curs); 
       if ((1<<move)== warthog::NOMOVE) break;
     }
+    c.steps++;
+    if (limit != -1 && c.steps>= limit) break;
   }
   return cost;
 }
 
-double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
+double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -231,9 +208,10 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
   else if (hLevel == 3)
     heuristic_func = Hsymbol::get_heuristic_move3;
 
+  bool source_changed = false;
   int curs = data.mapper(s);
   int curt = data.mapper(t);
-  int move;
+  int lhs = -1, rhs = -1, cur_move = -1, move;
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
@@ -269,10 +247,16 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
       source.x += dx[move];
       source.y += dy[move];
       sid = data.mapper(source);
+      source_changed = true;
       return;
     }
     else {
-      move = data.cpd.get_first_move(sid, tid);
+      if (source_changed || !(tid >= lhs && tid <= rhs)) {
+        data.cpd.get_interval(sid, tid, lhs, rhs, cur_move);
+        source_changed = false;
+        c.access_cnt++;
+      }
+      move = cur_move;
       if ((1<<move) == warthog::NOMOVE) return;
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
@@ -287,6 +271,8 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel) {
   while (curs != curt) {
     to_next_pos(s, t, curs, curt);
     if ((1<<move)== warthog::NOMOVE) break;
+    c.steps++;
+    if (limit != -1 && limit <= c.steps) break;
   }
   return cost;
 }

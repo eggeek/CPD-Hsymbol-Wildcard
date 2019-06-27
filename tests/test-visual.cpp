@@ -35,6 +35,7 @@ namespace TEST_VISUAL {
         color = id == -1?0: fmoves[id];
         mask = id == -1?warthog::ALLMOVE: fmoves[id];
         int P = id == -1?pch: 0;
+        if (mask & warthog::HMASK) P = 18;
         string hexcolor = mask2hexcolor(mask);
         output << lats << "," << lons << "," << latt << "," << lont << ","
                << P << "," <<  hexcolor << "," << mask << endl;
@@ -100,7 +101,6 @@ namespace TEST_VISUAL {
       int latt = loc.x, lont = loc.y;
       if (flag[lont][latt]) continue;
       flag[lont][latt] = true;
-      pch = 21;
       string hexcolor = mask2hexcolor(mask);
       output << lats << "," << lons << "," << latt << "," << lont << ","
              << pch << "," <<  hexcolor << "," << mask << endl;
@@ -112,7 +112,7 @@ namespace TEST_VISUAL {
     int cnt = 0, hLevel;
     ifstream file(default_testcase_path + "pure.in");
 
-    while (file >> mpath >> s.x >> s.y >> hLevel) {
+    while (file >> mpath >> hLevel >> s.x >> s.y) {
       ofstream output("visual-" + to_string(cnt) + ".out");
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
@@ -139,16 +139,14 @@ namespace TEST_VISUAL {
     ifstream file(default_testcase_path + "pure.in");
 
     while (file >> mpath >> hLevel >> s.x >> s.y) {
-      ofstream output("visual-" + to_string(cnt) + ".out");
+      ofstream output("visual-inv-" + to_string(cnt) + ".out");
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
       AdjGraph g(extract_graph(mapper));
       Dijkstra dij(g, mapper);
       vector<int> sides;
       vector<RectInfo> rects;
-      CPD cpd, cpd_inv;
       dij.run(mapper(s), hLevel, rects, sides);
-      cpd.append_row(mapper(s), dij.get_allowed(), mapper, sides.back());
       const auto& fmoves = dij.get_inv_allowed();
 
       string header = "lats,lons,latt,lont,pch,hex,mask";
@@ -279,6 +277,58 @@ TEST_CASE("rect-cpd-row", "[.cpd-row-visual]") {
     print_rects(lats, lons, flag, used, output);
     print_fmoves(lats, lons, mapper, flag, fmoves, output, pch=20);
     cnt++;
+  }
+}
+
+TEST_CASE("inspect-runs", "[.cpd]") {
+  ifstream file(default_testcase_path + "inspect-runs.in");
+  int hLevel = 0;
+  string type, index_path;
+  while (file >> mpath >> index_path >> type >> hLevel) {
+    ofstream output(getMapName(mpath) + "-" + to_string(hLevel) + "-" + type + "-inspect.out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Index data;
+    if (type == "rect")
+      data = LoadRectWildCard(mapData, width, height, index_path.c_str());
+    else if (type == "inv")
+      data = LoadInvCPD(mapData, width, height, index_path.c_str());
+    else 
+      data = LoadVanillaCPD(mapData, width, height, index_path.c_str());
+    string header = "row,runs,hrun,hcnt,map";
+    output << header << endl;
+    for (int i=0; i<data.mapper.node_count(); i++) {
+      int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
+      int hcnt = data.cpd.get_heuristic_cnt(i);
+      int hrun = data.cpd.get_heuristic_run(i);
+      output << i << "," << runs << "," << hrun << "," << hcnt<< "," << getMapName(mpath) << endl;
+    }
+  }
+}
+
+TEST_CASE("inspect-row", "[.cpd]") {
+  ifstream file(default_testcase_path + "inspect-row.in");
+  int hLevel = 0;
+  xyLoc s;
+  string type, index_path, outpath;
+  while (file >> mpath >> index_path >> type >> hLevel >> s.x >> s.y) {
+    ofstream output("visual-row-" + getMapName(mpath) + "-" + to_string(hLevel) + "-" + type + ".out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Index data;
+    if (type == "rect")
+      data = LoadRectWildCard(mapData, width, height, index_path.c_str());
+    else if (type == "inv")
+      data = LoadInvCPD(mapData, width, height, index_path.c_str());
+    else 
+      data = LoadVanillaCPD(mapData, width, height, index_path.c_str());
+
+    vector<vector<bool>> flag(height, vector<bool>(width, false));
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    auto entry = data.cpd.get_entry();
+    auto begin = data.cpd.get_begin();
+    int id = data.mapper(s);
+    output << header << endl;
+    print_entries(s.x, s.y, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data.mapper, output, 8);
+    print_obstacle(s.x, s.y, data.mapper, flag, output);
   }
 }
 

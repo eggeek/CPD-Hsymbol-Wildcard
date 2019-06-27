@@ -14,27 +14,34 @@
 #include "timer.h"
 #include "rect_wildcard.h"
 
+namespace po = boost::program_options;
+po::variables_map vm;
+string type;
+
 class Stats {
 public:
-  std::vector<double> time;// = std::vector<double>(3);
-  std::vector<double> time20moves;// = std::vector<double>(3);
+  //std::vector<double> time;// = std::vector<double>(3);
+  //std::vector<double> time20moves;// = std::vector<double>(3);
   std::vector<double> srcTime;// = std::vector<double>(3);
-  std::vector<double> srcTime20moves;// = std::vector<double>(3);
-  double pathcost;
-  std::vector<xyLoc> path;
+  //std::vector<double> srcTime20moves;// = std::vector<double>(3);
+  Counter c;
+  //std::vector<xyLoc> path;
 
+  static string header() {
+    return "map,scenid,tcost,distance,steps,access,hLevel";
+  }
   string to_string() {
     std::ostringstream res;
-    sort(time.begin(), time.end());
-    sort(time20moves.begin(), time20moves.end());
+    //sort(time.begin(), time.end());
+    //sort(time20moves.begin(), time20moves.end());
     sort(srcTime.begin(), srcTime.end());
-    sort(srcTime20moves.begin(), srcTime20moves.end());
+    //sort(srcTime20moves.begin(), srcTime20moves.end());
     // get the mean
     //res << time[time.size() / 2] << ",";
     //res << time20moves[time20moves.size() / 2] << ",";
     res << srcTime[srcTime.size() / 2] << ",";
-    res << srcTime20moves[srcTime20moves.size() / 2] << ",";
-    res << pathcost << "," << path.size();
+    //res << srcTime20moves[srcTime20moves.size() / 2] << ",";
+    res << c.pathcost << "," << c.steps << "," << c.access_cnt;
     return res.str();
   }
 };
@@ -63,6 +70,14 @@ void argHelp(char **argv) {
 
 void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
+  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit);
+  if (type == "vanilla")
+    runner = GetPathCostSRC;
+  else if (type == "rect")
+    runner = GetRectWildCardCost;
+  else if (type == "inv")
+    runner = GetInvCPDCost;
+
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -70,60 +85,38 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
     s.y = scen.GetNthExperiment(x).GetStartY();
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
+    exps[x].c = Counter{0, 0, 0};
     auto stime = std::chrono::steady_clock::now();
-      double pathcost = GetPathCostSRC(ref, s, g, hLevel);
+      exps[x].c.pathcost = runner(ref, s, g, hLevel, exps[x].c, -1);
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    //  double pathcost = GetPathCostSRC(ref, s, g);
-    //t.stop();
-    //double tcost = t.elapsed_time_nano();
     exps[x].srcTime.push_back(tcost);
-    if (fabs(pathcost - dist) > warthog::EPS) {
-      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, pathcost);
+    if (fabs(exps[x].c.pathcost - dist) > warthog::EPS) {
+      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, exps[x].c.pathcost);
       assert(false);
     }
   }
 }
 
-void GetExperimentsSRCTime20Moves(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
-  warthog::timer t;
-  for (int x=0; x<scen.GetNumExperiments(); x++) {
-    xyLoc s, g;
-    s.x = scen.GetNthExperiment(x).GetStartX();
-    s.y = scen.GetNthExperiment(x).GetStartY();
-    g.x = scen.GetNthExperiment(x).GetGoalX();
-    g.y = scen.GetNthExperiment(x).GetGoalY();
-    auto stime = std::chrono::steady_clock::now();
-      GetPathCostSRC(ref, s, g, hLevel, 20);
-    auto etime = std::chrono::steady_clock::now();
-    double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    // GetPathCostSRC(ref, s, g, 20);
-    //t.stop();
-    //double tcost = t.elapsed_time_nano();
-    exps[x].srcTime20moves.push_back(tcost);
-  }
-}
-
 int main(int argc, char **argv) {
   // process command line
-  string mpath, spath;
+  string mpath, spath, indexpath, outfname;
   int pre=0, run=0, hLevel=1;
 
-  namespace po = boost::program_options;
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,H", "help message")
     ("full,F", "preprocess map then run scenario")
     ("preprocess,P", "preprocess map")
     ("run,R", "run scenario without preprocessing")
-    ("hLevel,L", po::value<int>(&hLevel)->default_value(1), "Level of heuristic")
+    ("hLevel,L", po::value<int>(&hLevel)->default_value(0), "Level of heuristic")
     ("map,M", po::value<string>(&mpath)->required(), "path of map")
-    ("scen,S", po::value<string>(&spath)->required(), "path of scenario")
+    ("scen,S", po::value<string>(&spath), "path of scenario")
+    ("index,I", po::value<string>(&indexpath), "path of index")
+    ("type,T", po::value<string>(&type)->default_value("vanilla"), "type of cpd")
+    ("output,O", po::value<string>(&outfname), "output path")
   ;
 
-  po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
 
   if (vm.count("help")) {
@@ -135,10 +128,14 @@ int main(int argc, char **argv) {
   if (vm.count("full"))       pre = run = true;
   if (vm.count("preprocess")) pre = true;
   if (vm.count("run"))        run = true;
+  if (run) {
+    if (!vm.count("index") || !vm.count("scen")) {
+      std::cout << "require index & scen path" << endl;
+    }
+  }
   // done
 
   char filename[255];
-  string outfname;
   std::vector<xyLoc> thePath;
   std::vector<bool> mapData;
   int width, height;
@@ -151,10 +148,17 @@ int main(int argc, char **argv) {
   
   if (!run)
     return 0;
-  outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
+  if (!vm.count("output"))
+    outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
-  const Index& reference = PrepareForSearch(mapData, width, height, filename);
+  Index reference;
+  if (type == "vanilla")
+    reference = LoadVanillaCPD(mapData, width, height, indexpath.c_str());
+  else if (type == "rect")
+    reference = LoadRectWildCard(mapData, width, height, indexpath.c_str());
+  else if (type == "inv")
+    reference = LoadInvCPD(mapData, width, height, indexpath.c_str());
 
   ScenarioLoader scen(spath.c_str());
 
@@ -165,12 +169,10 @@ int main(int argc, char **argv) {
 
   for (int i=0; i<repeat; i++) {
     GetExperimentsSRCTime(reference, scen, experimentStats, hLevel);
-    GetExperimentsSRCTime20Moves(reference, scen, experimentStats, hLevel);
   }
 
   std::ofstream out;
-  //string header = "map,scenid,total,20move,total-src,20move-src,distance,path_size,hLevel";
-  string header = "map,scenid,total-src,20move-src,distance,path_size,hLevel";
+  string header = Stats::header();
   out.open (outfname.c_str(), std::ios::app);
   out << header << std::endl;
   string mapname = getMapName(string(filename));

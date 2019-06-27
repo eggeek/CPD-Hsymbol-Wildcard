@@ -31,8 +31,9 @@ namespace TEST_QUERY{
         s.y = scens.GetNthExperiment(i).GetStartY();
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
-        double pathcost = GetRectWildCardCost(data, s, g, hLevel);
-        REQUIRE(fabs(pathcost - dist) <= warthog::EPS);
+        Counter c = Counter{0, 0, 0};
+        c.pathcost = GetRectWildCardCost(data, s, g, hLevel, c);
+        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
       }
     }
   }
@@ -52,8 +53,9 @@ namespace TEST_QUERY{
         s.y = scens.GetNthExperiment(i).GetStartY();
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
-        double pathcost = GetInvCPDCost(data, s, g, hLevel);
-        REQUIRE(fabs(pathcost - dist) <= warthog::EPS);
+        Counter c = Counter{0, 0, 0};
+        c.pathcost = GetInvCPDCost(data, s, g, hLevel, c);
+        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
       }
     }
   }

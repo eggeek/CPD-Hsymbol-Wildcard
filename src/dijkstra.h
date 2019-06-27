@@ -70,7 +70,7 @@ public:
     }
     if (hLevel) {
       H::encode(source_node, allowed, mapper, hLevel);
-      H::encode(source_node, inv_allowed, mapper, hLevel);
+      H::encode_inv(source_node, inv_allowed, mapper, hLevel);
     }
     #ifndef NDEBUG
     for(int u=0; u<g.node_count(); ++u)

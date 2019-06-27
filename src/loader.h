@@ -53,6 +53,22 @@ inline Index PrepareForSearch(std::vector<bool> &bits, int w, int h, const char 
   return state;
 }
 
+inline Index LoadVanillaCPD(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  Index state;
+  state.mapper = Mapper(bits, w, h);
+  FILE*f = fopen(fname, "rb");
+  state.square_sides = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  state.cpd.load(f);
+  fclose(f);
+  state.mapper.reorder(order);
+  state.graph = AdjGraph(extract_graph(state.mapper));
+  printf("Loading done\n");
+  return state;
+}
+
 inline Index LoadRectWildCard(vector<bool>& bits, int w, int h, const char* fname) {
   printf("Loading preprocessing data\n");
   Index state;
