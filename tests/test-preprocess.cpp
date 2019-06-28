@@ -19,8 +19,19 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> hLevel) {
       string output = getMapName(mpath) + "-" + to_string(hLevel) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      PreprocessRectWildcard(mapData, width, height, output, hLevel);
+      Parameters p{"DFS", "rect", output, hLevel};
+      PreprocessRectWildcard(mapData, width, height, p);
       cnt++;
+    }
+  }
+
+  TEST_CASE("split-order", "[order]") {
+    ifstream file(default_testcase_path + "split-order.in");
+    while (file >> mpath) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      NodeOrdering order = compute_split_dfs_order(extract_graph(mapper));
+      REQUIRE(order.validate());
     }
   }
 }

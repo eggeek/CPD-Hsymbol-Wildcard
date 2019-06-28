@@ -88,7 +88,7 @@ ListGraph extract_node_induced_subgraph(
       s.arc.push_back({g_to_s[a.source], g_to_s[a.target]});
 
   assert(s.is_valid());
-  return std::move(s);
+  return s;
 }
 
 template<class IsNodeInSubgraph>

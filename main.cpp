@@ -46,15 +46,6 @@ public:
   }
 };
 
-const char *GetName()
-{
-  #ifndef USE_CUT_ORDER
-  return "DFS-SRC-RLE";
-  #else
-  return "METIS-CUT-SRC-RLE";
-  #endif
-}
-
 void argHelp(char **argv) {
   printf("Invalid Arguments\nUsage %s <flags> <map> <scenario>\n", argv[0]);
   printf("Flags:\n");
@@ -100,7 +91,7 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
 
 int main(int argc, char **argv) {
   // process command line
-  string mpath, spath, indexpath, outfname;
+  string mpath, spath, indexpath, outfname, otype;
   int pre=0, run=0, hLevel=1;
 
   po::options_description desc("Allowed options");
@@ -115,6 +106,7 @@ int main(int argc, char **argv) {
     ("index,I", po::value<string>(&indexpath), "path of index")
     ("type,T", po::value<string>(&type)->default_value("vanilla"), "type of cpd")
     ("output,O", po::value<string>(&outfname), "output path")
+    ("order", po::value<string>(&otype)->default_value("DFS"), "type of ordering")
   ;
 
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -141,10 +133,11 @@ int main(int argc, char **argv) {
   int width, height;
 
   LoadMap(mpath.c_str(), mapData, width, height);
-  sprintf(filename, "./index_data/%s.map-%s-%d", getMapName(mpath).c_str() , GetName(), hLevel);
+  sprintf(filename, "./index_data/%s.map-%s-%d", getMapName(mpath).c_str() , otype.c_str(), hLevel);
 
+  Parameters p{otype, type, filename, hLevel};
   if (pre)
-    PreprocessMap(mapData, width, height, string(filename), hLevel);
+    PreprocessMap(mapData, width, height, p);
   
   if (!run)
     return 0;

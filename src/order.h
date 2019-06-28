@@ -38,6 +38,20 @@ public:
     to_old_array[new_id] = old_id;
   }
 
+  bool validate() const {
+    std::vector<bool> vis(node_count());
+    for (int i=0; i<node_count(); i++) {
+      if (to_old_array[i] == -1) return false;
+      if (vis[to_old_array[i]]) return false;
+      vis[to_old_array[i]] = true;
+    }
+    for (int i=0; i<node_count(); i++) {
+      int new_id = to_new(i);
+      if (to_old(new_id) != i) return false;
+    }
+    return true;
+  }
+
   bool is_complete()const{
     return std::find(to_new_array.begin(), to_new_array.end(), -1) == to_new_array.end();
   }
@@ -121,6 +135,7 @@ bool operator!=(const NodeOrdering&l, const NodeOrdering&r){
 }
 
 NodeOrdering compute_real_dfs_order(const ListGraph&g);
+NodeOrdering compute_split_dfs_order(const ListGraph& g);
 
 template<class CutAlgo>
 void compute_cut_order(
@@ -202,7 +217,7 @@ NodeOrdering compute_cut_order(const ListGraph&g, const CutAlgo&algo){
 
   compute_cut_order(0, g, std::move(g_to_top_level), algo, order, lower_deg, higher_deg);
   assert(order.is_complete());
-  return std::move(order);
+  return order;
 }
 
 #endif

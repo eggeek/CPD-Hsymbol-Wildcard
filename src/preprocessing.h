@@ -17,5 +17,12 @@ struct Index {
   Index(){}
 };
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, string filename, int hLevel);
-void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, string filename, int hLevel);
+struct Parameters {
+  string otype; // ordering type: dfs, split, cut
+  string itype; // index type: vanilla, rect, inv
+  string filename;
+  int hLevel; // heuristic level: 0, 1, 2, 3
+};
+
+void PreprocessMap(std::vector<bool> &bits, int width, int height, const Parameters& p);
+void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, const Parameters& p);

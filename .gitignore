@@ -8,3 +8,5 @@ cmake-build/*
 .idea/*
 bin/*
 index_data/*
+.*
+**/__pycache__

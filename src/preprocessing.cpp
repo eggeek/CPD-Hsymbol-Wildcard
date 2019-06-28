@@ -20,19 +20,23 @@
 
 using namespace std;
 
-void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string filename, int hLevel=1) {
+void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Parameters& p) {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
   printf("Computing node order\n");
-  NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+  NodeOrdering order;
+  if (p.otype == "DFS")
+    order = compute_real_dfs_order(extract_graph(mapper));
+  else if (p.otype == "SPLIT")
+    order = compute_split_dfs_order(extract_graph(mapper));
   mapper.reorder(order);
   printf("Computing Row Order\n");
   AdjGraph g(extract_graph(mapper));
   vector<int> row_ordering;
   row_ordering = order.get_old_array();
 
-  printf("Computing first-move matrix, hLevel: %d\n", hLevel);
+  printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
   CPD cpd;
   map<int, vector<RectInfo>> used;
   vector<int> square_sides;
@@ -44,7 +48,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string fi
       CPD tmpcpd;
       warthog::timer t;
       t.start();
-      tmpfmoves = dij.run(0, hLevel, rects, square_sides);
+      tmpfmoves = dij.run(0, p.hLevel, rects, square_sides);
       tmpcpd.append_row(0, tmpfmoves, mapper, rects, row_ordering, square_sides.back());
       t.stop();
       square_sides.clear();
@@ -74,7 +78,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string fi
       Dijkstra thread_dij(thread_adj_g, thread_mapper);
 
       for(int source_node=node_begin; source_node < node_end; ++source_node){
-        vector<unsigned short> allowed = thread_dij.run(source_node, hLevel, thread_rects[thread_id],
+        vector<unsigned short> allowed = thread_dij.run(source_node, p.hLevel, thread_rects[thread_id],
             thread_square_side[thread_id]);
         vector<RectInfo> tmp_used = thread_cpd[thread_id].append_row(source_node, allowed, thread_mapper,
             thread_rects[thread_id], row_ordering, thread_square_side[thread_id].back());
@@ -103,9 +107,9 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string fi
     }
   }
 
-  printf("Saving data to %s\n", filename.c_str());
+  printf("Saving data to %s\n", p.filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
-  FILE*f = fopen(filename.c_str(), "wb");
+  FILE*f = fopen(p.filename.c_str(), "wb");
   save_vector(f, square_sides);
   RectWildcardIndex rwobj(used);
   rwobj.save(f);
@@ -116,17 +120,20 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, string fi
   printf("Done\n");
 }
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, string filename, int hLevel=1)
+void PreprocessMap(std::vector<bool> &bits, int width, int height, const Parameters& p)
 {
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
   printf("Computing node order\n");
-  #ifndef USE_CUT_ORDER
-  NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
-  #else
-  NodeOrdering order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
-  #endif
+  NodeOrdering order;
+
+  if (p.otype == "DFS")
+    order = compute_real_dfs_order(extract_graph(mapper));
+  //else if (p.otype == "CUT")
+  //  order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
+  else if (p.otype == "SPLIT")
+    order = compute_split_dfs_order(extract_graph(mapper));
   mapper.reorder(order);
 
   printf("Computing Row Order\n");
@@ -134,7 +141,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, string filena
   vector<int> row_ordering;
   row_ordering = order.get_old_array();
 
-  printf("Computing first-move matrix, hLevel: %d\n", hLevel);
+  printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
   vector<int> square_sides;
   CPD cpd;
   CPD inv_cpd;
@@ -143,7 +150,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, string filena
       Dijkstra dij(g, mapper);
       warthog::timer t;
       t.start();
-      dij.run(0, hLevel);
+      dij.run(0, p.hLevel);
       t.stop();
       double tots = t.elapsed_time_micro()*g.node_count() / 1000000;
       printf("Estimated sequential running time : %fmin\n", tots / 60.0);
@@ -155,7 +162,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, string filena
       if(source_node % (g.node_count()/10) == 0)
         printf("%d of %d done\n", source_node, g.node_count());
 
-      const auto&allowed = dij.run(source_node, hLevel, square_sides);
+      const auto&allowed = dij.run(source_node, p.hLevel, square_sides);
       cpd.append_row(source_node, allowed, mapper, square_sides[source_node]);
     }
     #else
@@ -180,7 +187,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, string filena
       Mapper thread_mapper = mapper;
 
       for(int source_node=node_begin; source_node < node_end; ++source_node){
-        thread_dij.run(source_node, hLevel, thread_square_side[thread_id]);
+        thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
         thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
         thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
         #pragma omp critical 
@@ -205,18 +212,19 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, string filena
     #endif
   }
 
-  printf("Saving data to %s\n", filename.c_str());
+  printf("Saving data to %s\n", p.filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
-  FILE*f = fopen(filename.c_str(), "wb");
+  FILE*f = fopen(p.filename.c_str(), "wb");
   save_vector(f, square_sides);
   order.save(f);
   cpd.save(f);
   fclose(f);
   printf("Done\n");
 
-  filename += "-inv";
-  printf("Saving data to %s\n", filename.c_str());
-  f = fopen(filename.c_str(), "wb");
+  string fname = p.filename + "-inv";
+  printf("Saving data to %s\n", fname.c_str());
+  printf("begin size: %d, entry size: %d\n", inv_cpd.entry_count(), inv_cpd.get_entry_size());
+  f = fopen(fname.c_str(), "wb");
   save_vector(f, square_sides);
   order.save(f);
   inv_cpd.save(f);

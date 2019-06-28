@@ -1,2 +1,3 @@
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-SRC-RLE-3-inv inv 3
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-SRC-RLE-3 vanilla 3
+./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-inv inv 3
+./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3 vanilla 3
+./maps/dao/brc101d.map ./index_data/brc101d.map-SPLIT-3-inv inv 3

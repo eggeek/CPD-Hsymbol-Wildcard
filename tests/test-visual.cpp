@@ -94,16 +94,18 @@ namespace TEST_VISUAL {
       vector<vector<bool>>& flag,
       const vector<int>& entries,
       const Mapper& mapper, ofstream& output, int pch=21) {
+
     for (int i: entries) {
       int id = i >> 4;
-      int mask = i & (0xF);
+      int move = i & 0xF;
       xyLoc loc = mapper(id);
       int latt = loc.x, lont = loc.y;
       if (flag[lont][latt]) continue;
       flag[lont][latt] = true;
-      string hexcolor = mask2hexcolor(mask);
+      string hexcolor = mask2hexcolor(move);
+      pch = move;
       output << lats << "," << lons << "," << latt << "," << lont << ","
-             << pch << "," <<  hexcolor << "," << mask << endl;
+             << pch << "," <<  hexcolor << "," << move << endl;
     }
   }
 
@@ -280,6 +282,48 @@ TEST_CASE("rect-cpd-row", "[.cpd-row-visual]") {
   }
 }
 
+TEST_CASE("visual-split", "[.cpd-row-visual]") {
+  ifstream file(default_testcase_path + "visual-split.in");
+  string type;
+  int hLevel;
+  xyLoc s;
+  while (file >> mpath >> type >> hLevel >> s.x >> s.y) {
+    int lats = s.x, lons = s.y;
+    ofstream output(getMapName(mpath) + "-split-" + type + ".out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Mapper mapper(mapData, width, height);
+    NodeOrdering order = compute_split_dfs_order(extract_graph(mapper));
+    mapper.reorder(order);
+    AdjGraph g(extract_graph(mapper));
+    Dijkstra dij(g, mapper);
+    vector<int> sides;
+    dij.run(mapper(s), hLevel, sides);
+    int raw_hcnt = 0, hrun = 0;
+    CPD cpd;
+    if (type == "inv") {
+      for (auto i: dij.get_inv_allowed()) if (i & warthog::HMASK) raw_hcnt++;
+      cpd.append_row(mapper(s), dij.get_inv_allowed(), mapper, 0);
+      for (auto i: cpd.get_entry())
+        if ( (1<<(i&0xF) == warthog::HMASK) )
+          hrun++;
+    }
+    else {
+      for (auto i: dij.get_allowed()) if (i & warthog::HMASK) raw_hcnt++;
+      cpd.append_row(mapper(s), dij.get_allowed(), mapper, 0);
+      for (auto i: cpd.get_entry())
+        if ( (1<<(i&0xF) == warthog::HMASK) )
+          hrun++;
+    }
+    cerr << "#raw_h: " << raw_hcnt << ", #hrun:" << hrun << ", hlevel: " << hLevel << endl;
+    vector<vector<bool>> flag(height, vector<bool>(width, false));
+    cerr << "#size: " << dij.get_allowed().size() << ", #cpd: " << cpd.entry_count() << endl;
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    output << header << endl;
+    print_entries(lats, lons, flag, cpd.get_entry(), mapper, output, 8);
+    print_obstacle(lats, lons, mapper, flag, output, 15);
+  }
+}
+
 TEST_CASE("inspect-runs", "[.cpd]") {
   ifstream file(default_testcase_path + "inspect-runs.in");
   int hLevel = 0;
@@ -326,6 +370,7 @@ TEST_CASE("inspect-row", "[.cpd]") {
     auto entry = data.cpd.get_entry();
     auto begin = data.cpd.get_begin();
     int id = data.mapper(s);
+    cerr << "#cpd: " << begin[id+1] - begin[id] << endl;
     output << header << endl;
     print_entries(s.x, s.y, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data.mapper, output, 8);
     print_obstacle(s.x, s.y, data.mapper, flag, output);
