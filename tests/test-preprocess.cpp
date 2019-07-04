@@ -4,6 +4,8 @@
 #include "catch.hpp"
 #include "preprocessing.h"
 #include "loader.h"
+#include "balanced_min_cut.h"
+#include "prefer_zero_cut.h"
 using namespace std;
 
 namespace TEST_PREPROCESS {
@@ -41,6 +43,16 @@ namespace TEST_PREPROCESS {
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
       NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+      REQUIRE(order.validate());
+    }
+  }
+
+  TEST_CASE("cut-order", "[order]") {
+    ifstream file(default_testcase_path + "cut-order.in");
+    while (file >> mpath) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      NodeOrdering order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
       REQUIRE(order.validate());
     }
   }

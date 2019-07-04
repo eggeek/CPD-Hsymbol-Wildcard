@@ -130,8 +130,8 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
 
   if (p.otype == "DFS")
     order = compute_real_dfs_order(extract_graph(mapper));
-  //else if (p.otype == "CUT")
-  //  order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
+  else if (p.otype == "CUT")
+    order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
   mapper.reorder(order);

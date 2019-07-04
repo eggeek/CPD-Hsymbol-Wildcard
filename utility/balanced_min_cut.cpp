@@ -9,10 +9,6 @@
 std::vector<bool>balanced_min_cut(const ListGraph&g){
 	assert(g.is_valid());
 
-	#ifndef USE_CUT_ORDER
-	return {};
-	#else
-
 	std::vector<int>out_begin;
 	std::vector<int>out_dest;
 
@@ -57,6 +53,5 @@ std::vector<bool>balanced_min_cut(const ListGraph&g){
 		part_ret[i] = part[i] == 0;
 
 	return std::move(part_ret);
-	#endif
 }
 

@@ -4,9 +4,11 @@ project(CPD-Hsymbol-Wildcard)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE")
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "-L/usr/local/opt/libomp/lib -I/usr/local/opt/libomp/include ${CMAKE_CXX_FLAGS} -lomp")
+    set(LOMP "-L/usr/local/opt/libomp/lib -I/usr/local/opt/libomp/include")
+    set(LMETIS "-L/usr/local/opt/metis/lib -I/usr/local/opt/metis/include")
+    set(CMAKE_CXX_FLAGS "${LOMP} ${LMETIS} ${CMAKE_CXX_FLAGS} -lomp -lmetis")
 else (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -lboost_program_options")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -lmetis -lboost_program_options")
 endif(APPLE)
 set(DEV_CXX_FLAGS "-g -ggdb -O0 -fno-omit-frame-pointer")
 set(RELEASE_CXX_FLAGS "-O3 -DNDEBUG")
@@ -59,7 +61,15 @@ set(SOURCE_FILES
     utility/timer.cpp
     utility/timer.h
     utility/vec_io.h
-    utility/visualizer.h)
+    utility/visualizer.h
+    # cut ordering
+    utility/balanced_min_cut.cpp
+    utility/balanced_min_cut.h
+    utility/cut_utility.h
+    utility/cut_utility.cpp
+    utility/prefer_zero_cut.h
+    utility/prefer_zero_cut.cpp
+    )
 
 add_executable(main
         ${SOURCE_FILES}
