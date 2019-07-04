@@ -1,6 +1,1 @@
-./maps/arena.map ./index_data/arena.map-DFS-3-inv inv 3 6 12
-./maps/arena.map ./index_data/arena.map-DFS-3 vanilla 3 6 12
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-inv inv 3 146 591
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3 vanilla 3 146 591
-./maps/dao/brc000d.map ./index_data/brc000d.map-DFS-3-inv inv 3 156 152
-./maps/dao/brc000d.map ./index_data/brc000d.map-DFS-3 vanilla 3 156 152
+./maps/dao/brc101d.map ./index_data/brc101d.map-SPLIT-3-inv inv 3 146 591

@@ -189,7 +189,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
       for(int source_node=node_begin; source_node < node_end; ++source_node){
         thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
         thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
-        thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
+        thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
         #pragma omp critical 
         {
           ++progress;
@@ -225,7 +225,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Saving data to %s\n", fname.c_str());
   printf("begin size: %d, entry size: %d\n", inv_cpd.entry_count(), inv_cpd.get_entry_size());
   f = fopen(fname.c_str(), "wb");
-  save_vector(f, square_sides);
+  //save_vector(f, square_sides);
   order.save(f);
   inv_cpd.save(f);
   fclose(f);

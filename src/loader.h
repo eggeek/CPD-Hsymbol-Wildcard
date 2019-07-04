@@ -94,7 +94,7 @@ inline Index LoadInvCPD(vector<bool>& bits, int w, int h, const char* fname) {
   Index data;
   data.mapper = Mapper(bits, w, h);
   FILE* f = fopen(fname, "rb");
-  data.square_sides = load_vector<int>(f);
+  //data.square_sides = load_vector<int>(f);
   NodeOrdering order;
   order.load(f);
   data.cpd.load(f);

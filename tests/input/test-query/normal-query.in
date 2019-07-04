@@ -1,0 +1,6 @@
+./maps/arena.map ./index_data/arena.map-SPLIT-3 ./scens/arena.map.scen 3
+./maps/arena.map ./index_data/arena.map-DFS-3 ./scens/arena.map.scen 3
+./maps/brc000d.map ./index_data/brc000d.map-SPLIT-3 ./scens/brc000d.map.scen 3
+./maps/brc000d.map ./index_data/brc000d.map-DFS-3 ./scens/brc000d.map.scen 3
+./maps/dao/brc101d.map ./index_data/brc101d.map-SPLIT-3 ./scens/brc101d.map.scen 3
+./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3 ./scens/brc101d.map.scen 3

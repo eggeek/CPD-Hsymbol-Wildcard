@@ -34,4 +34,14 @@ namespace TEST_PREPROCESS {
       REQUIRE(order.validate());
     }
   }
+
+  TEST_CASE("dfs-order", "[order]") {
+    ifstream file(default_testcase_path + "dfs-order.in");
+    while (file >> mpath) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+      REQUIRE(order.validate());
+    }
+  }
 }

@@ -68,6 +68,7 @@ public:
         reach(a, dist[x] + a.weight, allowed[x], 1 << (warthog::INV_MOVE[a.direction]));
       }
     }
+
     if (hLevel) {
       H::encode(source_node, allowed, mapper, hLevel);
       H::encode_inv(source_node, inv_allowed, mapper, hLevel);
@@ -106,6 +107,19 @@ public:
     allowed = run(source_node, hLevel);
     int side = SquareWildcard(mapper, mapper(source_node)).computeMaxSquare(allowed);
     square_side.push_back(side);
+    if (hLevel == 3) {
+      H::add_extr_move(source_node, allowed, mapper);
+      H::add_extra_inv_move(source_node, inv_allowed, mapper);
+    }
+    return allowed;
+  }
+
+  const vector<unsigned short>& run_extra(int source_node, int hLevel) {
+    allowed = run(source_node, hLevel);
+    if (hLevel == 3) {
+      H::add_extr_move(source_node, allowed, mapper);
+      H::add_extra_inv_move(source_node, inv_allowed, mapper);
+    }
     return allowed;
   }
 
@@ -119,6 +133,10 @@ public:
     int side = SquareWildcard(mapper, mapper(source_node)).computeMaxSquare(allowed);
     square_side.push_back(side);
     sort(rects.begin(), rects.end(), cmp);
+    if (hLevel == 3) {
+      H::add_extr_move(source_node, allowed, mapper);
+      H::add_extra_inv_move(source_node, inv_allowed, mapper);
+    }
     return allowed;
   }
 

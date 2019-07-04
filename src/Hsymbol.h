@@ -175,4 +175,42 @@ static inline int decode(int s, int t, const Mapper& mapper, int (*func) (int, i
   return func(s, t, mapper);
 }
 
+static inline int decode_extr_move(xyLoc s, xyLoc t, int move, const Mapper& mapper) {
+  const int* order;
+  if (t.y > s.y) order = warthog::CCW;
+  else order = warthog::CW;
+  int begin = -1;
+  for (int i=0; i<8; i++) if (order[i] == move) {
+    begin = i;
+    break;
+  }
+  for (int i=1; i<8; i++) {
+    int m = order[(begin + i) % 8];
+    int nxtx = s.x + warthog::dx[m];
+    int nxty = s.y + warthog::dy[m];
+    int id = mapper(xyLoc{(int16_t)nxtx, (int16_t)nxty});
+    if (id == -1) continue;
+    else return m;
+  }
+  return move;
+}
+
+static inline void add_extr_move(int source, vector<unsigned short>& allowed, const Mapper& mapper) {
+  for (int v=0; v<(int)allowed.size(); v++) if (v != source && (allowed[v] & warthog::HMASK)) {
+    int mask = mapper.get_neighbor(source);
+    for (int i=0; i<8; i++) if (!(mask & (1<<i))) {
+      allowed[v] |= 1<<i;
+    }
+  }
+}
+
+static inline void add_extra_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
+  for (int v=0; v<(int)inv_allowed.size(); v++) if (v != target && (inv_allowed[v] & warthog::HMASK)) {
+    int mask = mapper.get_neighbor(v);
+    for (int i=0; i<8; i++) if (!(mask & (1<<i))) {
+      inv_allowed[v] |= 1<<i;
+    }
+  }
+}
+
 };

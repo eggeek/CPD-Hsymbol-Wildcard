@@ -324,6 +324,56 @@ TEST_CASE("visual-split", "[.cpd-row-visual]") {
   }
 }
 
+TEST_CASE("visual-extra", "[.cpd-row-visual]") {
+  ifstream file(default_testcase_path + "visual-extra.in");
+  string type;
+  int hLevel;
+  xyLoc s;
+  while (file >> mpath >> type >> hLevel >> s.x >> s.y) {
+    int lats = s.x, lons = s.y;
+    ofstream output(getMapName(mpath) + "-extra-" + type + ".out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Mapper mapper(mapData, width, height);
+    NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+    mapper.reorder(order);
+    AdjGraph g(extract_graph(mapper));
+    Dijkstra dij(g, mapper);
+    dij.run(mapper(s), hLevel);
+    int raw_hcnt = 0, hrun = 0, extra_cnt = 0;
+    CPD cpd;
+    if (type == "inv") {
+      for (auto i: dij.get_inv_allowed()) if (i & warthog::HMASK) raw_hcnt++;
+      for (int i=0; i<mapper.node_count(); i++) if (i != mapper(s)) {
+        int mask = dij.get_inv_allowed()[i];
+        while (mask) {
+          int move = warthog::m2i.at(warthog::lowb(mask));
+          if (!(mapper.get_neighbor(i) & (1<<move))) extra_cnt++;
+          mask -= warthog::lowb(mask);
+        }
+      }
+      cpd.append_row(mapper(s), dij.get_inv_allowed(), mapper, 0);
+      for (auto i: cpd.get_entry())
+        if ( (1<<(i&0xF) == warthog::HMASK) )
+          hrun++;
+    }
+    else {
+      for (auto i: dij.get_allowed()) if (i & warthog::HMASK) raw_hcnt++;
+      cpd.append_row(mapper(s), dij.get_allowed(), mapper, 0);
+      for (auto i: cpd.get_entry())
+        if ( (1<<(i&0xF) == warthog::HMASK) )
+          hrun++;
+    }
+    cerr << "#raw_h: " << raw_hcnt << ", #hrun:" << hrun << ", hlevel: " << hLevel << endl;
+    vector<vector<bool>> flag(height, vector<bool>(width, false));
+    cerr << "#size: " << dij.get_allowed().size() << ", #cpd: " << cpd.entry_count() << endl;
+    cerr << "#extra_cnt: " << extra_cnt << endl;
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    output << header << endl;
+    print_entries(lats, lons, flag, cpd.get_entry(), mapper, output, 8);
+    print_obstacle(lats, lons, mapper, flag, output, 15);
+  }
+}
+
 TEST_CASE("inspect-runs", "[.cpd]") {
   ifstream file(default_testcase_path + "inspect-runs.in");
   int hLevel = 0;

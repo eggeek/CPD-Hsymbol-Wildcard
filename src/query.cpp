@@ -39,6 +39,7 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
       return warthog::v2i[1+vx][1+vy];
   };
 
+  //cerr << "(" << s.x << "," << s.y << ")" << endl;
   while (current_source != current_target) {
     int move;
     if(is_in_square(current_source, current_target))
@@ -52,12 +53,17 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
     }
     // no path exist
     if (move == 0xF) break;
+    if (!(state.mapper.get_neighbor(current_source) & (1<<move))) {
+      assert(hLevel == 3);
+      move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
+    }
     if ((1 << move) == warthog::HMASK) {
       move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
     }
     cost += warthog::doublew[move];
     s.x += dx[move];
     s.y += dy[move];
+    //cerr << "(" << s.x << "," << s.y << ")" << endl;
     c.steps++;
     if (limit != -1 && limit <= c.steps)
       break;
@@ -241,16 +247,17 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
 
   auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
 
-    if (is_in_square(sid, tid)) {
-      move = next_move(sid, tid);
-      cost += warthog::doublew[move];
-      source.x += dx[move];
-      source.y += dy[move];
-      sid = data.mapper(source);
-      source_changed = true;
-      return;
-    }
-    else {
+    //if (is_in_square(sid, tid)) {
+    //  move = next_move(sid, tid);
+    //  cost += warthog::doublew[move];
+    //  source.x += dx[move];
+    //  source.y += dy[move];
+    //  sid = data.mapper(source);
+    //  source_changed = true;
+    //  return;
+    //}
+    //else
+    {
       if (source_changed || !(tid >= lhs && tid <= rhs)) {
         data.cpd.get_interval(sid, tid, lhs, rhs, cur_move);
         source_changed = false;
@@ -258,6 +265,11 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
       }
       move = cur_move;
       if ((1<<move) == warthog::NOMOVE) return;
+      // when hLevel == 3, obstacle moves are encoded as `H`
+      if (!(data.mapper.get_neighbor(tid) & (1 << move))) {
+        assert(hLevel == 3);
+        move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
+      }
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
       }
