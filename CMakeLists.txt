@@ -4,11 +4,11 @@ project(CPD-Hsymbol-Wildcard)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE")
 if(APPLE)
-    set(LOMP "-L/usr/local/opt/libomp/lib -I/usr/local/opt/libomp/include")
-    set(LMETIS "-L/usr/local/opt/metis/lib -I/usr/local/opt/metis/include")
-    set(CMAKE_CXX_FLAGS "${LOMP} ${LMETIS} ${CMAKE_CXX_FLAGS} -lomp -lmetis")
+  find_library(metis_lib metis "/usr/local/opt" )
+  find_library(omp_lib omp "/usr/local/opt")
 else (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -lmetis -lboost_program_options")
+  set(metis_lib "/home/szha414/metis/lib/libmetis.a")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/home/szha414/metis/include -fopenmp -lboost_program_options")
 endif(APPLE)
 set(DEV_CXX_FLAGS "-g -ggdb -O0 -fno-omit-frame-pointer")
 set(RELEASE_CXX_FLAGS "-O3 -DNDEBUG")
@@ -80,8 +80,6 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     target_link_libraries(main ${Boost_LIBRARIES})
 endif()
-target_link_libraries(main ${OpenMP_omp_LIBRARY})
-
 
 # config for tests
 set(TESTING_FILES
@@ -98,6 +96,13 @@ add_executable(testing
         ${TESTING_FILES}
         tests/main.cpp)
 
-target_link_libraries(testing ${OpenMP_omp_LIBRARY})
+if (omp_lib)
+  target_link_libraries(main ${omp_lib})
+  target_link_libraries(testing ${omp_lib})
+endif()
 
+if (metis_lib)
+  target_link_libraries(main ${metis_lib})
+  target_link_libraries(testing ${metis_lib})
+endif()
 
