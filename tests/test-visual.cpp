@@ -7,6 +7,8 @@
 #include "jps.h"
 #include "order.h"
 #include "loader.h"
+#include "balanced_min_cut.h"
+#include "prefer_zero_cut.h"
 using namespace std;
 
 namespace TEST_VISUAL {
@@ -293,6 +295,7 @@ TEST_CASE("visual-split", "[.cpd-row-visual]") {
     LoadMap(mpath.c_str(), mapData, width, height);
     Mapper mapper(mapData, width, height);
     NodeOrdering order = compute_split_dfs_order(extract_graph(mapper));
+    //NodeOrdering order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
     mapper.reorder(order);
     AdjGraph g(extract_graph(mapper));
     Dijkstra dij(g, mapper);
@@ -334,11 +337,12 @@ TEST_CASE("visual-extra", "[.cpd-row-visual]") {
     ofstream output(getMapName(mpath) + "-extra-" + type + ".out");
     LoadMap(mpath.c_str(), mapData, width, height);
     Mapper mapper(mapData, width, height);
-    NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+    //NodeOrdering order = compute_real_dfs_order(extract_graph(mapper));
+    NodeOrdering order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
     mapper.reorder(order);
     AdjGraph g(extract_graph(mapper));
     Dijkstra dij(g, mapper);
-    dij.run(mapper(s), hLevel);
+    dij.run_extra(mapper(s), hLevel);
     int raw_hcnt = 0, hrun = 0, extra_cnt = 0;
     CPD cpd;
     if (type == "inv") {
@@ -405,7 +409,7 @@ TEST_CASE("inspect-row", "[.cpd]") {
   xyLoc s;
   string type, index_path, outpath;
   while (file >> mpath >> index_path >> type >> hLevel >> s.x >> s.y) {
-    ofstream output("visual-row-" + getMapName(mpath) + "-" + to_string(hLevel) + "-" + type + ".out");
+    ofstream output("visual-row-" + getIndexName(index_path) + ".out");
     LoadMap(mpath.c_str(), mapData, width, height);
     Index data;
     if (type == "rect")

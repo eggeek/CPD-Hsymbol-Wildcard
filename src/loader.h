@@ -5,6 +5,11 @@
 #include "preprocessing.h"
 using namespace std;
 
+inline string getIndexName(string filename) {
+  auto pos = filename.find_last_of('/');
+  return filename.substr(pos + 1);
+}
+
 inline string getMapName(string filename) {
   auto pos = filename.find_last_of('/');
   const string mapfile = filename.substr(pos + 1);
