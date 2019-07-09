@@ -265,13 +265,11 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
       }
       move = cur_move;
       if ((1<<move) == warthog::NOMOVE) return;
-      // when hLevel == 3, obstacle moves are encoded as `H`
-      if (!(data.mapper.get_neighbor(tid) & (1 << move))) {
-        assert(hLevel == 3);
-        move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
-      }
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
+      }
+      if (!(data.mapper.get_neighbor(tid) & (1 << move))) {
+        move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
       }
     }
     cost += warthog::doublew[move];

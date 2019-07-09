@@ -195,20 +195,33 @@ static inline int decode_extr_move(xyLoc s, xyLoc t, int move, const Mapper& map
   return move;
 }
 
-static inline void add_extr_move(int source, vector<unsigned short>& allowed, const Mapper& mapper) {
-  for (int v=0; v<(int)allowed.size(); v++) if (v != source && (allowed[v] & warthog::HMASK)) {
-    int mask = mapper.get_neighbor(source);
-    for (int i=0; i<8; i++) if (!(mask & (1<<i))) {
-      allowed[v] |= 1<<i;
-    }
+static inline int get_closest_valid_move(int source, int move, const Mapper& mapper) {
+  int mask = mapper.get_neighbor(source);
+  if (mask & (1<<move)) return move;
+  int idx = -1;
+  for (int i=0; i<8; i++) if (warthog::CCW[i] == move) {
+    idx = i;
+    break;
   }
+  assert(idx != -1);
+  if (idx == -1)
+    cerr << "can't find move" << endl;
+  for (int i=1; i<=4; i++) {
+    int m1, m2;
+    m1 = warthog::CCW[(idx+i) % 8];
+    if ((mask & (1<<m1))) return m1;
+    m2 = warthog::CCW[(idx-i+8) % 8];
+    if ((mask & (1<<m2))) return m2;
+  }
+  return -1;
 }
 
-static inline void add_extra_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
-  for (int v=0; v<(int)inv_allowed.size(); v++) if (v != target && (inv_allowed[v] & warthog::HMASK)) {
-    int mask = mapper.get_neighbor(v);
-    for (int i=0; i<8; i++) if (!(mask & (1<<i))) {
-      inv_allowed[v] |= 1<<i;
+static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
+  for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
+    for (int j=0; j<8; j++) if (!((1<<j) & mapper.get_neighbor(s))) {
+      int m = get_closest_valid_move(s, j, mapper);
+      assert(m != -1);
+      if ((1<<m) & inv_allowed[s]) inv_allowed[s] |= 1<<j;
     }
   }
 }

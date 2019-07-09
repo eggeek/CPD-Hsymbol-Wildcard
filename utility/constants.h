@@ -68,9 +68,9 @@ namespace warthog
   static const int dw[] = {1000, 1000, 1000, 1000, 1414, 1414, 1414, 1414};
   static const double doublew[] = {1.0, 1.0, 1.0, 1.0, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO};
   // Clockwise start with north
-  static const int CW[] = {0, 4, 2, 1, 7, 3, 5};
+  static const int CW[] = {0, 4, 2, 6, 1, 7, 3, 5};
   // Counter Clockwise start with north
-  static const int CCW[] = {0, 5, 3, 7, 1, 2, 4};
+  static const int CCW[] = {0, 5, 3, 7, 1, 6, 2, 4};
   static const int INV_MOVE[] = {1, 0, 3, 2, 7, 6, 5, 4};
   static const int INVALID_MOVE = 15;
   static const int v2i[3][3] = {
