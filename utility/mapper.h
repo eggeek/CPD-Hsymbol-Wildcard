@@ -33,7 +33,7 @@ public:
         }else{
           pos_to_node_[x+y*width_] = -1;
         }
-    //init_jps_tiles();
+    init_jps_tiles();
     init_neighbors();
     initClosestMove();
   }
@@ -65,16 +65,16 @@ public:
       }
     }
     std::vector<xyLoc>new_node_to_pos_(node_count_);
-    //std::vector<int> new_tiles(node_count_);
+    std::vector<int> new_tiles(node_count_);
     std::vector<int> new_neighbors(node_count_);
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];
       new_neighbors[new_node] = neighbors[old_node];
-      //new_tiles[new_node] = jps_tiles[old_node];
+      new_tiles[new_node] = jps_tiles[old_node];
     }
     new_node_to_pos_.swap(node_to_pos_);
-    //new_tiles.swap(jps_tiles);
+    new_tiles.swap(jps_tiles);
     new_neighbors.swap(neighbors);
   }
 

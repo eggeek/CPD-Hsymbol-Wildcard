@@ -1,4 +1,4 @@
-./maps/arena.map ./index_data/arena.map-SPLIT-3-inv ./scens/arena.map.scen 3
-./maps/brc000d.map ./index_data/brc000d.map-SPLIT-3-inv ./scens/brc000d.map.scen 3
-./maps/brc101d.map ./index_data/brc101d.map-SPLIT-3-inv ./scens/brc101d.map.scen 3
+./maps/brc000d.map ./index_data/brc000d.map-DFS-3-inv ./tests/scens/brc000d.map.scen 3
+./maps/arena.map ./index_data/arena.map-DFS-3-inv ./tests/scens/arena.map.scen 3
 ./maps/brc000d.map ./index_data/brc000d.map-DFS-3-inv ./scens/brc000d.map.scen 3
+./maps/brc101d.map ./index_data/brc101d.map-DFS-3-inv ./scens/brc101d.map.scen 3

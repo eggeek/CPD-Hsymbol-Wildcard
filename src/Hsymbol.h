@@ -195,9 +195,28 @@ static inline int decode_extr_move(xyLoc s, xyLoc t, int move, const Mapper& map
   return move;
 }
 
+
+static inline int get_pseudo_obs(int s, const Mapper& mapper) {
+  int mask = 0;
+  xyLoc sloc = mapper(s);
+  for (int i=0; i<8; i++) if ((1<<i) & mapper.get_neighbor(s)) {
+    int x = sloc.x + warthog::dx[i];
+    int y = sloc.y + warthog::dy[i];
+    int nxt = mapper({(int16_t)x, (int16_t)y});
+    assert(nxt != -1);
+    int d = 1<<i;
+    int tile = mapper.get_jps_tiles(nxt);
+    int suc = warthog::jps::compute_successors((warthog::jps::direction)d, tile);
+    if (suc == 0)
+      mask |= d;
+  }
+  return mask;
+}
+
+
 static inline int get_closest_valid_move(int source, int move, const Mapper& mapper) {
-  int mask = mapper.get_neighbor(source);
-  if (mask & (1<<move)) return move;
+  int pruned = mapper.get_neighbor(source) ^ get_pseudo_obs(source, mapper);
+  if (pruned & (1<<move)) return move;
   int idx = -1;
   for (int i=0; i<8; i++) if (warthog::CCW[i] == move) {
     idx = i;
@@ -209,20 +228,26 @@ static inline int get_closest_valid_move(int source, int move, const Mapper& map
   for (int i=1; i<=4; i++) {
     int m1, m2;
     m1 = warthog::CCW[(idx+i) % 8];
-    if ((mask & (1<<m1))) return m1;
+    if ((pruned & (1<<m1))) return m1;
     m2 = warthog::CCW[(idx-i+8) % 8];
-    if ((mask & (1<<m2))) return m2;
+    if ((pruned & (1<<m2))) return m2;
   }
   return -1;
 }
 
+
 static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
   for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
-    for (int j=0; j<8; j++) if (!((1<<j) & mapper.get_neighbor(s))) {
+    int neighbors = mapper.get_neighbor(s);
+    int pseudo_obs = get_pseudo_obs(s, mapper);
+    int pruned = neighbors ^ pseudo_obs;
+    int extra_mask = 0;
+    for (int j=0; j<8; j++) if (!((1<<j) & pruned)) {
       int m = get_closest_valid_move(s, j, mapper);
       assert(m != -1);
-      if ((1<<m) & inv_allowed[s]) inv_allowed[s] |= 1<<j;
+      if ((1<<m) & inv_allowed[s]) extra_mask |= 1<<j;
     }
+    inv_allowed[s] |= extra_mask;
   }
 }
 

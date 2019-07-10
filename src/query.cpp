@@ -265,12 +265,29 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
       }
       move = cur_move;
       if ((1<<move) == warthog::NOMOVE) return;
+
+      int neighbors = data.mapper.get_neighbor(tid);
+      int pseudo_obs = Hsymbol::get_pseudo_obs(tid, data.mapper);
+      int pruned = neighbors ^ pseudo_obs;
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
+      } else if (!(pruned & (1 << move))) { // pseudo obstacle move 
+        // if not move to target, then decode
+        bool reached = (target.x + dx[move] == source.x && target.y + dy[move] == source.y);
+        if (!reached || !((1<<move) & data.mapper.get_neighbor(tid)))
+          move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
       }
-      if (!(data.mapper.get_neighbor(tid) & (1 << move))) {
-        move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
-      }
+      // debug
+      //int tiles = data.mapper.get_jps_tiles(tid);
+      //vector<string> str = data.mapper.tiles2str(tiles);
+      //cout << "--------------" << endl;
+      //data.mapper.set2direct(1<<move);
+      //for (auto it: str) cout << it << endl;
+      //cout << endl;
+      //int tiles2 = data.mapper.get_jps_tiles(sid);
+      //vector<string> str2 = data.mapper.tiles2str(tiles2);
+      //for (auto it: str2) cout << it << endl;
+
     }
     cost += warthog::doublew[move];
     target.x += dx[move];
