@@ -35,6 +35,7 @@ public:
         }
     init_jps_tiles();
     init_neighbors();
+    init_pruned_neighbors();
     initClosestMove();
   }
 
@@ -67,15 +68,35 @@ public:
     std::vector<xyLoc>new_node_to_pos_(node_count_);
     std::vector<int> new_tiles(node_count_);
     std::vector<int> new_neighbors(node_count_);
+    vector<int> new_pruned_neighbors(node_count_);
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];
       new_neighbors[new_node] = neighbors[old_node];
       new_tiles[new_node] = jps_tiles[old_node];
+      new_pruned_neighbors[new_node] = pruned_neighbors[old_node];
     }
     new_node_to_pos_.swap(node_to_pos_);
     new_tiles.swap(jps_tiles);
     new_neighbors.swap(neighbors);
+    new_pruned_neighbors.swap(pruned_neighbors);
+  }
+
+  int get_pseudo_obs(int s) const {
+    int mask = 0;
+    xyLoc sloc = this->operator()(s);
+    for (int i=0; i<8; i++) if ((1<<i) & get_neighbor(s)) {
+      int x = sloc.x + warthog::dx[i];
+      int y = sloc.y + warthog::dy[i];
+      int nxt = this->operator()({(int16_t)x, (int16_t)y});
+      assert(nxt != -1);
+      int d = 1<<i;
+      int tile = get_jps_tiles(nxt);
+      int suc = warthog::jps::compute_successors((warthog::jps::direction)d, tile);
+      if (suc == 0)
+        mask |= d;
+    }
+    return mask;
   }
 
   static inline uint32_t str2tiles(const vector<string>& map) {
@@ -148,6 +169,10 @@ public:
     return this->neighbors[x];
   }
 
+  int get_pruned_neighbor(int x) const {
+    return this->pruned_neighbors[x];
+  }
+
   inline int get_valid_move(int s, int quad, int part, int no_diagnonal) const {
     //return getClosestMove(this->neighbors[s], quad, part, onaxis);
     return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
@@ -159,6 +184,7 @@ private:
   std::vector<xyLoc>node_to_pos_;
   vector<int> jps_tiles;
   vector<int> neighbors;
+  vector<int> pruned_neighbors;
   vector<ClosestMove> mem;
 
   void init_neighbors() {
@@ -178,6 +204,14 @@ private:
             this->operator()(p2) != -1 ) mask |= 1<<d;
       }
       neighbors[i] = mask;
+    }
+  }
+
+  void init_pruned_neighbors() {
+    pruned_neighbors.resize(node_count_);
+    for (int i=0; i<node_count_; i++) {
+      int pseudo_obs = get_pseudo_obs(i);
+      pruned_neighbors[i] = get_neighbor(i) ^ pseudo_obs;
     }
   }
 

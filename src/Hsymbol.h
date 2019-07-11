@@ -196,26 +196,8 @@ static inline int decode_extr_move(xyLoc s, xyLoc t, int move, const Mapper& map
 }
 
 
-static inline int get_pseudo_obs(int s, const Mapper& mapper) {
-  int mask = 0;
-  xyLoc sloc = mapper(s);
-  for (int i=0; i<8; i++) if ((1<<i) & mapper.get_neighbor(s)) {
-    int x = sloc.x + warthog::dx[i];
-    int y = sloc.y + warthog::dy[i];
-    int nxt = mapper({(int16_t)x, (int16_t)y});
-    assert(nxt != -1);
-    int d = 1<<i;
-    int tile = mapper.get_jps_tiles(nxt);
-    int suc = warthog::jps::compute_successors((warthog::jps::direction)d, tile);
-    if (suc == 0)
-      mask |= d;
-  }
-  return mask;
-}
-
-
 static inline int get_closest_valid_move(int source, int move, const Mapper& mapper) {
-  int pruned = mapper.get_neighbor(source) ^ get_pseudo_obs(source, mapper);
+  int pruned = mapper.get_pruned_neighbor(source);
   if (pruned & (1<<move)) return move;
   int idx = -1;
   for (int i=0; i<8; i++) if (warthog::CCW[i] == move) {
@@ -238,9 +220,7 @@ static inline int get_closest_valid_move(int source, int move, const Mapper& map
 
 static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
   for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
-    int neighbors = mapper.get_neighbor(s);
-    int pseudo_obs = get_pseudo_obs(s, mapper);
-    int pruned = neighbors ^ pseudo_obs;
+    int pruned = mapper.get_pruned_neighbor(s);
     int extra_mask = 0;
     for (int j=0; j<8; j++) if (!((1<<j) & pruned)) {
       int m = get_closest_valid_move(s, j, mapper);

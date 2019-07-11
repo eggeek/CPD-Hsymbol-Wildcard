@@ -266,9 +266,7 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
       move = cur_move;
       if ((1<<move) == warthog::NOMOVE) return;
 
-      int neighbors = data.mapper.get_neighbor(tid);
-      int pseudo_obs = Hsymbol::get_pseudo_obs(tid, data.mapper);
-      int pruned = neighbors ^ pseudo_obs;
+      int pruned = data.mapper.get_pruned_neighbor(tid);
       if ((1<<move) == warthog::HMASK) {
         move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
       } else if (!(pruned & (1 << move))) { // pseudo obstacle move 
