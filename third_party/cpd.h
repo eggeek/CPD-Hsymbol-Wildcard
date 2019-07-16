@@ -35,6 +35,8 @@ public:
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 
   unsigned char get_first_move(int source_node, int target_node)const{
+    assert(source_node != -1);
+    assert(target_node != -1);
     target_node <<= 4;
     target_node |= 0xF;
     return *binary_find_last_true(
@@ -45,6 +47,8 @@ public:
   }
 
   vector<int>::const_iterator get_first_iter(int s, int t) const {
+    assert(s != -1);
+    assert(t != -1);
     t <<= 4;
     t |= 0xF;
     return binary_find_last_true(

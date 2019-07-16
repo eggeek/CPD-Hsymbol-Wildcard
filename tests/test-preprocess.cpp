@@ -56,4 +56,15 @@ namespace TEST_PREPROCESS {
       REQUIRE(order.validate());
     }
   }
+
+  TEST_CASE("centroid", "[.pre]") {
+    int hLevel = 0;
+    ifstream file(default_testcase_path + "centroid.in");
+    while (file >> mpath >> hLevel) {
+      string output = getMapName(mpath) + "-" + to_string(hLevel) + "-centroid.out";
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Parameters p{"CUT", "vanilla", output, hLevel};
+      PreprocessCentroid(mapData, width, height, p);
+    }
+  }
 }

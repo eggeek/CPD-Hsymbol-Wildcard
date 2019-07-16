@@ -16,6 +16,7 @@
 #include "constants.h"
 #include "balanced_min_cut.h"
 #include "prefer_zero_cut.h"
+#include "centroid.h"
 #include <cstdio>
 
 using namespace std;
@@ -230,4 +231,109 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   inv_cpd.save(f);
   fclose(f);
   printf("Done\n");
+}
+
+void PreprocessCentroid(vector<bool>& bits, int width, int height, const Parameters& p) {
+  Mapper mapper(bits, width, height);
+
+  printf("Computing node order\n");
+  NodeOrdering order;
+
+  if (p.otype == "DFS")
+    order = compute_real_dfs_order(extract_graph(mapper));
+  else if (p.otype == "CUT")
+    order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
+  else if (p.otype == "SPLIT")
+    order = compute_split_dfs_order(extract_graph(mapper));
+  mapper.reorder(order);
+  vector<int> cents = compute_centroid(mapper, 7);
+
+  printf("Computing Row Order\n");
+  AdjGraph g(extract_graph(mapper));
+  vector<int> row_ordering;
+  row_ordering = order.get_old_array();
+
+  printf("width = %d, height = %d, node_count = %d\n", width, height, (int)cents.size());
+  printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
+  vector<int> square_sides;
+  CPD cpd;
+  CPD inv_cpd;
+  {
+    {
+      Dijkstra dij(g, mapper);
+      warthog::timer t;
+      t.start();
+      dij.run(0, p.hLevel);
+      t.stop();
+      double tots = t.elapsed_time_micro()*cents.size() / 1000000.0;
+      printf("Estimated sequential running time : %fmin\n", tots / 60.0);
+    }
+
+    printf("Using %d threads\n", omp_get_max_threads());
+    vector<CPD>thread_cpd(omp_get_max_threads());
+    vector<CPD>thread_cpd_inv(omp_get_max_threads());
+    vector<vector<int>> thread_square_side(omp_get_max_threads());
+
+    int progress = 0;
+
+    #pragma omp parallel
+    {
+      const int thread_count = omp_get_num_threads();
+      const int thread_id = omp_get_thread_num();
+      const int node_count = cents.size();
+
+      int node_begin = (node_count*thread_id) / thread_count;
+      int node_end = (node_count*(thread_id+1)) / thread_count;
+
+      AdjGraph thread_adj_g(g);
+      Dijkstra thread_dij(thread_adj_g, mapper);
+      Mapper thread_mapper = mapper;
+
+      for(int cid=node_begin; cid< node_end; ++cid){
+        int source_node = cents[cid];
+        thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
+        thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
+        thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+        #pragma omp critical 
+        {
+          ++progress;
+          if(progress % 100 == 0) {
+            double ratio = (double)progress / g.node_count() * 100.0;
+            cout << "Progress: [" << progress << "/" << g.node_count() << "] "
+                 << setprecision(3) << ratio << "% \r";
+            cout.flush();
+          }
+        }
+      }
+    }
+
+    for(auto&x:thread_cpd)
+      cpd.append_rows(x);
+    for (auto&x: thread_cpd_inv)
+      inv_cpd.append_rows(x);
+    for(auto&x:thread_square_side)
+      square_sides.insert(square_sides.end(), x.begin(), x.end());
+  }
+
+  printf("Saving data to %s\n", p.filename.c_str());
+  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  FILE*f = fopen(p.filename.c_str(), "wb");
+  save_vector(f, square_sides);
+  save_vector(f, mapper.get_fa());
+  order.save(f);
+  cpd.save(f);
+  fclose(f);
+  printf("Done\n");
+
+  string fname = p.filename + "-inv";
+  printf("Saving data to %s\n", fname.c_str());
+  printf("begin size: %d, entry size: %d\n", inv_cpd.entry_count(), inv_cpd.get_entry_size());
+  f = fopen(fname.c_str(), "wb");
+  //save_vector(f, square_sides);
+  save_vector(f, mapper.get_fa());
+  order.save(f);
+  inv_cpd.save(f);
+  fclose(f);
+  printf("Done\n");
+
 }

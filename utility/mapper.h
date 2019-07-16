@@ -65,10 +65,12 @@ public:
         x = order.to_new(x);
       }
     }
+    assert(fa.empty());
     std::vector<xyLoc>new_node_to_pos_(node_count_);
     std::vector<int> new_tiles(node_count_);
     std::vector<int> new_neighbors(node_count_);
     vector<int> new_pruned_neighbors(node_count_);
+    vector<int> new_rank(centroids_rank.size());
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];
@@ -173,9 +175,27 @@ public:
     return this->pruned_neighbors[x];
   }
 
+  int get_centroid_rank(int x) const {
+    return this->centroids_rank[x];
+  }
+
+  const vector<int>& get_fa() const {
+    return fa;
+  }
+
   inline int get_valid_move(int s, int quad, int part, int no_diagnonal) const {
     //return getClosestMove(this->neighbors[s], quad, part, onaxis);
     return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
+  }
+
+  void set_centroids(const vector<int>& fa) {
+    this->fa = vector<int>(fa.begin(), fa.end());
+    centroids.clear();
+    for (int i=0; i<(int)fa.size(); i++) if (fa[i] == i) centroids.push_back(i);
+    centroids_rank = vector<int>(node_count_, -1);
+    for (int i=0; i<(int)centroids.size(); i++) {
+      centroids_rank[centroids[i]] = i;
+    }
   }
 
 private:
@@ -185,6 +205,9 @@ private:
   vector<int> jps_tiles;
   vector<int> neighbors;
   vector<int> pruned_neighbors;
+  vector<int> fa;
+  vector<int> centroids;
+  vector<int> centroids_rank;
   vector<ClosestMove> mem;
 
   void init_neighbors() {

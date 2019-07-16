@@ -40,24 +40,6 @@ inline void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &
     }
 }
 
-inline Index PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filename)
-{
-  printf("Loading preprocessing data\n");
-  Index state;
-  state.mapper = Mapper(bits, w, h);
-  FILE*f = fopen(filename, "rb");
-  state.square_sides = load_vector<int>(f);
-  NodeOrdering order;
-  order.load(f);
-  state.cpd.load(f);
-  state.row_ordering = load_vector<int>(f);
-  fclose(f);
-  state.mapper.reorder(order);
-  state.graph = AdjGraph(extract_graph(state.mapper));
-  printf("Loading done\n");
-  return state;
-}
-
 inline Index LoadVanillaCPD(vector<bool>& bits, int w, int h, const char* fname) {
   printf("Loading preprocessing data\n");
   Index state;
@@ -69,6 +51,25 @@ inline Index LoadVanillaCPD(vector<bool>& bits, int w, int h, const char* fname)
   state.cpd.load(f);
   fclose(f);
   state.mapper.reorder(order);
+  state.graph = AdjGraph(extract_graph(state.mapper));
+  printf("Loading done\n");
+  return state;
+}
+
+inline Index LoadVanillaCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  vector<int> centroids;
+  Index state;
+  state.mapper = Mapper(bits, w, h);
+  FILE*f = fopen(fname, "rb");
+  state.square_sides = load_vector<int>(f);
+  centroids = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  state.cpd.load(f);
+  fclose(f);
+  state.mapper.reorder(order);
+  state.mapper.set_centroids(centroids);
   state.graph = AdjGraph(extract_graph(state.mapper));
   printf("Loading done\n");
   return state;
@@ -105,6 +106,26 @@ inline Index LoadInvCPD(vector<bool>& bits, int w, int h, const char* fname) {
   data.cpd.load(f);
   fclose(f);
   data.mapper.reorder(order);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+  printf("Loading done\n");
+  return data;
+}
+
+
+inline Index LoadInvCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  Index data;
+  data.mapper = Mapper(bits, w, h);
+  vector<int> centroids;
+  FILE* f = fopen(fname, "rb");
+  //data.square_sides = load_vector<int>(f);
+  centroids = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  fclose(f);
+  data.mapper.reorder(order);
+  data.mapper.set_centroids(centroids);
   data.graph = AdjGraph(extract_graph(data.mapper));
   printf("Loading done\n");
   return data;

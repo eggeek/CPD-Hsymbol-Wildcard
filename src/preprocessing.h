@@ -24,5 +24,6 @@ struct Parameters {
   int hLevel; // heuristic level: 0, 1, 2, 3
 };
 
-void PreprocessMap(std::vector<bool> &bits, int width, int height, const Parameters& p);
-void PreprocessRectWildcard(std::vector<bool> &bits, int width, int height, const Parameters& p);
+void PreprocessMap(vector<bool> &bits, int width, int height, const Parameters& p);
+void PreprocessCentroid(vector<bool> &bits, int width, int height, const Parameters& p);
+void PreprocessRectWildcard(vector<bool> &bits, int width, int height, const Parameters& p);

@@ -275,17 +275,6 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
         if (!reached || !((1<<move) & data.mapper.get_neighbor(tid)))
           move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
       }
-      // debug
-      //int tiles = data.mapper.get_jps_tiles(tid);
-      //vector<string> str = data.mapper.tiles2str(tiles);
-      //cout << "--------------" << endl;
-      //data.mapper.set2direct(1<<move);
-      //for (auto it: str) cout << it << endl;
-      //cout << endl;
-      //int tiles2 = data.mapper.get_jps_tiles(sid);
-      //vector<string> str2 = data.mapper.tiles2str(tiles2);
-      //for (auto it: str2) cout << it << endl;
-
     }
     cost += warthog::doublew[move];
     target.x += dx[move];
@@ -300,4 +289,63 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
     if (limit != -1 && limit <= c.steps) break;
   }
   return cost;
+}
+
+double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
+  // s is a centroid location
+  int ranks = data.mapper.get_centroid_rank(data.mapper(s));
+  assert(ranks != -1);
+  int (*heuristic_func)(int, int, const Mapper&);
+  if (hLevel == 1)
+    heuristic_func = Hsymbol::get_heuristic_move1;
+  else if (hLevel == 2)
+    heuristic_func = Hsymbol::get_heuristic_move2;
+  else if (hLevel == 3)
+    heuristic_func = Hsymbol::get_heuristic_move3;
+
+  int curs = data.mapper(s);
+  int curt = data.mapper(t);
+  int lhs = -1, rhs = -1, cur_move = -1, move;
+  const int16_t* dx = warthog::dx;
+  const int16_t* dy = warthog::dy;
+  double cost = 0.0;
+  auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
+    if (!(tid >= lhs && tid <= rhs)) {
+      data.cpd.get_interval(ranks, tid, lhs, rhs, cur_move);
+      c.access_cnt++;
+    }
+    move = cur_move;
+    if ((1<<move) == warthog::NOMOVE) return;
+
+    int pruned = data.mapper.get_pruned_neighbor(tid);
+    if ((1<<move) == warthog::HMASK) {
+      move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
+    } else if (!(pruned & (1 << move))) { // pseudo obstacle move 
+      // if not move to target, then decode
+      bool reached = (target.x + dx[move] == source.x && target.y + dy[move] == source.y);
+      if (!reached || !((1<<move) & data.mapper.get_neighbor(tid)))
+        move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
+    }
+    cost += warthog::doublew[move];
+    target.x += dx[move];
+    target.y += dy[move];
+    tid = data.mapper(target);
+  };
+
+  while (curs != curt) {
+    to_next_pos(s, t, curs, curt);
+    if ((1<<move)== warthog::NOMOVE) break;
+    c.steps++;
+    if (limit != -1 && limit <= c.steps) break;
+  }
+  return cost;
+}
+
+
+double GetInvCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c, int limit) {
+  int gid = data.mapper(g);
+  int cid = data.mapper.get_fa()[gid];
+  double cost0 = GetCentroid2TargetCost(data, data.mapper(cid), s, hLevel, c, limit);
+  double cost1 = GetCentroid2TargetCost(data, data.mapper(cid), g, hLevel, c, limit);
+  return cost0 + cost1;
 }
