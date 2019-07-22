@@ -1,10 +1,11 @@
+#pragma once
 #include "mapper.h"
 #include "adj_graph.h"
 #include <vector>
 #include <queue>
 using namespace std;
 
-int find_square_centroid(int h0, int h1, int w0, int w1, const Mapper& mapper) {
+static inline int find_square_centroid(int h0, int h1, int w0, int w1, const Mapper& mapper) {
   int mh = (h1 + h0) >> 1, mw = (w1 + w0) >> 1, h, w;
   for (int dh=h0-mh; dh<=h1-mh; dh++) {
     for (int dw=w0-mw; dw<=w1-mw; dw++) {
@@ -17,7 +18,7 @@ int find_square_centroid(int h0, int h1, int w0, int w1, const Mapper& mapper) {
   return -1;
 }
 
-void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const Mapper& mapper,
+static inline void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const Mapper& mapper,
     int x0, int x1, int y0, int y1) {
   priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>>q;
   vector<double> dist(mapper.node_count(), 1e10);
@@ -49,7 +50,7 @@ void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const Mapper& mapper,
   }
 }
 
-vector<int> compute_centroid(Mapper& mapper, int r) {
+static inline vector<int> compute_centroid(Mapper& mapper, int r) {
   int height = mapper.height();
   int width = mapper.width();
   vector<int> centroids;
@@ -60,7 +61,7 @@ vector<int> compute_centroid(Mapper& mapper, int r) {
     int h0 = h, h1 = min(h+r-1, height-1);
     int w0 = w, w1 = min(w+r-1, width-1);
     int c = find_square_centroid(h0, h1, w0, w1, mapper);
-    if (c != -1) {
+    if (c != -1 && !vis[c]) {
       centroids.push_back(c);
       bfs(c, r, fa, vis, mapper, w0, w1, h0, h1);
     }
