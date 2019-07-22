@@ -7,6 +7,7 @@
 #include "jps.h"
 #include "order.h"
 #include "loader.h"
+#include "centroid.h"
 #include "balanced_min_cut.h"
 #include "prefer_zero_cut.h"
 using namespace std;
@@ -71,6 +72,18 @@ namespace TEST_VISUAL {
       string hexcolor = mask2hexcolor(warthog::HMASK);
       output << lats << "," << lons << "," << latt << "," << lont << ","
             << pch << "," << hexcolor << "," << warthog::HMASK << endl;
+    }
+  }
+
+  void print_centroids(const vector<int>& centroids, const Mapper& mapper,
+      vector<vector<bool>>& flag, ofstream& output, int pch=8) {
+    for (int i: centroids) {
+      xyLoc loc = mapper(i);
+      if (flag[loc.y][loc.x]) continue;
+      int latt = loc.x, lont = loc.y;
+      string hexcolor = mask2hexcolor(warthog::HMASK);
+      output << 0 << "," << 0 << "," << latt << "," << lont << ","
+             << pch << "," << hexcolor << "," << 0 << endl;
     }
   }
 
@@ -375,6 +388,22 @@ TEST_CASE("visual-extra", "[.cpd-row-visual]") {
     output << header << endl;
     print_entries(lats, lons, flag, cpd.get_entry(), mapper, output, 8);
     print_obstacle(lats, lons, mapper, flag, output, 15);
+  }
+}
+
+TEST_CASE("visual-centroid", "[.cpd-centroid-visual]") {
+  ifstream file(default_testcase_path + "visual-centroid.in");
+  while (file >> mpath) {
+    ofstream output(getMapName(mpath) + "-centroids.out") ;
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Mapper mapper(mapData, width, height);
+    vector<int> cents = compute_centroid(mapper, 7);
+    vector<vector<bool>> flag(height, vector<bool>(width, false));
+
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    output << header << endl;
+    print_obstacle(0, 0, mapper, flag, output, 15);
+    print_centroids(cents, mapper, flag, output);
   }
 }
 
