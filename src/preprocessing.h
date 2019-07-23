@@ -1,13 +1,13 @@
 #pragma once
 #include <vector>
 #include "jpsp_oracle.h"
-#include "cpd.h"
+#include "cpd_base.h"
 #include "rect_wildcard.h"
 #include "mapper.h"
 using namespace std;
 
 struct Index {
-  CPD cpd;
+  CPDBASE cpd;
   Mapper mapper;
   AdjGraph graph;
   RectWildcardIndex rwobj;

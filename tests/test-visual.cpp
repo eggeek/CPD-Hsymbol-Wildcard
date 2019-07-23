@@ -2,7 +2,6 @@
 #include <iomanip>
 #include <sstream>
 #include "catch.hpp"
-#include "cpd.h"
 #include "dijkstra.h"
 #include "jps.h"
 #include "order.h"
@@ -10,6 +9,8 @@
 #include "centroid.h"
 #include "balanced_min_cut.h"
 #include "prefer_zero_cut.h"
+#include "cpd_base.h"
+#include "cpd_rect.h"
 using namespace std;
 
 namespace TEST_VISUAL {
@@ -232,6 +233,7 @@ namespace TEST_VISUAL {
 
 
 TEST_CASE("rect-used", "[.fmoves-visual]") {
+  using CPD = CPD_RECT;
   xyLoc s;
   int cnt = 0, hLevel;
   ifstream file(default_testcase_path + "rect-used.in");
@@ -264,6 +266,7 @@ TEST_CASE("rect-used", "[.fmoves-visual]") {
 }
 
 TEST_CASE("rect-cpd-row", "[.cpd-row-visual]") {
+  using CPD = CPD_RECT;
   ifstream file(default_testcase_path + "rect-cpd-row.in");
   int hLevel = 0, cnt = 0, pch;
   xyLoc s;
@@ -298,6 +301,7 @@ TEST_CASE("rect-cpd-row", "[.cpd-row-visual]") {
 }
 
 TEST_CASE("visual-split", "[.cpd-row-visual]") {
+  using CPD = CPDBASE;
   ifstream file(default_testcase_path + "visual-split.in");
   string type;
   int hLevel;
@@ -341,6 +345,7 @@ TEST_CASE("visual-split", "[.cpd-row-visual]") {
 }
 
 TEST_CASE("visual-extra", "[.cpd-row-visual]") {
+  using CPD = CPDBASE;
   ifstream file(default_testcase_path + "visual-extra.in");
   string type;
   int hLevel;

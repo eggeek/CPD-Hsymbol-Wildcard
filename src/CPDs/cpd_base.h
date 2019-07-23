@@ -12,9 +12,9 @@ using namespace std;
 //! Compressed Path database. Allows to quickly query the first out arc id of
 //! any shortest source-target-path. There may be at most 15 outgoing arcs for
 //! any node.
-class CPD{
+class CPDBASE {
 public:
-  CPD():begin{0}{}
+  CPDBASE():begin{0}{}
 
   //! Adds a new node s to the CPD. first_move should be an array that 
   //! maps every target node onto a 15-bit bitfield that has a bit set
@@ -23,14 +23,7 @@ public:
   void append_row(int source_node, const std::vector<unsigned short>&first_move,
                   Mapper mapper, const int side);
 
-  void append_rows(const CPD&other);
-
-  vector<RectInfo> append_row(int s, const vector<unsigned short>& allowed, const Mapper& mapper, 
-      const vector<RectInfo>& rects, const vector<int>& row_ordering,
-      const int side);
-  vector<int> compress(int s, const vector<unsigned short>& allowed,
-      const RectInfo& rect, const Mapper& mapper, const vector<int>& row_ordering,
-      const int side);
+  void append_rows(const CPDBASE&other);
   //! Get the first move. 
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 
@@ -83,7 +76,9 @@ public:
     return it;
   }
 
-  int node_count()const{
+  int node_count() const{
+    // get the number of rows
+    // in inverse centroid cpd, this returns the number of centroids.
     return begin.size()-1;
   }
 
@@ -91,10 +86,13 @@ public:
     return entry.size();
   }
 
-  friend bool operator==(const CPD&l, const CPD&r){
+  friend bool operator==(const CPDBASE&l, const CPDBASE&r){
     return l.begin == r.begin && l.entry == r.entry;
   }
 
+  friend bool operator!=(const CPDBASE&l, const CPDBASE&r){
+    return !(l == r);
+  }
   void save(std::FILE*f)const{
     save_vector(f, begin);
     save_vector(f, entry);
@@ -136,12 +134,12 @@ public:
     return hrun;
   }
 
-private:
+  static unsigned short find_first_allowed_out_arc(unsigned short allowed) {
+    return warthog::m2i.at(warthog::lowb(allowed));
+  };
+
+protected:
   std::vector<int>begin;
   std::vector<int>entry;
 };
 
-inline
-bool operator!=(const CPD&l, const CPD&r){
-  return !(l == r);
-}

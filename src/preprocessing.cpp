@@ -9,7 +9,6 @@
 #include "timer.h"
 #include "list_graph.h"
 #include "mapper.h"
-#include "cpd.h"
 #include "order.h"
 #include "adj_graph.h"
 #include "dijkstra.h"
@@ -17,11 +16,14 @@
 #include "balanced_min_cut.h"
 #include "prefer_zero_cut.h"
 #include "centroid.h"
+#include "cpd_base.h"
+#include "cpd_rect.h"
 #include <cstdio>
 
 using namespace std;
 
 void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Parameters& p) {
+  using CPD = CPD_RECT;
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
@@ -123,6 +125,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Par
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const Parameters& p)
 {
+  using CPD = CPDBASE;
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
@@ -234,6 +237,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
 }
 
 void PreprocessCentroid(vector<bool>& bits, int width, int height, const Parameters& p) {
+  using CPD = CPDBASE;
   Mapper mapper(bits, width, height);
 
   printf("Computing node order\n");

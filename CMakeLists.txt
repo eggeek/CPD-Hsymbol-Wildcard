@@ -16,6 +16,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEV_CXX_FLAGS}")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 
 include_directories(src)
+include_directories(src/CPDs)
 include_directories(tests)
 include_directories(third_party)
 include_directories(utility)
@@ -36,8 +37,11 @@ set(SOURCE_FILES
     src/order.h
     src/square_wildcard.h
     src/rect_wildcard.h
-    third_party/cpd.cpp
-    third_party/cpd.h
+    # CPD variants
+    src/CPDs/cpd_base.h
+    src/CPDs/cpd_base.cpp
+    src/CPDs/cpd_rect.h
+    src/CPDs/cpd_rect.cpp
     third_party/gm_parser.cpp
     third_party/gm_parser.h
     third_party/gridmap.cpp
