@@ -46,26 +46,41 @@ public:
     )&0xF;
   }
 
-  vector<int>::const_iterator get_first_iter(int s, int t) const {
-    assert(s != -1);
-    assert(t != -1);
+  vector<int>::const_iterator get_first_iter(int lhs, int rhs, int t) const {
     t <<= 4;
     t |= 0xF;
     return binary_find_last_true(
-        entry.begin() + begin[s],
-        entry.begin() + begin[s+1],
+        entry.begin() + lhs,
+        entry.begin() + rhs,
         [=](int x){return x <= t;}
     );
   }
 
-  void get_interval(int s, int t, int& lhs, int& rhs, int& move) const {
-    auto it = get_first_iter(s, t);
+  vector<int>::const_iterator get_interval(int s, int t, int& lhs, int& rhs, int& move,
+      vector<int>::const_iterator pre, const Mapper& mapper) const {
+    vector<int>::const_iterator it;
+    if (pre == entry.end()) {
+      it = get_first_iter(begin[s], begin[s+1], t);
+    }
+    else if (t > rhs) {
+      int lb = pre - entry.begin();
+      it = get_first_iter(lb+1, begin[s+1], t);
+    }
+    else if (t < lhs) {
+      int ub = pre - entry.begin();
+      it = get_first_iter(begin[s], ub, t);
+    }
+    else {
+      return pre;
+    }
+
     lhs = (*it) >> 4;
     if (std::next(it) == entry.end() || std::next(it) == entry.begin() + begin[s+1])
-      rhs = begin.size() - 1;
+      rhs = mapper.node_count();
     else
       rhs = ((*std::next(it))>>4)-1;
     move = (*it)&0xF;
+    return it;
   }
 
   int node_count()const{

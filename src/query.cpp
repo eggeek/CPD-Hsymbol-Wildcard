@@ -214,13 +214,13 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
   else if (hLevel == 3)
     heuristic_func = Hsymbol::get_heuristic_move3;
 
-  bool source_changed = false;
   int curs = data.mapper(s);
   int curt = data.mapper(t);
   int lhs = -1, rhs = -1, cur_move = -1, move;
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
+  vector<int>::const_iterator it = data.cpd.get_entry().end();
 
   auto next_move = [&](int current_source, int current_target)
   {
@@ -246,36 +246,24 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
   };
 
   auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
-
-    //if (is_in_square(sid, tid)) {
-    //  move = next_move(sid, tid);
-    //  cost += warthog::doublew[move];
-    //  source.x += dx[move];
-    //  source.y += dy[move];
-    //  sid = data.mapper(source);
-    //  source_changed = true;
-    //  return;
-    //}
-    //else
-    {
-      if (source_changed || !(tid >= lhs && tid <= rhs)) {
-        data.cpd.get_interval(sid, tid, lhs, rhs, cur_move);
-        source_changed = false;
-        c.access_cnt++;
-      }
-      move = cur_move;
-      if ((1<<move) == warthog::NOMOVE) return;
-
-      int pruned = data.mapper.get_pruned_neighbor(tid);
-      if ((1<<move) == warthog::HMASK) {
-        move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
-      } else if (!(pruned & (1 << move))) { // pseudo obstacle move 
-        // if not move to target, then decode
-        bool reached = (target.x + dx[move] == source.x && target.y + dy[move] == source.y);
-        if (!reached || !((1<<move) & data.mapper.get_neighbor(tid)))
-          move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
-      }
+    
+    if (!(tid >= lhs && tid <= rhs)) {
+      it = data.cpd.get_interval(sid, tid, lhs, rhs, cur_move, it, data.mapper);
+      c.access_cnt++;
     }
+    move = cur_move;
+    if ((1<<move) == warthog::NOMOVE) return;
+
+    int pruned = data.mapper.get_pruned_neighbor(tid);
+    if ((1<<move) == warthog::HMASK) {
+      move = Hsymbol::decode(tid, sid, data.mapper, heuristic_func);
+    } else if (!(pruned & (1 << move))) { // pseudo obstacle move 
+      // if not move to target, then decode
+      bool reached = (target.x + dx[move] == source.x && target.y + dy[move] == source.y);
+      if (!reached || !((1<<move) & data.mapper.get_neighbor(tid)))
+        move = Hsymbol::get_closest_valid_move(tid, move, data.mapper);
+    }
+   
     cost += warthog::doublew[move];
     target.x += dx[move];
     target.y += dy[move];
@@ -309,9 +297,10 @@ double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, C
   const int16_t* dx = warthog::dx;
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
+  auto it = data.cpd.get_entry().end();
   auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
     if (!(tid >= lhs && tid <= rhs)) {
-      data.cpd.get_interval(ranks, tid, lhs, rhs, cur_move);
+      it = data.cpd.get_interval(ranks, tid, lhs, rhs, cur_move, it, data.mapper);
       c.access_cnt++;
     }
     move = cur_move;

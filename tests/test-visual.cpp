@@ -410,20 +410,21 @@ TEST_CASE("visual-centroid", "[.cpd-centroid-visual]") {
 TEST_CASE("inspect-runs", "[.cpd]") {
   ifstream file(default_testcase_path + "inspect-runs.in");
   int hLevel = 0;
+  bool isopt;
   string type, index_path;
-  while (file >> mpath >> index_path >> type >> hLevel) {
-    ofstream output(getMapName(mpath) + "-" + to_string(hLevel) + "-" + type + "-inspect.out");
+  while (file >> mpath >> index_path >> type >> isopt) {
+    ofstream output(getMapName(mpath) + "-" + (isopt?"opt": "subopt") + "-" + type + "-inspect.out");
     LoadMap(mpath.c_str(), mapData, width, height);
     Index data;
-    if (type == "rect")
-      data = LoadRectWildCard(mapData, width, height, index_path.c_str());
-    else if (type == "inv")
-      data = LoadInvCPD(mapData, width, height, index_path.c_str());
+    if (type == "inv")
+      data = isopt?LoadInvCPD(mapData, width, height, index_path.c_str()):
+        LoadInvCentroidsCPD(mapData, width, height, index_path.c_str());
     else 
-      data = LoadVanillaCPD(mapData, width, height, index_path.c_str());
+      data = isopt?LoadVanillaCPD(mapData, width, height, index_path.c_str()):
+        LoadVanillaCentroidsCPD(mapData, width, height, index_path.c_str());
     string header = "row,runs,hrun,hcnt,map";
     output << header << endl;
-    for (int i=0; i<data.mapper.node_count(); i++) {
+    for (int i=0; i<data.cpd.node_count(); i++) {
       int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
       int hcnt = data.cpd.get_heuristic_cnt(i);
       int hrun = data.cpd.get_heuristic_run(i);

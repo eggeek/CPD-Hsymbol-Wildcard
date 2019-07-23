@@ -1,3 +1,3 @@
-./maps/arena.map ./index_data/arena.map-CUT-3-subopt-inv ./scens/arena.map.scen 3
+./maps/arena.map ./index_data/arena.map-CUT-3-subopt-inv ./tests/scens/arena.map.scen 3
 ./maps/brc000d.map ./index_data/brc000d.map-CUT-3-subopt-inv ./scens/brc000d.map.scen 3
 ./maps/brc101d.map ./index_data/brc101d.map-CUT-3-subopt-inv ./scens/brc101d.map.scen 3
