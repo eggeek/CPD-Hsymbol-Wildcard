@@ -18,12 +18,14 @@
 #include "centroid.h"
 #include "cpd_base.h"
 #include "cpd_rect.h"
+#include "cpd_centroid.h"
 #include <cstdio>
 
 using namespace std;
 
 void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Parameters& p) {
   using CPD = CPD_RECT;
+  using CPD_INV = CPD_RECT;
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
@@ -126,6 +128,7 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Par
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const Parameters& p)
 {
   using CPD = CPDBASE;
+  using CPD_INV = CPDBASE;
   Mapper mapper(bits, width, height);
   printf("width = %d, height = %d, node_count = %d\n", width, height, mapper.node_count());
 
@@ -148,7 +151,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
   vector<int> square_sides;
   CPD cpd;
-  CPD inv_cpd;
+  CPD_INV inv_cpd;
   {
     {
       Dijkstra dij(g, mapper);
@@ -172,7 +175,7 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
     #else
     printf("Using %d threads\n", omp_get_max_threads());
     vector<CPD>thread_cpd(omp_get_max_threads());
-    vector<CPD>thread_cpd_inv(omp_get_max_threads());
+    vector<CPD_INV>thread_cpd_inv(omp_get_max_threads());
     vector<vector<int>> thread_square_side(omp_get_max_threads());
 
     int progress = 0;
@@ -237,7 +240,8 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
 }
 
 void PreprocessCentroid(vector<bool>& bits, int width, int height, const Parameters& p) {
-  using CPD = CPDBASE;
+  using CPD = CPD_CENTROID;
+  using CPD_INV = CPD_CENTROID;
   Mapper mapper(bits, width, height);
 
   printf("Computing node order\n");
@@ -261,7 +265,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
   vector<int> square_sides;
   CPD cpd;
-  CPD inv_cpd;
+  CPD_INV inv_cpd;
   {
     {
       Dijkstra dij(g, mapper);
@@ -275,7 +279,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
 
     printf("Using %d threads\n", omp_get_max_threads());
     vector<CPD>thread_cpd(omp_get_max_threads());
-    vector<CPD>thread_cpd_inv(omp_get_max_threads());
+    vector<CPD_INV>thread_cpd_inv(omp_get_max_threads());
     vector<vector<int>> thread_square_side(omp_get_max_threads());
 
     int progress = 0;
@@ -296,7 +300,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
       for(int cid=node_begin; cid< node_end; ++cid){
         int source_node = cents[cid];
         thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
-        thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
+        thread_cpd[thread_id].append_row_forward(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
         thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
         #pragma omp critical 
         {

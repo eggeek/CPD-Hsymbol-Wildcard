@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_RUNNER
 #include <vector>
 #include "catch.hpp"
-#include "cpd.h"
 #include "mapper.h"
 #include "dijkstra.h"
 #include "visualizer.h"

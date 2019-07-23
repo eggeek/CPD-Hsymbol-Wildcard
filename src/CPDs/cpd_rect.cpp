@@ -9,50 +9,19 @@ inline vector<int> CPD_RECT::compress(int source_node,
     const vector<int>& row_ordering,
     const int side) {
 
-  auto in_rect = [&](int id) {
-    const xyLoc& loc = mapper(id);
-    int y = rect.y(mapper.width());
-    int x = rect.x(mapper.width());
-    return (loc.x >= x-rect.L+1 && loc.x <= x && loc.y >= y-rect.U+1 && loc.y <= y);
-  };
-
-  auto in_square = [&](int x) {
-      xyLoc loc_source = mapper.operator()(source_node);
-      xyLoc loc_x = mapper.operator()(x);
-      int dx = abs(loc_source.x - loc_x.x);
-      int dy = abs(loc_source.y- loc_x.y);
-      if((dx <= (side-1)/2)&&(dy<= (side-1)/2))
-      {
-        return true;
-      }
-      return false;
-  };
-
-
-  auto get_allowed = [&](int x){
-    if(x == source_node)
-      return warthog::ALLMOVE;
-    else if(row_ordering[source_node] < row_ordering[x])
-      return warthog::ALLMOVE;
-    else if (in_square(x))
-      return warthog::ALLMOVE;
-    else if (in_rect(x))
-      return warthog::ALLMOVE;
-    else if(fmoves[x] == 0)
-      return warthog::NOMOVE;
-    else
-      return fmoves[x];
+  auto get_allowed_local = [&](int x){
+    return this->get_allowed(x, source_node, side, rect, row_ordering, fmoves, mapper);
   };
   vector<int> compressed;
   int node_begin = 0;
   
-  unsigned short allowed_up_to_now = get_allowed(0);
+  unsigned short allowed_up_to_now = get_allowed_local(0);
   for(int i=1; i<(int)fmoves.size(); ++i){
-    int allowed_next = allowed_up_to_now & get_allowed(i);
+    int allowed_next = allowed_up_to_now & get_allowed_local(i);
     if(allowed_next == 0){
       compressed.push_back((node_begin << 4) | find_first_allowed_out_arc(allowed_up_to_now));
       node_begin = i;
-      allowed_up_to_now = get_allowed(i);
+      allowed_up_to_now = get_allowed_local(i);
     }else
       allowed_up_to_now = allowed_next;
   }

@@ -87,6 +87,7 @@ namespace TEST_QUERY{
   }
 
   TEST_CASE("normal-query", "[.run]") {
+    using CPD = CPDBASE;
     int cnt = 0, hLevel = 0;
     ifstream file(default_testcase_path + "normal-query.in");
     while (file >> mpath >> indexpath >> spath >> hLevel) {

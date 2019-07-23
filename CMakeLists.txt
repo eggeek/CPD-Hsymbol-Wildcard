@@ -42,6 +42,8 @@ set(SOURCE_FILES
     src/CPDs/cpd_base.cpp
     src/CPDs/cpd_rect.h
     src/CPDs/cpd_rect.cpp
+    src/CPDs/cpd_centroid.h
+
     third_party/gm_parser.cpp
     third_party/gm_parser.h
     third_party/gridmap.cpp

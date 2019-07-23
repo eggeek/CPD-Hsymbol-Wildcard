@@ -21,7 +21,7 @@ public:
   //! for every valid first move. get_first_move is free to return any of
   //! them.
   void append_row(int source_node, const std::vector<unsigned short>&first_move,
-                  Mapper mapper, const int side);
+                  const Mapper& mapper, const int side);
 
   void append_rows(const CPDBASE&other);
   //! Get the first move. 
@@ -39,42 +39,10 @@ public:
     )&0xF;
   }
 
-  vector<int>::const_iterator get_first_iter(int lhs, int rhs, int t) const {
-    t <<= 4;
-    t |= 0xF;
-    return binary_find_last_true(
-        entry.begin() + lhs,
-        entry.begin() + rhs,
-        [=](int x){return x <= t;}
-    );
-  }
-
-  vector<int>::const_iterator get_interval(int s, int t, int& lhs, int& rhs, int& move,
-      vector<int>::const_iterator pre, const Mapper& mapper) const {
-    vector<int>::const_iterator it;
-    if (pre == entry.end()) {
-      it = get_first_iter(begin[s], begin[s+1], t);
-    }
-    else if (t > rhs) {
-      int lb = pre - entry.begin();
-      it = get_first_iter(lb+1, begin[s+1], t);
-    }
-    else if (t < lhs) {
-      int ub = pre - entry.begin();
-      it = get_first_iter(begin[s], ub, t);
-    }
-    else {
-      return pre;
-    }
-
-    lhs = (*it) >> 4;
-    if (std::next(it) == entry.end() || std::next(it) == entry.begin() + begin[s+1])
-      rhs = mapper.node_count();
-    else
-      rhs = ((*std::next(it))>>4)-1;
-    move = (*it)&0xF;
-    return it;
-  }
+  vector<int>::const_iterator get_first_iter(int lhs, int rhs, int t) const;
+  vector<int>::const_iterator get_interval(
+      int s, int t, int& lhs, int& rhs, int& move,
+      vector<int>::const_iterator pre, const Mapper& mapper) const;
 
   int node_count() const{
     // get the number of rows
@@ -141,5 +109,13 @@ public:
 protected:
   std::vector<int>begin;
   std::vector<int>entry;
-};
 
+  bool is_in_square(
+    int x, int side, int source_node,
+    const Mapper& mapper) const;
+  
+  int get_allowed(
+    int x, int s, int side,
+    const vector<unsigned short>& fmoves,
+    const Mapper& mapper) const;
+};
