@@ -72,6 +72,15 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
   return cost;
 }
 
+double GetForwardCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c, int limit) {
+  int gid = data.mapper(g);
+  int cid = data.mapper.get_fa()[gid];
+  xyLoc centroid = data.mapper(cid);
+  double cost0 = GetPathCostSRC(data, s, centroid, hLevel, c, limit);
+  double cost1 = GetPathCostSRC(data, g, centroid, hLevel, c, limit);
+  return cost0 + cost1;
+}
+
 double GetPath(const Index& state, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle,
     int hLevel, int limit)//, int &callCPD)
 {

@@ -130,3 +130,22 @@ inline Index LoadInvCentroidsCPD(vector<bool>& bits, int w, int h, const char* f
   printf("Loading done\n");
   return data;
 }
+
+inline Index LoadForwardCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  Index data;
+  data.mapper = Mapper(bits, w, h);
+  vector<int> centroids;
+  FILE* f = fopen(fname, "rb");
+  data.square_sides = load_vector<int>(f);
+  centroids = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  fclose(f);
+  data.mapper.reorder(order);
+  data.mapper.set_centroids(centroids);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+  printf("Loading done\n");
+  return data;
+}

@@ -86,7 +86,7 @@ void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::ve
   warthog::timer t;
   double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit);
   if (type == "vanilla")
-    runner = GetPathCostSRC;
+    runner = GetForwardCentroidCost;
   else if (type == "rect")
     runner = GetRectWildCardCost;
   else if (type == "inv")

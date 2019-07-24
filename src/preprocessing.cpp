@@ -288,7 +288,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
     {
       const int thread_count = omp_get_num_threads();
       const int thread_id = omp_get_thread_num();
-      const int node_count = cents.size();
+      const int node_count = g.node_count();
 
       int node_begin = (node_count*thread_id) / thread_count;
       int node_end = (node_count*(thread_id+1)) / thread_count;
@@ -297,11 +297,12 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
       Dijkstra thread_dij(thread_adj_g, mapper);
       Mapper thread_mapper = mapper;
 
-      for(int cid=node_begin; cid< node_end; ++cid){
-        int source_node = cents[cid];
+      for(int source_node=node_begin; source_node < node_end; source_node++){
         thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
         thread_cpd[thread_id].append_row_forward(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
-        thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+        if (mapper.get_fa()[source_node] == source_node) {
+          thread_cpd_inv[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+        }
         #pragma omp critical 
         {
           ++progress;
