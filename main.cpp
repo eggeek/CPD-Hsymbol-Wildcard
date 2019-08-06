@@ -207,8 +207,8 @@ int main(int argc, char **argv) {
   sprintf(filename, "./index_data/%s.map-%s-%d-%s", getMapName(mpath).c_str() , otype.c_str(),
       hLevel, centroid?"subopt":"opt");
 
-  Parameters p{otype, itype, filename, hLevel, centroid};
   if (pre) {
+    Parameters p{otype, itype, filename, hLevel, centroid};
     if (!centroid)
       PreprocessMap(mapData, width, height, p);
     else
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
                (data.p.centroid?"-subopt":"-opt") + ".txt";
 
   int repeat = 10;
-  if (!centroid)
+  if (!data.p.centroid)
     OptimalExperiments(repeat, data, outfname, spath, filename);
   else
     SubOptExperiments(repeat, data, outfname, spath, filename);
