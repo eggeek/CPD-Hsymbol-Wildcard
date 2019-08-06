@@ -36,8 +36,9 @@ static inline void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const M
       int nxty = mapper(c.second).y + warthog::dy[move];
       pair<double, int> nxt = {c.first + warthog::doublew[move], mapper(xyLoc{(int16_t)nxtx, (int16_t)nxty})};
       dist[nxt.first] = min(dist[nxt.second], nxt.first);
+      if (nxt.first > (double)r) continue;
       if (x0 == -1) {
-        if (nxt.first <= (double)r/2 && !vis[nxt.second]) {
+        if (!vis[nxt.second]) {
           q.push(nxt);
         }
       }
