@@ -414,19 +414,14 @@ TEST_CASE("visual-centroid", "[.cpd-centroid-visual]") {
 
 TEST_CASE("inspect-runs", "[.cpd]") {
   ifstream file(default_testcase_path + "inspect-runs.in");
-  int hLevel = 0;
-  bool isopt;
-  string type, index_path;
-  while (file >> mpath >> index_path >> type >> isopt) {
-    ofstream output(getMapName(mpath) + "-" + (isopt?"opt": "subopt") + "-" + type + "-inspect.out");
+  string index_path;
+  while (file >> mpath >> index_path) {
     LoadMap(mpath.c_str(), mapData, width, height);
-    Index data;
-    if (type == "inv")
-      data = isopt?LoadInvCPD(mapData, width, height, index_path.c_str()):
-        LoadInvCentroidsCPD(mapData, width, height, index_path.c_str());
-    else 
-      data = isopt?LoadVanillaCPD(mapData, width, height, index_path.c_str()):
-        LoadVanillaCentroidsCPD(mapData, width, height, index_path.c_str());
+    Index data = LoadIndexData(mapData, width, height, index_path.c_str());
+    ofstream output(
+        getMapName(mpath) + "-" + 
+        (data.p.centroid?"subopt": "opt") + "-" + 
+        data.p.itype + "-inspect.out");
     string header = "row,runs,hrun,hcnt,map";
     output << header << endl;
     for (int i=0; i<data.cpd.node_count(); i++) {
@@ -440,20 +435,12 @@ TEST_CASE("inspect-runs", "[.cpd]") {
 
 TEST_CASE("inspect-row", "[.cpd]") {
   ifstream file(default_testcase_path + "inspect-row.in");
-  int hLevel = 0;
   xyLoc s;
-  string type, index_path, outpath;
-  while (file >> mpath >> index_path >> type >> hLevel >> s.x >> s.y) {
+  string index_path, outpath;
+  while (file >> mpath >> index_path >> s.x >> s.y) {
     ofstream output("visual-row-" + getIndexName(index_path) + ".out");
     LoadMap(mpath.c_str(), mapData, width, height);
-    Index data;
-    if (type == "rect")
-      data = LoadRectWildCard(mapData, width, height, index_path.c_str());
-    else if (type == "inv")
-      data = LoadInvCPD(mapData, width, height, index_path.c_str());
-    else 
-      data = LoadVanillaCPD(mapData, width, height, index_path.c_str());
-
+    Index data = LoadIndexData(mapData, width, height, index_path.c_str());
     vector<vector<bool>> flag(height, vector<bool>(width, false));
     string header = "lats,lons,latt,lont,pch,hex,mask";
     auto entry = data.cpd.get_entry();

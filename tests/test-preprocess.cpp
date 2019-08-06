@@ -21,7 +21,7 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> hLevel) {
       string output = getMapName(mpath) + "-" + to_string(hLevel) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"DFS", "rect", output, hLevel};
+      Parameters p{"DFS", "rect", output, hLevel, 0};
       PreprocessRectWildcard(mapData, width, height, p);
       cnt++;
     }
@@ -63,7 +63,7 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> hLevel) {
       string output = getMapName(mpath) + "-" + to_string(hLevel) + "-centroid.out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"CUT", "vanilla", output, hLevel};
+      Parameters p{"CUT", "vanilla", output, hLevel, 7};
       PreprocessCentroid(mapData, width, height, p);
     }
   }

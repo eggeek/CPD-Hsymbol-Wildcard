@@ -1,4 +1,4 @@
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-inv inv 3 146 591
-./maps/dao/brc101d.map ./index_data/brc101d.map-CUT-3-inv inv 3 146 591
-./maps/dao/brc000d.map ./index_data/brc000d.map-DFS-3-inv inv 3 156 152
-./maps/dao/brc000d.map ./index_data/brc000d.map-CUT-3-inv inv 3 156 152
+./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-inv 146 591
+./maps/dao/brc101d.map ./index_data/brc101d.map-CUT-3-inv 146 591
+./maps/dao/brc000d.map ./index_data/brc000d.map-DFS-3-inv 156 152
+./maps/dao/brc000d.map ./index_data/brc000d.map-CUT-3-inv 156 152

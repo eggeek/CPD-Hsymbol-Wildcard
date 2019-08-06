@@ -115,6 +115,8 @@ void PreprocessRectWildcard(vector<bool>& bits, int width, int height, const Par
   printf("Saving data to %s\n", p.filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
+  Parameters p1 = {p.otype, p.itype, p.filename, p.hLevel, p.centroid};
+  p1.save(f);
   save_vector(f, square_sides);
   RectWildcardIndex rwobj(used);
   rwobj.save(f);
@@ -222,6 +224,8 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Saving data to %s\n", p.filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
+  Parameters p1 = {p.otype, p.itype, p.filename, p.hLevel, p.centroid};
+  p1.save(f);
   save_vector(f, square_sides);
   order.save(f);
   cpd.save(f);
@@ -232,6 +236,8 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Saving data to %s\n", fname.c_str());
   printf("begin size: %d, entry size: %d\n", inv_cpd.entry_count(), inv_cpd.get_entry_size());
   f = fopen(fname.c_str(), "wb");
+  Parameters p2 = {p.otype, "inv", p.filename, p.hLevel, p.centroid};
+  p2.save(f);
   //save_vector(f, square_sides);
   order.save(f);
   inv_cpd.save(f);
@@ -254,7 +260,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
   mapper.reorder(order);
-  vector<int> cents = compute_centroid(mapper, 7);
+  vector<int> cents = compute_centroid(mapper, p.centroid);
 
   printf("Computing Row Order\n");
   AdjGraph g(extract_graph(mapper));
@@ -327,6 +333,8 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   printf("Saving data to %s\n", p.filename.c_str());
   printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
+  Parameters p1 = {p.otype, p.itype, p.filename, p.hLevel, p.centroid};
+  p1.save(f);
   save_vector(f, square_sides);
   save_vector(f, mapper.get_fa());
   order.save(f);
@@ -338,11 +346,12 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   printf("Saving data to %s\n", fname.c_str());
   printf("begin size: %d, entry size: %d\n", inv_cpd.entry_count(), inv_cpd.get_entry_size());
   f = fopen(fname.c_str(), "wb");
+  Parameters p2 = {p.otype, "inv", p.filename, p.hLevel, p.centroid};
+  p2.save(f);
   //save_vector(f, square_sides);
   save_vector(f, mapper.get_fa());
   order.save(f);
   inv_cpd.save(f);
   fclose(f);
   printf("Done\n");
-
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include "mapper.h"
 #include "preprocessing.h"
 using namespace std;
@@ -40,112 +41,87 @@ inline void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &
     }
 }
 
-inline Index LoadVanillaCPD(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  Index state;
-  state.mapper = Mapper(bits, w, h);
-  FILE*f = fopen(fname, "rb");
-  state.square_sides = load_vector<int>(f);
-  NodeOrdering order;
-  order.load(f);
-  state.cpd.load(f);
-  fclose(f);
-  state.mapper.reorder(order);
-  state.graph = AdjGraph(extract_graph(state.mapper));
-  printf("Loading done\n");
-  return state;
-}
-
-inline Index LoadVanillaCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  vector<int> centroids;
-  Index state;
-  state.mapper = Mapper(bits, w, h);
-  FILE*f = fopen(fname, "rb");
-  state.square_sides = load_vector<int>(f);
-  centroids = load_vector<int>(f);
-  NodeOrdering order;
-  order.load(f);
-  state.cpd.load(f);
-  fclose(f);
-  state.mapper.reorder(order);
-  state.mapper.set_centroids(centroids);
-  state.graph = AdjGraph(extract_graph(state.mapper));
-  printf("Loading done\n");
-  return state;
-}
-
-inline Index LoadRectWildCard(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  Index state;
-  state.mapper = Mapper(bits, w, h);
-
-  FILE* f = fopen(fname, "rb");
-  state.square_sides = load_vector<int>(f);
-  state.rwobj.load(f);
-  NodeOrdering order;
-  order.load(f);
-  state.cpd.load(f);
-  state.row_ordering = load_vector<int>(f);
-  fclose(f);
-
-  state.mapper.reorder(order);
-  state.graph = AdjGraph(extract_graph(state.mapper));
-  printf("Loading done\n");
-  return state;
-}
-
-inline Index LoadInvCPD(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  Index data;
-  data.mapper = Mapper(bits, w, h);
-  FILE* f = fopen(fname, "rb");
-  //data.square_sides = load_vector<int>(f);
+inline void LoadVanillaCPD(Index& data, FILE* f) {
+  data.square_sides = load_vector<int>(f);
   NodeOrdering order;
   order.load(f);
   data.cpd.load(f);
-  fclose(f);
   data.mapper.reorder(order);
   data.graph = AdjGraph(extract_graph(data.mapper));
-  printf("Loading done\n");
-  return data;
 }
 
-
-inline Index LoadInvCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  Index data;
-  data.mapper = Mapper(bits, w, h);
+inline void LoadVanillaCentroidsCPD(Index& data, FILE* f) {
   vector<int> centroids;
-  FILE* f = fopen(fname, "rb");
-  //data.square_sides = load_vector<int>(f);
-  centroids = load_vector<int>(f);
-  NodeOrdering order;
-  order.load(f);
-  data.cpd.load(f);
-  fclose(f);
-  data.mapper.reorder(order);
-  data.mapper.set_centroids(centroids);
-  data.graph = AdjGraph(extract_graph(data.mapper));
-  printf("Loading done\n");
-  return data;
-}
-
-inline Index LoadForwardCentroidsCPD(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
-  Index data;
-  data.mapper = Mapper(bits, w, h);
-  vector<int> centroids;
-  FILE* f = fopen(fname, "rb");
   data.square_sides = load_vector<int>(f);
   centroids = load_vector<int>(f);
   NodeOrdering order;
   order.load(f);
   data.cpd.load(f);
-  fclose(f);
   data.mapper.reorder(order);
   data.mapper.set_centroids(centroids);
   data.graph = AdjGraph(extract_graph(data.mapper));
+}
+
+inline void LoadRectWildCard(Index& data, FILE* f) {
+  data.square_sides = load_vector<int>(f);
+  data.rwobj.load(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  data.row_ordering = load_vector<int>(f);
+  data.mapper.reorder(order);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+}
+
+inline void LoadInvCPD(Index& data, FILE* f) {
+  //data.square_sides = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  data.mapper.reorder(order);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+}
+
+
+inline void LoadInvCentroidsCPD(Index& data, FILE* f) {
+  vector<int> centroids;
+  //data.square_sides = load_vector<int>(f);
+  centroids = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+
+  data.mapper.reorder(order);
+  data.mapper.set_centroids(centroids);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+}
+
+inline Index LoadIndexData(vector<bool>& bits, int w, int h, const char* fname) {
+  printf("Loading preprocessing data\n");
+  Index data;
+  data.mapper = Mapper(bits, w, h);
+  FILE* f = fopen(fname, "rb");
+  data.p.load(f);
+
+  if (data.p.itype == "vanilla") {
+    if (data.p.centroid) LoadVanillaCentroidsCPD(data, f);
+    else LoadVanillaCPD(data, f);
+  }
+  else if (data.p.itype == "inv") {
+    if (data.p.centroid) LoadInvCentroidsCPD(data, f);
+    else LoadInvCPD(data, f);
+  }
+  else if (data.p.itype == "rect") {
+    if (data.p.centroid) LoadRectWildCard(data, f);
+    else {
+      throw runtime_error("Rect centroid is unimplemented.");
+    }
+  }
+  else {
+    throw runtime_error("unknown index type: \"" + data.p.itype + "\"");
+  }
+
+  fclose(f);
   printf("Loading done\n");
   return data;
 }

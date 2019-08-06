@@ -5,6 +5,7 @@
 #include "dijkstra.h"
 #include "visualizer.h"
 #include "jps.h"
+#include "vec_io.h"
 using namespace std;
 
 namespace TEST_MAIN {
@@ -12,6 +13,18 @@ namespace TEST_MAIN {
 string mpath;
 int height, width;
 vector<bool> mapData;
+
+TEST_CASE("string_io") {
+  string fname = "string_io.data";
+  string s = "test3423fsdf^&%^&$__!";
+  FILE* f = fopen(fname.c_str(), "wb");
+  save_string(f, s);
+  fclose(f);
+
+  f = fopen(fname.c_str(), "r");
+  string s2 = load_string(f);
+  REQUIRE(s2 == s);
+}
 
 TEST_CASE("canonical_succ") {
   uint32_t tiles, succ;
