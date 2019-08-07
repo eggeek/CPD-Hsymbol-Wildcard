@@ -107,7 +107,8 @@ int main(int argc, char **argv)
 	}
 	
 	LoadMap(argv[2], mapData, width, height);
-	sprintf(filename, "%s", argv[2]);
+  string path = string(argv[2]);
+	sprintf(filename, "index-%s", getMapName(path).c_str());
 
 	if (pre)
 	{
@@ -150,11 +151,15 @@ int main(int argc, char **argv)
 
     }
 
+  string header = "total,max-time-step,time-20-moves,tot-len,expect";
+  printf("%s\n", header.c_str());
 	for (unsigned int x = 0; x < experimentStats.size(); x++)
 	{
-		printf("%s\ttotal-time\t%f\tmax-time-step\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
-			   experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
-			   experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
+    printf("%f,%f,%f,%f,%f\n", experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
+        experimentStats[x].GetPathLength(), scen.GetNthExperiment(x).GetDistance());
+		//printf("%s\ttotal-time\t%f\tmax-time-step\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
+		//	   experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
+		//	   experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
 		if (experimentStats[x].path.size() == 0 ||
 			(experimentStats[x].ValidatePath(width, height, mapData) &&
 			 scen.GetNthExperiment(x).GetStartX() == experimentStats[x].path[0].x &&
@@ -162,9 +167,10 @@ int main(int argc, char **argv)
 			 scen.GetNthExperiment(x).GetGoalX() == experimentStats[x].path.back().x &&
 			 scen.GetNthExperiment(x).GetGoalY() == experimentStats[x].path.back().y))
 		{
-			printf("valid\n");
+			//printf("valid\n");
 		}
 		else {
+      assert(false);
 			printf("invalid\n");
 		}
 	}

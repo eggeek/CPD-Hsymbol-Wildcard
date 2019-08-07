@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <string>
+using namespace std;
 
 struct xyLoc {
   int16_t x;
@@ -9,3 +11,4 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *f
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path);
 const char *GetName();
+string getMapName(string filename);

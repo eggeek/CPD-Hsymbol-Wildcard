@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
+#include <string>
+using namespace std;
 
 //////////////// Optional Compiler Defines /////////////////
 
@@ -360,6 +362,14 @@ const char *GetName()
 	return "TreeCache";
 }
 
+string getMapName(string filename) {
+  auto pos = filename.find_last_of('/');
+  const string mapfile = filename.substr(pos + 1);
+  auto suff = mapfile.find('.');
+  return mapfile.substr(0, suff);
+}
+
+
 void PreprocessMap(std::vector<bool> &bits, int w, int h, const char *filename)
 {
 	map = bits;
@@ -385,7 +395,7 @@ void PreprocessMap(std::vector<bool> &bits, int w, int h, const char *filename)
 	// Create Trees (multiple roots possible)
 	for( int x=0; x<width; x++) {
 		for( int y=0; y<height; y++) {
-			xyLoc loc = {x,y};
+			xyLoc loc = {(int16_t)x,(int16_t)y};
 			int index = GetIndex(loc);
 			if( map[index]==true && visited[index]==false )
 			{
