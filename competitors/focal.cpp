@@ -12,14 +12,10 @@ class Stats {
 public:
   std::vector<double> srcTime;// = std::vector<double>(3);
   Counter c;
-
-  static string header() {
-    return "map,scenid,tcost,distance,steps,access,hLevel";
-  }
   string to_string(double expect) {
     std::ostringstream res;
     sort(srcTime.begin(), srcTime.end());
-    res << srcTime[srcTime.size() / 2] << "," << c.pathcost << "," << expect;
+    res << srcTime[srcTime.size() / 2] << "," << c.pathcost << "," << expect << "," << c.steps;
     return res.str();
   }
 };
@@ -43,8 +39,10 @@ void runExperiment() {
     g.y = scens.GetNthExperiment(i).GetGoalY();
     exps[i].c = Counter{0, 0, 0};
 
+    focal.reset();
     auto stime = std::chrono::steady_clock::now();
       exps[i].c.pathcost = focal.run(mapper(s), mapper(g), L);
+      exps[i].c.steps = focal.extract_path(mapper(s), mapper(g));
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
     exps[i].srcTime.push_back(tcost);
@@ -70,11 +68,13 @@ int main(int argc, char ** argv) {
   mapper = Mapper(mapData, width, height);
   g = extract_graph(mapper);
 
-  runExperiment();
+  int repeat = 10;
+  for (int i=0; i<repeat; i++)
+    runExperiment();
 
   std::ofstream out;  
   out.open("outputs/focal/" + getMapName(mpath) + ".csv", std::ios::app);
-  string header = "map,scenid,tcost,distance,expect";
+  string header = "map,scenid,tcost,distance,expect,steps";
   out << header << endl;
   for (int i=0; i<(int)exps.size(); i++) {
     double expect = scens.GetNthExperiment(i).GetDistance();

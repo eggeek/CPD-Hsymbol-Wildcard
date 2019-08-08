@@ -146,8 +146,11 @@ namespace TEST_QUERY{
         s.y = scens.GetNthExperiment(i).GetStartY();
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
+
         Counter c = Counter{0, 0, 0};
+        fs.reset();
         c.pathcost = (double)fs.run(mapper(s), mapper(g), L);
+        c.steps = fs.extract_path(mapper(s), mapper(g));
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + (double)L);
       }
     }

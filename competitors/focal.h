@@ -10,18 +10,26 @@ class Focal {
 public:
   const int INF = numeric_limits<int>::max();
   Focal(const AdjGraph& g, const Mapper& mapper):
-    g(g), mapper(mapper), q(g.node_count()), dist(g.node_count()) {};
+    g(g), mapper(mapper), q(g.node_count()), dist(g.node_count()),
+    path(g.node_count()),
+    parent(g.node_count()) {};
 
-  double run(int s, int t, int L) {
+  void reset() {
     fill(dist.begin(), dist.end(), INF);
+    fill(parent.begin(), parent.end(), -1);
+    steps = 0;
     q.clear();
     while (!q2.empty()) q2.pop();
+  }
+
+  double run(int s, int t, int L) {
     dist[s] = 0;
 
-    auto reach = [&](const OutArc& a, double curd) {
+    auto reach = [&](int from, const OutArc& a, double curd) {
       double nextd = curd + warthog::doublew[a.direction];
       if (nextd < dist[a.target]) {
         double f = nextd + heuristic(a.target, t);
+        parent[a.target] = from;
         q.push_or_decrease_key(a.target, f);
         dist[a.target] = nextd;
       }
@@ -29,7 +37,7 @@ public:
 
     for (int i=0; i<g.out_deg(s); ++i) {
       auto a = g.out(s, i);
-      reach(a, 0);
+      reach(s, a, 0);
     }
 
     while (true) {
@@ -54,11 +62,27 @@ public:
       }
       for (int i=0; i<g.out_deg(cur.id); ++i) {
         auto a = g.out(cur.id, i);
-        reach(a, dist[cur.id]);
+        reach(cur.id, a, dist[cur.id]);
       }
     }
     return 0;
   }
+
+  int extract_path(int s, int t) {
+    if (parent[t] == -1) return 0;
+    int cur = t;
+    steps = 0;
+    path[steps] = cur;
+    while (cur != s) {
+      cur = parent[cur];
+      assert(cur != -1);
+      path[++steps] = cur;
+    }
+    path[++steps] = -1;
+    return steps;
+  }
+
+  const vector<int>& getPath() const { return path; }
 
 private:
   struct FocalNode {
@@ -100,4 +124,7 @@ private:
   min_id_heap<double> q;
   priority_queue<FocalNode, vector<FocalNode>> q2;
   vector<double> dist;
+  vector<int> path;
+  vector<int> parent;
+  int steps;
 };
