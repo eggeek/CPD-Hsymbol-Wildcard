@@ -1,0 +1,4 @@
+./maps/arena.map ./scens/arena.map.scen 0
+./maps/arena.map ./scens/arena.map.scen 7
+./maps/brc000d.map ./scens/brc000d.map.scen 0
+./maps/brc000d.map ./scens/brc000d.map.scen 7

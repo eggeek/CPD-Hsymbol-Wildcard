@@ -93,6 +93,8 @@ flags = [
 'utility',
 '-I',
 'src/CPDs',
+'-I',
+'competitors'
 ]
 
 

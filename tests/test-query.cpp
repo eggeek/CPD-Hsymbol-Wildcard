@@ -8,6 +8,7 @@
 #include "loader.h"
 #include "query.h"
 #include "dijkstra.h"
+#include "focal.h"
 using namespace std;
 
 namespace TEST_QUERY{
@@ -16,7 +17,7 @@ namespace TEST_QUERY{
   int height, width;
   vector<bool> mapData;
 
-  TEST_CASE("rw-query", "[.run]") {
+  TEST_CASE("rw-query", "[.run-rw]") {
     ifstream file(default_testcase_path + "rw-query.in");
     while (file >> mpath >> indexpath >> spath) {
       string output = "rw-query" + getIndexName(indexpath) + ".out";
@@ -124,6 +125,30 @@ namespace TEST_QUERY{
         Counter c = Counter{0, 0, 0};
         c.pathcost = GetPathCostSRC(data, s, g, data.p.hLevel, c);
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
+      }
+    }
+  }
+
+  TEST_CASE("focal-search", "[.run]") {
+    ifstream file(default_testcase_path + "focal-search.in");
+    int L = 0;
+    while (file >> mpath >> spath >> L) {
+      string output = "focal-search-" + getMapName(mpath) + ".out";
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      ScenarioLoader scens(spath.c_str());
+      AdjGraph g = extract_graph(mapper);
+      Focal fs(g, mapper);
+      for (int i=0; i<scens.GetNumExperiments(); i++) {
+        double dist = scens.GetNthExperiment(i).GetDistance();
+        xyLoc s, g;
+        s.x = scens.GetNthExperiment(i).GetStartX();
+        s.y = scens.GetNthExperiment(i).GetStartY();
+        g.x = scens.GetNthExperiment(i).GetGoalX();
+        g.y = scens.GetNthExperiment(i).GetGoalY();
+        Counter c = Counter{0, 0, 0};
+        c.pathcost = (double)fs.run(mapper(s), mapper(g), L);
+        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + L);
       }
     }
   }

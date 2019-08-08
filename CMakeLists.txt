@@ -21,6 +21,7 @@ include_directories(src/CPDs)
 include_directories(tests)
 include_directories(third_party)
 include_directories(utility)
+include_directories(competitors)
 
 # config for source code
 set(SOURCE_FILES
@@ -76,6 +77,7 @@ set(SOURCE_FILES
     utility/cut_utility.cpp
     utility/prefer_zero_cut.h
     utility/prefer_zero_cut.cpp
+    competitors/focal.h
     )
 
 add_executable(main
