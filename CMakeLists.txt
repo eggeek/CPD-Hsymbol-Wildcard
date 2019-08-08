@@ -105,13 +105,19 @@ add_executable(testing
         ${TESTING_FILES}
         tests/main.cpp)
 
+add_executable(focal
+  ${SOURCE_FILES}
+  competitors/focal.cpp)
+
 if (omp_lib)
   target_link_libraries(main ${omp_lib})
   target_link_libraries(testing ${omp_lib})
+  target_link_libraries(focal ${omp_lib})
 endif()
 
 if (metis_lib)
   target_link_libraries(main ${metis_lib})
   target_link_libraries(testing ${metis_lib})
+  target_link_libraries(focal ${metis_lib})
 endif()
 

@@ -148,7 +148,7 @@ namespace TEST_QUERY{
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
         c.pathcost = (double)fs.run(mapper(s), mapper(g), L);
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + L);
+        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + (double)L);
       }
     }
   }
