@@ -97,6 +97,7 @@ set(TESTING_FILES
     tests/test-visual.cpp
     tests/test-preprocess.cpp
     tests/test-query.cpp
+    tests/test-load.cpp
     tests/catch.hpp)
 
 
