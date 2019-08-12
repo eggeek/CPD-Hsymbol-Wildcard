@@ -1,5 +1,0 @@
-./maps/arena.map ./arena-0.out ./tests/scens/arena.map.scen
-./maps/arena.map ./arena-1.out ./tests/scens/arena.map.scen
-./maps/arena.map ./arena-3.out ./tests/scens/arena.map.scen
-./maps/arena.map ./arena-0.out ./scens/arena.map.scen
-./maps/arena.map ./arena-1.out ./scens/arena.map.scen

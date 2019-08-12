@@ -207,8 +207,9 @@ int main(int argc, char **argv) {
   int width, height;
 
   LoadMap(mpath.c_str(), mapData, width, height);
+  string centroid_desc = centroid?"c"+to_string(centroid): "opt";
   sprintf(filename, "./index_data/%s.map-%s-%d-%s", getMapName(mpath).c_str() , otype.c_str(),
-      hLevel, centroid?"subopt":"opt");
+      hLevel, centroid_desc.c_str());
 
   if (pre) {
     Parameters p{otype, itype, filename, hLevel, centroid};
