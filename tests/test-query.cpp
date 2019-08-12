@@ -32,7 +32,9 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        c.pathcost = GetRectWildCardCost(data, s, g, data.p.hLevel, c);
+        Extracter e;
+        e.reset(data.graph.node_count());
+        c.pathcost = GetRectWildCardCost(data, s, g, data.p.hLevel, c, e);
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
       }
     }
@@ -53,7 +55,9 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        c.pathcost = GetInvCPDCost(data, s, g, data.p.hLevel, c);
+        Extracter e;
+        e.reset(data.graph.node_count());
+        c.pathcost = GetInvCPDCost(data, s, g, data.p.hLevel, c, e);
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
       }
     }
@@ -74,7 +78,10 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        c.pathcost = GetInvCentroidCost(data, s, g, data.p.hLevel, c);
+        Extracter e1, e2;
+        e1.reset(data.graph.node_count());
+        e2.reset(data.graph.node_count());
+        c.pathcost = GetInvCentroidCost(data, s, g, data.p.hLevel, c, e1, e2);
         int l = data.p.centroid;
         double ub = 2.0 * l;
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + ub);
@@ -97,7 +104,10 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        c.pathcost = GetForwardCentroidCost(data, s, g, data.p.hLevel, c);
+        Extracter e1, e2;
+        e1.reset(data.graph.node_count());
+        e2.reset(data.graph.node_count());
+        c.pathcost = GetForwardCentroidCost(data, s, g, data.p.hLevel, c, e1, e2);
         int l = data.p.centroid;
         double ub = 2.0 * l;
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + ub);
@@ -123,7 +133,9 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        c.pathcost = GetPathCostSRC(data, s, g, data.p.hLevel, c);
+        Extracter e;
+        e.reset(data.graph.node_count());
+        c.pathcost = GetPathCostSRC(data, s, g, data.p.hLevel, c, e);
         REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
       }
     }

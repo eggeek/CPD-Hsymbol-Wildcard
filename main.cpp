@@ -53,7 +53,7 @@ public:
 
 void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
-  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit);
+  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit);
   if (ref.p.itype == "vanilla")
     runner = GetPathCostSRC;
   else if (ref.p.itype == "rect")
@@ -61,6 +61,7 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
   else if (ref.p.itype == "inv")
     runner = GetInvCPDCost;
 
+  Extracter e;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -69,8 +70,9 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
     exps[x].c = Counter{0, 0, 0};
+    e.reset(ref.graph.node_count());
     auto stime = std::chrono::steady_clock::now();
-      exps[x].c.pathcost = runner(ref, s, g, hLevel, exps[x].c, -1);
+      exps[x].c.pathcost = runner(ref, s, g, hLevel, exps[x].c, e, -1);
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
     exps[x].srcTime.push_back(tcost);
@@ -83,14 +85,13 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
 
 void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<SubOptStats>& exps, const Parameters& p) {
   warthog::timer t;
-  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit);
+  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e1, Extracter& e2, int limit);
   if (ref.p.itype == "vanilla")
     runner = GetForwardCentroidCost;
-  else if (ref.p.itype == "rect")
-    runner = GetRectWildCardCost;
   else if (ref.p.itype == "inv")
     runner = GetInvCentroidCost;
 
+  Extracter e1, e2;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -99,8 +100,10 @@ void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::ve
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
     exps[x].c = Counter{0, 0, 0};
+    e1.reset(ref.graph.node_count());
+    e2.reset(ref.graph.node_count());
     auto stime = std::chrono::steady_clock::now();
-      exps[x].c.pathcost = runner(ref, s, g, p.hLevel, exps[x].c, -1);
+      exps[x].c.pathcost = runner(ref, s, g, p.hLevel, exps[x].c, e1, e2, -1);
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
     exps[x].srcTime.push_back(tcost);

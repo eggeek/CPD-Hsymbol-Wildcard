@@ -1,7 +1,7 @@
 #include "Hsymbol.h"
 #include "query.h"
 
-double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
+double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -64,6 +64,7 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
     s.x += dx[move];
     s.y += dy[move];
     //cerr << "(" << s.x << "," << s.y << ")" << endl;
+    e.add(move);
     c.steps++;
     if (limit != -1 && limit <= c.steps)
       break;
@@ -72,67 +73,23 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
   return cost;
 }
 
-double GetForwardCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c, int limit) {
+double GetForwardCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c,
+    Extracter& e1, Extracter& e2, int limit) {
   int gid = data.mapper(g);
   int cid = data.mapper.get_fa()[gid];
   xyLoc centroid = data.mapper(cid);
-  double cost0 = GetPathCostSRC(data, s, centroid, hLevel, c, limit);
-  double cost1 = GetPathCostSRC(data, g, centroid, hLevel, c, limit);
+  double cost0 = GetPathCostSRC(data, s, centroid, hLevel, c, e1, limit);
+  double cost1 = GetPathCostSRC(data, g, centroid, hLevel, c, e2, limit);
+  double tot = cost0 + cost1;
+  int l1 = e1.steps-1, l2 = e2.steps-1;
+  while (l1 >= 0 && l2 >= 0 && e1.moves[l1] == e2.moves[l2]) {
+    tot -= warthog::doublew[e1.moves[l1]];
+    c.steps--, l1--, l2--;
+  }
   return cost0 + cost1;
 }
 
-double GetPath(const Index& state, xyLoc s, xyLoc t, std::vector<xyLoc> &path, warthog::jpsp_oracle& oracle,
-    int hLevel, int limit)//, int &callCPD)
-{
-  int current_source = state.mapper(s);
-  int current_target = state.mapper(t);
-  const int16_t* dx = warthog::dx;
-  const int16_t* dy = warthog::dy;
-  double cost = 0.0;
-  int move = state.cpd.get_first_move(current_source, current_target);
-  if ((1 << move) == warthog::HMASK) {
-    move = Hsymbol::decode(current_source, current_target, state.mapper, hLevel);
-  }
-
-  if(move != 0xF && current_source != current_target){
-    oracle.set_goal_location(t.x,t.y);
-    auto direction = (warthog::jps::direction)(1 << move);
-    int number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
-
-    path.push_back(s);
-
-    for(;;){
-
-      for(int i = 0; i < number_step_to_turn; i++){
-        s.x += dx[move];
-        s.y += dy[move];
-        cost += warthog::doublew[move];
-        current_source = state.mapper(s);
-        path.push_back(s);
-        if(current_source == current_target)
-          break;
-        if (limit != -1 && (int)path.size() >= limit)
-          break;
-      }
-
-      if(current_source == current_target)
-        break;
-
-      move = state.cpd.get_first_move(current_source, current_target);
-      // decode the heuristic move
-      if ((1 << move) == warthog::HMASK) {
-        move = Hsymbol::decode(current_source, current_target, state.mapper, hLevel);
-      }
-      direction = (warthog::jps::direction)(1 << move);
-      number_step_to_turn = oracle.next_jump_point(s.x, s.y, direction);
-
-    }
-  }
-  return cost;
-}
-
-
-double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
+double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -196,6 +153,7 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Coun
     cost += warthog::doublew[move];
     source.x += dx[move];
     source.y += dy[move];
+    e.add(move);
     sid = data.mapper(source);
   };
 
@@ -214,7 +172,7 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Coun
   return cost;
 }
 
-double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
+double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit) {
   int (*heuristic_func)(int, int, const Mapper&);
   if (hLevel == 1)
     heuristic_func = Hsymbol::get_heuristic_move1;
@@ -276,6 +234,7 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
     cost += warthog::doublew[move];
     target.x += dx[move];
     target.y += dy[move];
+    e.add(move);
     tid = data.mapper(target);
   };
 
@@ -288,7 +247,7 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
   return cost;
 }
 
-double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, int limit) {
+double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit) {
   // s is a centroid location
   int ranks = data.mapper.get_centroid_rank(data.mapper(s));
   assert(ranks != -1);
@@ -327,6 +286,7 @@ double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, C
     cost += warthog::doublew[move];
     target.x += dx[move];
     target.y += dy[move];
+    e.add(move);
     tid = data.mapper(target);
   };
 
@@ -340,10 +300,17 @@ double GetCentroid2TargetCost(const Index& data, xyLoc s, xyLoc t, int hLevel, C
 }
 
 
-double GetInvCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c, int limit) {
+double GetInvCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Counter& c, 
+    Extracter& e1, Extracter& e2, int limit) {
   int gid = data.mapper(g);
   int cid = data.mapper.get_fa()[gid];
-  double cost0 = GetCentroid2TargetCost(data, data.mapper(cid), s, hLevel, c, limit);
-  double cost1 = GetCentroid2TargetCost(data, data.mapper(cid), g, hLevel, c, limit);
-  return cost0 + cost1;
+  double cost0 = GetCentroid2TargetCost(data, data.mapper(cid), s, hLevel, c, e1, limit);
+  double cost1 = GetCentroid2TargetCost(data, data.mapper(cid), g, hLevel, c, e2, limit);
+  double tot = cost0 + cost1;
+  int l1 = 0, l2 = 0;
+  while (l1 < e1.steps && l2 < e2.steps && e1.moves[l1] == e2.moves[l2]) {
+    tot -= warthog::doublew[e1.moves[l1]];
+    c.steps--, l1++, l2++;
+  }
+  return tot;
 }
