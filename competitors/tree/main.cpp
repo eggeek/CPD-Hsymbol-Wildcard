@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 	
 	LoadMap(argv[2], mapData, width, height);
   string path = string(argv[2]);
-	sprintf(filename, "index-%s", getMapName(path).c_str());
+	sprintf(filename, "./index_data/%s", getMapName(path).c_str());
 
 	if (pre)
 	{
