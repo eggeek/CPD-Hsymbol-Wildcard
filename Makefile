@@ -1,7 +1,7 @@
 build_dir="cmake-build"
 flag="Debug"
 
-all: build
+all: build tree
 fast dev: all
 
 dev: flag = Debug
@@ -20,3 +20,7 @@ build: gen
 clean:
 	@echo "cd ${build_dir} && make clean"
 	@eval "cd ${build_dir} && make clean"
+
+tree:
+	@echo "cd ./competitors/tree && make compile"
+	@eval "cd ./competitors/tree && make compile"
