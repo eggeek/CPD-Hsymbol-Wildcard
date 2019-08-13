@@ -33,7 +33,7 @@ namespace warthog
   static const double DBL_ONE_OVER_TWO = 0.5;
   static const double DBL_ONE_OVER_ROOT_TWO = 1.0/DBL_ROOT_TWO;//0.707106781f;
   static const double DBL_ROOT_TWO_OVER_FOUR = DBL_ROOT_TWO*0.25;
-  static const double EPS = 1e-3;
+  static const double EPS = 1e-1;
   static const warthog::cost_t ONE = 10000;
   static const warthog::cost_t TWO = 20000;
   static const warthog::cost_t ROOT_TWO = DBL_ROOT_TWO * ONE;

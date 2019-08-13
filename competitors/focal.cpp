@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <chrono>
+#include <assert.h>
 #include "focal.h"
 #include "loader.h"
 #include "ScenarioLoader.h"
@@ -74,7 +75,7 @@ int main(int argc, char ** argv) {
     runExperiment();
 
   std::ofstream out;  
-  out.open("outputs/focal/" + getMapName(mpath) + ".txt", std::ios::app);
+  out.open("outputs/focal/" + getMapName(mpath) + "-" + to_string(L) + ".txt", std::ios::app);
   string header = "map,scenid,tcost,distance,expect,steps";
   out << header << endl;
   for (int i=0; i<(int)exps.size(); i++) {

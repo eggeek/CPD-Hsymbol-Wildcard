@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <numeric>
 #include <algorithm>
+#include <assert.h>
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
