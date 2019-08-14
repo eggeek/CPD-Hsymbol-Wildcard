@@ -3,6 +3,7 @@
 #include <sstream>
 #include <chrono>
 #include <assert.h>
+#include <numeric>
 #include "focal.h"
 #include "loader.h"
 #include "ScenarioLoader.h"
@@ -17,7 +18,7 @@ public:
   string to_string(double expect) {
     std::ostringstream res;
     sort(srcTime.begin(), srcTime.end());
-    res << srcTime[srcTime.size() / 2] << "," << c.pathcost << "," << expect << "," << c.steps;
+    res << std::accumulate(srcTime.begin(), srcTime.end(), 0.0) / 5.0 << "," << c.pathcost << "," << expect << "," << c.steps;
     return res.str();
   }
 };
@@ -70,17 +71,17 @@ int main(int argc, char ** argv) {
   mapper = Mapper(mapData, width, height);
   g = extract_graph(mapper);
 
-  int repeat = 10;
+  int repeat = 5;
   for (int i=0; i<repeat; i++)
     runExperiment();
 
   std::ofstream out;  
   out.open("outputs/focal/" + getMapName(mpath) + "-" + to_string(L) + ".txt", std::ios::app);
-  string header = "map,scenid,tcost,distance,expect,steps";
+  string header = "map,scenid,tcost,distance,expect,steps,r";
   out << header << endl;
   for (int i=0; i<(int)exps.size(); i++) {
     double expect = scens.GetNthExperiment(i).GetDistance();
-    out << getMapName(mpath) << "," << i << "," << exps[i].to_string(expect) << endl;
+    out << getMapName(mpath) << "," << i << "," << exps[i].to_string(expect) << "," << L << endl;
   }
   return 0;
 }

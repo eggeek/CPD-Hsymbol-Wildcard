@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include <numeric>
 #include <algorithm>
+#include <chrono>
 #include <assert.h>
+#include <iostream>
 #include "ScenarioLoader.h"
-#include "Timer.h"
 #include "Entry.h"
 
 void LoadMap(const char *fname, std::vector<bool> &map, int &w, int &h);
@@ -16,7 +17,7 @@ struct stats {
 
 	double GetTotalTime()
 	{
-		return std::accumulate(times.begin(), times.end(), 0.0);
+		return std::accumulate(times.begin(), times.end(), 0.0) / 5.0;
 	}
 	double GetMaxTimestep()
 	{
@@ -125,39 +126,43 @@ int main(int argc, char **argv)
 
 	ScenarioLoader scen(argv[3]);
 
-	Timer t;
 	std::vector<stats> experimentStats;
+  const int repeat = 5;
 	for (int x = 0; x < scen.GetNumExperiments(); x++)
-    {
+  {
 		//printf("%d of %d\n", x+1, scen.GetNumExperiments());
-		thePath.resize(0);
 		experimentStats.resize(x+1);
-		bool done;
-		do {
-			xyLoc s, g;
-			s.x = scen.GetNthExperiment(x).GetStartX();
-			s.y = scen.GetNthExperiment(x).GetStartY();
-			g.x = scen.GetNthExperiment(x).GetGoalX();
-			g.y = scen.GetNthExperiment(x).GetGoalY();
+    xyLoc s, g;
+    s.x = scen.GetNthExperiment(x).GetStartX();
+    s.y = scen.GetNthExperiment(x).GetStartY();
+    g.x = scen.GetNthExperiment(x).GetGoalX();
+    g.y = scen.GetNthExperiment(x).GetGoalY();
 
-			t.StartTimer();
-			done = GetPath(reference, s, g, thePath);
-			t.EndTimer();
-
-			experimentStats[x].times.push_back(t.GetElapsedTime());
-			experimentStats[x].lengths.push_back(thePath.size());
-			for (unsigned int t = experimentStats[x].path.size(); t < thePath.size(); t++)
-				experimentStats[x].path.push_back(thePath[t]);
-		} while (done == false);
-
+    for (int i=0; i<repeat; i++) {
+		  thePath.resize(0);
+      auto stime = std::chrono::steady_clock::now();
+      GetPath(reference, s, g, thePath);
+      auto etime = std::chrono::steady_clock::now();
+      double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+			experimentStats[x].times.push_back(tcost);
     }
+    experimentStats[x].lengths.push_back(thePath.size());
+    for (unsigned int t = 0; t < thePath.size(); t++)
+      experimentStats[x].path.push_back(thePath[t]);
 
-  string header = "total,max-time-step,time-20-moves,tot-len,expect";
+  }
+
+  string header = "map,scenid,tcost,distance,expect,steps,d,itype";
   printf("%s\n", header.c_str());
+  string mapname = getMapName(path);
 	for (unsigned int x = 0; x < experimentStats.size(); x++)
 	{
-    printf("%f,%f,%f,%f,%f\n", experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
-        experimentStats[x].GetPathLength(), scen.GetNthExperiment(x).GetDistance());
+    printf("%s,%d,%f,%f,%f,%d,%d,%s\n", 
+        mapname.c_str(), x,
+        experimentStats[x].GetTotalTime(),
+        experimentStats[x].GetPathLength(), scen.GetNthExperiment(x).GetDistance(),
+        (int)experimentStats[x].path.size(), -1, "tree");
+
 		//printf("%s\ttotal-time\t%f\tmax-time-step\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
 		//	   experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
 		//	   experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
@@ -172,7 +177,7 @@ int main(int argc, char **argv)
 		}
 		else {
       assert(false);
-			printf("invalid\n");
+      std::cerr << "invalid" << std::endl;
 		}
 	}
 

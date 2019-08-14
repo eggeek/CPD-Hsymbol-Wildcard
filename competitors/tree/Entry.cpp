@@ -472,8 +472,6 @@ void PrintPath(std::vector<xyLoc> &path)
 
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 {
-	PRINT("PrepareForSearch: %c\n", ' ');
-
 	//assert((long)data == 13182);
 	std::deque<xyLoc> q;
 	xyLoc loc, loc2;
