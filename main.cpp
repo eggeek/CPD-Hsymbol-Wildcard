@@ -16,11 +16,16 @@
 
 namespace po = boost::program_options;
 po::variables_map vm;
+const int repeat = 5;
 
 class Stats {
 public:
   std::vector<double> srcTime;// = std::vector<double>(3);
   Counter c;
+
+  double GetTotalTime() {
+    return std::accumulate(srcTime.begin(), srcTime.end(), 0.0) / (double)repeat;
+  }
 
   static string header() {
     return "map,scenid,tcost,distance,expect,steps,access,r,itype";
@@ -28,7 +33,7 @@ public:
   string to_string(double expect) {
     std::ostringstream res;
     sort(srcTime.begin(), srcTime.end());
-    res << srcTime[srcTime.size() / 2] << ",";
+    res << GetTotalTime() << ",";
     res << c.pathcost << "," << expect << "," << c.steps << "," << c.access_cnt;
     return res.str();
   }
@@ -38,6 +43,11 @@ class SubOptStats {
 public:
   std::vector<double> srcTime;
   Counter c;
+
+  double GetTotalTime() {
+    return std::accumulate(srcTime.begin(), srcTime.end(), 0.0) / (double)repeat;
+  }
+
   static string header() {
     return "map,scenid,tcost,distance,expect,steps,access,r,itype";
   }
@@ -45,7 +55,7 @@ public:
   string to_string(double expect) {
     std::ostringstream res;
     sort(srcTime.begin(), srcTime.end());
-    res << srcTime[srcTime.size() / 2] << ",";
+    res << GetTotalTime() << ",";
     res << c.pathcost << "," << expect << "," << c.steps << "," << c.access_cnt;
     return res.str();
   }
@@ -233,7 +243,6 @@ int main(int argc, char **argv) {
                std::to_string(data.p.hLevel) + 
                (data.p.centroid?"-subopt":"-opt") + ".txt";
 
-  int repeat = 5;
   if (!data.p.centroid)
     OptimalExperiments(repeat, data, outfname, spath, filename);
   else
