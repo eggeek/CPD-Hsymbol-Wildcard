@@ -62,17 +62,20 @@ run_tree() {
   cd -
 }
 
+focal() {
+  echo "$1 $2"
+  eval "$1 $2"
+}
+
 run_focal() {
   echo "----- run competitor: focal -----"
   # run focal
   for i in "${map_names[@]}"; do
     mpath="${map_dir}${i}.map"
     spath="${scen_dir}${i}.map.scen"
-    for c in `seq 0 2 8`; do
-      cmd="./bin/focal ${mpath} ${spath} ${c}"
-      echo $cmd
-      eval $cmd
-    done
+    cmd="./bin/focal ${mpath} ${spath}"
+    export -f focal
+    parallel -P 5 focal ::: "${cmd}" ::: 0 2 4 6 8 
   done
 }
 
