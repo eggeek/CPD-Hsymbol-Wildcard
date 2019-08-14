@@ -38,13 +38,13 @@ class CPD_CENTROID: public CPDBASE {
   int get_allowed_forward(int x, int s, int side, const vector<unsigned short>& fmoves, const Mapper& mapper) {
     if(x == s)
       return warthog::ALLMOVE;
+    else if(fmoves[x] == 0)
+      return warthog::NOMOVE;
     else if(is_in_square(x, side, s, mapper))
       return warthog::ALLMOVE;
     // if x is not a centroid, ignore
     else if (mapper.get_fa()[x] != x)
       return warthog::ALLMOVE;
-    else if(fmoves[x] == 0)
-      return warthog::NOMOVE;
     else
       return fmoves[x];
   }
