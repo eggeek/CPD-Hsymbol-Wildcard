@@ -1,2 +1,2 @@
-./maps/dao/brc101d.map ./index_data/brc101d.map-CUT-3-subopt
-./maps/dao/brc101d.map ./index_data/brc101d.map-CUT-3-opt
+./maps/gppc/Archipelago.map ./index_data/Archipelago.map-DFS-3-c2
+./maps/gppc/Archipelago.map ./index_data/Archipelago.map-DFS-3-opt

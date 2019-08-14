@@ -418,18 +418,20 @@ TEST_CASE("inspect-runs", "[.cpd]") {
   while (file >> mpath >> index_path) {
     LoadMap(mpath.c_str(), mapData, width, height);
     Index data = LoadIndexData(mapData, width, height, index_path.c_str());
-    ofstream output(
-        getMapName(mpath) + "-" + 
-        (data.p.centroid?"subopt": "opt") + "-" + 
-        data.p.itype + "-inspect.out");
-    string header = "row,runs,hrun,hcnt,map";
-    output << header << endl;
-    for (int i=0; i<data.cpd.node_count(); i++) {
-      int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
-      int hcnt = data.cpd.get_heuristic_cnt(i);
-      int hrun = data.cpd.get_heuristic_run(i);
-      output << i << "," << runs << "," << hrun << "," << hcnt<< "," << getMapName(mpath) << endl;
-    }
+    xyLoc loc = data.mapper(130977);
+    cout << loc.x << "," << loc.y << endl;
+    //ofstream output(
+    //    getMapName(mpath) + "-" + 
+    //    (data.p.centroid?"subopt": "opt") + "-" + 
+    //    data.p.itype + "-inspect.out");
+    //string header = "row,runs,hrun,hcnt,map";
+    //output << header << endl;
+    //for (int i=0; i<data.cpd.node_count(); i++) {
+    //  int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
+    //  int hcnt = data.cpd.get_heuristic_cnt(i);
+    //  int hrun = data.cpd.get_heuristic_run(i);
+    //  output << i << "," << runs << "," << hrun << "," << hcnt<< "," << getMapName(mpath) << endl;
+    //}
   }
 }
 

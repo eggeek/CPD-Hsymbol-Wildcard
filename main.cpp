@@ -23,13 +23,13 @@ public:
   Counter c;
 
   static string header() {
-    return "map,scenid,tcost,distance,steps,access,hLevel";
+    return "map,scenid,tcost,distance,expect,steps,access,r,itype";
   }
-  string to_string() {
+  string to_string(double expect) {
     std::ostringstream res;
     sort(srcTime.begin(), srcTime.end());
     res << srcTime[srcTime.size() / 2] << ",";
-    res << c.pathcost << "," << c.steps << "," << c.access_cnt;
+    res << c.pathcost << "," << expect << "," << c.steps << "," << c.access_cnt;
     return res.str();
   }
 };
@@ -39,7 +39,7 @@ public:
   std::vector<double> srcTime;
   Counter c;
   static string header() {
-    return "map,scenid,tcost,distance,expect,steps,access,hLevel";
+    return "map,scenid,tcost,distance,expect,steps,access,r,itype";
   }
 
   string to_string(double expect) {
@@ -132,7 +132,9 @@ void OptimalExperiments(int repeat, const Index& data,
   out << header << std::endl;
   string mapname = getMapName(string(filename));
   for (unsigned int x = 0; x < experimentStats.size(); x++) {
-    out << mapname << "," << x << "," <<  experimentStats[x].to_string() << "," << data.p.hLevel << std::endl;
+    double expect = scen.GetNthExperiment(x).GetDistance();
+    out << mapname << "," << x << "," <<  experimentStats[x].to_string(expect) << ","
+        << data.p.centroid << "," << (data.p.itype=="inv"?"backward":"forward") << std::endl;
   }
   out.close();
 }
@@ -157,7 +159,8 @@ void SubOptExperiments(int repeat, const Index& data,
   string mapname = getMapName(string(filename));
   for (unsigned int x = 0; x < experimentStats.size(); x++) {
     double expect = scen.GetNthExperiment(x).GetDistance();
-    out << mapname << "," << x << "," <<  experimentStats[x].to_string(expect) << "," << data.p.hLevel << std::endl;
+    out << mapname << "," << x << "," <<  experimentStats[x].to_string(expect) << ","
+        << data.p.centroid << "," << (data.p.itype=="inv"? "backward": "forward") << std::endl;
   }
   out.close();
 }
@@ -230,7 +233,7 @@ int main(int argc, char **argv) {
                std::to_string(data.p.hLevel) + 
                (data.p.centroid?"-subopt":"-opt") + ".txt";
 
-  int repeat = 10;
+  int repeat = 5;
   if (!data.p.centroid)
     OptimalExperiments(repeat, data, outfname, spath, filename);
   else

@@ -1,4 +1,2 @@
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-inv 146 591
-./maps/dao/brc101d.map ./index_data/brc101d.map-CUT-3-inv 146 591
-./maps/dao/brc000d.map ./index_data/brc000d.map-DFS-3-inv 156 152
-./maps/dao/brc000d.map ./index_data/brc000d.map-CUT-3-inv 156 152
+./maps/gppc/Archipelago.map ./index_data/Archipelago.map-DFS-3-c2 436 324
+./maps/gppc/Archipelago.map ./index_data/Archipelago.map-DFS-3-opt 436 324
