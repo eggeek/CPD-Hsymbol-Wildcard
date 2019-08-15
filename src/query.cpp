@@ -81,11 +81,13 @@ double GetForwardCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, C
   double cost0 = GetPathCostSRC(data, s, centroid, hLevel, c, e1, limit);
   double cost1 = GetPathCostSRC(data, g, centroid, hLevel, c, e2, limit);
   double tot = cost0 + cost1;
+
   int l1 = e1.steps-1, l2 = e2.steps-1;
   while (l1 >= 0 && l2 >= 0 && e1.moves[l1] == e2.moves[l2]) {
     tot -= warthog::doublew[e1.moves[l1]];
     c.steps--, l1--, l2--;
   }
+
   return tot;
 }
 
@@ -307,10 +309,11 @@ double GetInvCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, Count
   double cost0 = GetCentroid2TargetCost(data, data.mapper(cid), s, hLevel, c, e1, limit);
   double cost1 = GetCentroid2TargetCost(data, data.mapper(cid), g, hLevel, c, e2, limit);
   double tot = cost0 + cost1;
-  int l1 = 0, l2 = 0;
-  while (l1 < e1.steps && l2 < e2.steps && e1.moves[l1] == e2.moves[l2]) {
+
+  int l1 = e1.steps-1, l2 = e2.steps-1;
+  while (l1 >= 0 && l2 >= 0 && e1.moves[l1] == e2.moves[l2]) {
     tot -= warthog::doublew[e1.moves[l1]];
-    c.steps--, l1++, l2++;
+    c.steps--, l1--, l2--;
   }
   return tot;
 }
