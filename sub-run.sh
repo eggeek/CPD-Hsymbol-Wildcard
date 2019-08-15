@@ -12,7 +12,7 @@ map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 out_dir="./outputs/cpd/"
 order="DFS"
-cs=(2 4 8 16 32)
+cs=(0 2 4 8 16 32)
 
 
 run_cpd() {
