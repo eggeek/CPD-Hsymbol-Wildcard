@@ -86,7 +86,7 @@ double GetForwardCentroidCost(const Index& data, xyLoc s, xyLoc g, int hLevel, C
     tot -= warthog::doublew[e1.moves[l1]];
     c.steps--, l1--, l2--;
   }
-  return cost0 + cost1;
+  return tot;
 }
 
 double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit) {
