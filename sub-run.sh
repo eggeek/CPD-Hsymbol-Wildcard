@@ -12,6 +12,7 @@ map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 out_dir="./outputs/cpd/"
 order="DFS"
+cs=(2 4 8 16 32)
 
 
 run_cpd() {
@@ -31,7 +32,7 @@ run_cpd() {
     echo $cmd
     eval $cmd
 
-    for c in `seq 2 2 8`; do
+    for c in "${cs[@]}"; do
       indexpath="./index_data/${i}.map-DFS-3-c${c}"
       cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${out_dir}${i}-3-dfs-c${c}.txt"
       echo $cmd
@@ -63,8 +64,8 @@ run_tree() {
 }
 
 focal() {
-  echo "$1 $2"
-  eval "$1 $2"
+  echo "$1 `expr 2 '*' $2`"
+  eval "$1 `expr 2 '*' $2`"
 }
 
 run_focal() {
@@ -75,7 +76,7 @@ run_focal() {
     spath="${scen_dir}${i}.map.scen"
     cmd="./bin/focal ${mpath} ${spath}"
     export -f focal
-    parallel -P 5 focal ::: "${cmd}" ::: 0 2 4 6 8 
+    parallel -P 5 focal ::: "${cmd}" ::: "${cs[@]}"
   done
 }
 
