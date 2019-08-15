@@ -260,6 +260,7 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
   mapper.reorder(order);
+  printf("Computing centroids\n");
   vector<int> cents = compute_centroid(mapper, p.centroid);
 
   printf("Computing Row Order\n");

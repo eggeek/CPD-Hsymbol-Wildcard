@@ -58,12 +58,12 @@ namespace TEST_PREPROCESS {
   }
 
   TEST_CASE("centroid", "[.pre]") {
-    int hLevel = 0;
+    int centroid = 0;
     ifstream file(default_testcase_path + "centroid.in");
-    while (file >> mpath >> hLevel) {
-      string output = getMapName(mpath) + "-" + to_string(hLevel) + "-centroid.out";
+    while (file >> mpath >> centroid) {
+      string output = getMapName(mpath) + "-" + to_string(centroid) + "-centroid.out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"CUT", "vanilla", output, hLevel, 7};
+      Parameters p{"DFS", "vanilla", output, 3, centroid};
       PreprocessCentroid(mapData, width, height, p);
     }
   }

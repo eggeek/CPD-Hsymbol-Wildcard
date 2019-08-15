@@ -23,10 +23,12 @@ static inline void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const M
   priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>>q;
   vector<double> dist(mapper.node_count(), 1e10);
   q.push({0, s});
+  dist[s] = 0;
   while (!q.empty()) {
     pair<double, int> c = q.top(); q.pop();
     vis[c.second] = true;
     fa[c.second] = s;
+    if (c.first > dist[c.second]) continue;
     int neigbhors = mapper.get_neighbor(c.second);
     while (neigbhors) {
       int direction = warthog::lowb(neigbhors);
@@ -35,15 +37,16 @@ static inline void bfs(int s, int r, vector<int>& fa, vector<bool>& vis, const M
       int nxtx = mapper(c.second).x + warthog::dx[move];
       int nxty = mapper(c.second).y + warthog::dy[move];
       pair<double, int> nxt = {c.first + warthog::doublew[move], mapper(xyLoc{(int16_t)nxtx, (int16_t)nxty})};
-      dist[nxt.first] = min(dist[nxt.second], nxt.first);
       if (nxt.first > (double)r) continue;
       if (x0 == -1) {
-        if (!vis[nxt.second]) {
+        if (!vis[nxt.second] && dist[nxt.second] > nxt.first) {
+          dist[nxt.second] = nxt.first;
           q.push(nxt);
         }
       }
       else if (nxtx >= x0 && nxtx <= x1 && nxty >= y0 && nxty <= y1) {
-        if (!vis[nxt.second]) {
+        if (!vis[nxt.second] && dist[nxt.second] > nxt.first) {
+          dist[nxt.second] = nxt.first;
           q.push(nxt);
         }
       }
