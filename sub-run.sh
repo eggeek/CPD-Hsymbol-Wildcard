@@ -21,25 +21,20 @@ run_cpd() {
   for i in "${map_names[@]}"; do
     mpath="${map_dir}${i}.map"
     spath="${scen_dir}${i}.map.scen"
-
-    indexpath="./index_data/${i}.map-DFS-3-opt"
-    cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${out_dir}${i}-3-dfs-opt.txt"
-    echo $cmd
-    eval $cmd
-
-    indexpath="./index_data/${i}.map-DFS-3-opt-inv"
-    cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${out_dir}${i}-3-dfs-opt-inv.txt"
-    echo $cmd
-    eval $cmd
-
     for c in "${cs[@]}"; do
-      indexpath="./index_data/${i}.map-DFS-3-c${c}"
-      cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${out_dir}${i}-3-dfs-c${c}.txt"
+      if [ $c -ne 0 ]
+        then
+          indexpath="./index_data/${i}.map-DFS-3-c${c}"
+          outpath="${out_dir}${i}-3-dfs-c${c}"
+        else
+          indexpath="./index_data/${i}.map-DFS-3-opt"
+          outpath="${out_dir}${i}-3-dfs-opt"
+      fi
+      cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${outpath}.txt"
       echo $cmd
       eval $cmd
 
-      indexpath="./index_data/${i}.map-DFS-3-c${c}-inv"
-      cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath} -O ${out_dir}${i}-3-dfs-c${c}-inv.txt"
+      cmd="./bin/main -R -M ${mpath} -S ${spath} -I ${indexpath}-inv -O ${outpath}-inv.txt"
       echo $cmd
       eval $cmd
     done
