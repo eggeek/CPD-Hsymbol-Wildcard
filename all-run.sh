@@ -1,9 +1,9 @@
 #!/bin/bash
-map_names=(`ls ${map_dir}`)
 map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 out_dir="./outputs/cpd/"
 order="DFS"
+map_names=(`ls ${map_dir}`)
 cs=(0 2 4 8 16 32)
 
 
