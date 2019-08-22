@@ -5,6 +5,34 @@ import matplotlib.pyplot as plt
 alias = {}
 styles = {}
 
+def parse_index_name(iname):
+    # parse '*.map-DFS-3-c4-inv' to itype="inv", d=4, hlevel=3
+    # or '*.map-DFS-3-c4' to itype="vanilla", d=4, hlevel=3
+    ps = iname.split('-')
+    itype = "forward"
+    if ps[-1] == "inv":
+        itype = "backward"
+        ps.pop()
+    r = int(ps[-1][1:]) if ps[-1][0] == 'c' else 0
+    ps.pop()
+    ps.pop()
+    ps.pop()
+    mname = '-'.join(ps)[:-4]
+    return dict(map=mname,itype=itype,r=r)
+
+def load_size(fname):
+    with open(fname, 'r') as f:
+        raw = f.readlines()
+    rows = []
+    header = ["map", "itype", "r", "size"]
+    for line in raw:
+        size, path = line.split()
+        data = parse_index_name(path)
+        rows.append([data['map'].split('/')[-1], data['itype'], data['r'], size])
+    df = pd.DataFrame.from_records(rows, columns=header)
+    df = df[header].apply(pd.to_numeric, errors="ignore")
+    return df
+
 def load_data(fname):
     with open(fname, "r") as f:
         # ignore `vertices: ...` at head and `Total: ..` at tail
