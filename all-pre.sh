@@ -13,8 +13,18 @@ run_cpd() {
     spath="${scen_dir}${i}.scen"
     for c in "${cs[@]}"; do
       cmd="./bin/main -P -M ${mpath} -L 3 --centroid ${c}"
-      echo $cmd
-      eval $cmd
+      if [ $c -ne 0 ]
+      then
+        cpdpath="./index_data/${i}-DFS-3-c${c}"
+      else
+        cpdpath="./index_data/${i}-DFS-3-opt"
+      fi
+      invcpdpath="$cpdpath-inv"
+
+      if [ ! -f "$cpdpath" ] || [ ! -f "$invcpdpath" ]; then
+        echo $cmd
+        eval $cmd
+      fi
     done
   done
 }
