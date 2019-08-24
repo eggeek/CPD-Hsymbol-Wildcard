@@ -89,7 +89,7 @@ private:
     int id;
     double f, g;
     bool operator < (const FocalNode& rhs) const {
-      return g < rhs.g;
+      return f - g > rhs.f - rhs.g;
     }
   };
 
