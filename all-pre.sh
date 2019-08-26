@@ -3,7 +3,7 @@ map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 map_names=(`ls ${map_dir}`)
 order="DFS"
-cs=(0 2 4 8 16 32)
+cs=(0 2 4 8 16 32 64)
 
 run_cpd() {
   echo "----- Preprocess CPD -----" 
