@@ -239,7 +239,10 @@ int main(int argc, char **argv) {
   Index data;
   data = LoadIndexData(mapData, width, height, indexpath.c_str());
   if (vm.count("cnum")) {
-    cout << data.mapper.centroid_nums() << endl;
+    if (data.p.centroid)
+      cout << data.mapper.centroid_nums() << endl;
+    else
+      cout << data.mapper.node_count() << endl;
     return 0;
   }
 
