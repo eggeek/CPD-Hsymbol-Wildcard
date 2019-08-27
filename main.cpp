@@ -186,6 +186,7 @@ int main(int argc, char **argv) {
     ("full,F", "preprocess map then run scenario")
     ("preprocess,P", "preprocess map")
     ("run,R", "run scenario without preprocessing")
+    ("cnum", "report number of centroids")
     ("hLevel,L", po::value<int>(&hLevel)->default_value(0), "Level of heuristic")
     ("map,M", po::value<string>(&mpath)->required(), "path of map")
     ("scen,S", po::value<string>(&spath), "path of scenario")
@@ -237,6 +238,10 @@ int main(int argc, char **argv) {
 
   Index data;
   data = LoadIndexData(mapData, width, height, indexpath.c_str());
+  if (vm.count("cnum")) {
+    cout << data.mapper.centroid_nums() << endl;
+    return 0;
+  }
 
   if (!vm.count("output"))
     outfname = "outputs/" + getMapName(filename) + "-" + 

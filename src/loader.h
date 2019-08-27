@@ -97,7 +97,7 @@ inline void LoadInvCentroidsCPD(Index& data, FILE* f) {
 }
 
 inline Index LoadIndexData(vector<bool>& bits, int w, int h, const char* fname) {
-  printf("Loading preprocessing data\n");
+  cerr << "Loading preprocessing data" << endl;
   Index data;
   data.mapper = Mapper(bits, w, h);
   FILE* f = fopen(fname, "rb");
@@ -122,6 +122,6 @@ inline Index LoadIndexData(vector<bool>& bits, int w, int h, const char* fname) 
   }
 
   fclose(f);
-  printf("Loading done\n");
+  cerr << "Loading done" << endl;
   return data;
 }

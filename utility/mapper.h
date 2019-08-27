@@ -188,6 +188,10 @@ public:
     return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
   }
 
+  int centroid_nums() const {
+    return centroids.size();
+  }
+
   void set_centroids(const vector<int>& fa) {
     this->fa = vector<int>(fa.begin(), fa.end());
     centroids.clear();
