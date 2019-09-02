@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 alias = {}
 styles = {}
@@ -20,15 +21,18 @@ def parse_index_name(iname):
     mname = '-'.join(ps)[:-4]
     return dict(map=mname,itype=itype,r=r)
 
-def load_size(fname):
+def load_size(fname, filter=True):
     with open(fname, 'r') as f:
         raw = f.readlines()
     rows = []
+    game_maps = os.listdir("../maps/gppc")
     header = ["map", "itype", "r", "size"]
     for line in raw:
         size, path = line.split()
         data = parse_index_name(path)
-        rows.append([data['map'].split('/')[-1], data['itype'], data['r'], size])
+        mapname = data['map'].split('/')[-1]
+        if not filter or (mapname + ".map") in game_maps: 
+            rows.append([mapname, data['itype'], data['r'], size])
     df = pd.DataFrame.from_records(rows, columns=header)
     df = df[header].apply(pd.to_numeric, errors="ignore")
     return df
@@ -63,7 +67,7 @@ def gen_xy(df=None, colx='', coly='', ignore=True, limit=20):
     return x, y
 
 def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None, 
-               yscale='log', xscale=None, ylim=None, xlim=None, saveto=None, xticks=None,
+               yscale='log', xscale=None, ylim=None, xlim=None, saveto=None, xticks=None, yticks=None,
                loc='out'):
     
     fig, ax = plt.subplots()
@@ -84,6 +88,8 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
     if xticks is not None:
       print(xticks)
       plt.xticks(xticks[0], xticks[1])
+    if yticks is not None:
+      plt.yticks(yticks)
 
     n = len(xs)
     for i in range(n):
@@ -92,13 +98,13 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
         if styles.get(labels[i]) is not None:
             plt.plot(x, y, styles[labels[i]], label=labels[i])
         else:
-            ax.scatter(x, y)
+            # ax.scatter(x, y)
             ax.plot(x, y, label=labels[i])
     ax.legend(labels)
     if loc == 'in':
-      ax.legend(loc='best', fancybox=True, framealpha=0, prop={'size': 15})
+      ax.legend(loc='best', fancybox=True, framealpha=0, prop={'size': 16})
     else:
-      ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.25), ncol=3, fancybox=True, prop={'size': 15})
+      ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), ncol=3, fancybox=True, prop={'size': 16})
     plt.grid(True)
     if saveto is not None:
         fig.savefig(saveto, bbox_inches='tight')
