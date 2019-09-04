@@ -88,14 +88,26 @@ namespace TEST_PREPROCESS {
       string mapname = getMapName(mpath.c_str());
 
       auto stime = std::chrono::steady_clock::now();
-      if (itype == "inv") {
+      if (centroid == 0) {
+        if (itype == "inv") {
+          string output = getMapName(mpath) + "-opt-inv.out";
+          Parameters p{"DFS", "inv", output, 3, centroid};
+          PreprocessMap(mapData, width, height, p);
+        }
+        else {
+          string output = getMapName(mpath) + "-opt.out";
+          Parameters p{"DFS", "vanilla", output, 3, centroid};
+          PreprocessMap(mapData, width, height, p);
+        }
+      }
+      else if (itype == "inv") {
         string output = getMapName(mpath) + "-" + to_string(centroid) + "-inv.out";
         Parameters p{"DFS", "inv", output, 3, centroid};
         PreprocessRevCentroid(mapData, width, height, p);
       }
       else {
         string output = getMapName(mpath) + "-" + to_string(centroid) + ".out";
-        Parameters p{"DFS", "inv", output, 3, centroid};
+        Parameters p{"DFS", "vanilla", output, 3, centroid};
         PreprocessCentroid(mapData, width, height, p);
       }
       auto etime = std::chrono::steady_clock::now();
