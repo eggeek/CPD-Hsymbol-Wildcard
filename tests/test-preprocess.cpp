@@ -72,6 +72,38 @@ namespace TEST_PREPROCESS {
     }
   }
 
+  TEST_CASE("build", "[.pre]") {
+    int centroid = 0;
+    string itype;
+    ifstream file(default_testcase_path + "build.in");
+
+    string output = "build-tcost.txt";
+    ofstream out(output);
+    string header = "map,itype,r,tcost";
+    out << header << endl; 
+    while (file >> mpath >> itype >> centroid) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      AdjGraph g(extract_graph(mapper));
+      string mapname = getMapName(mpath.c_str());
+
+      auto stime = std::chrono::steady_clock::now();
+      if (itype == "inv") {
+        string output = getMapName(mpath) + "-" + to_string(centroid) + "-inv.out";
+        Parameters p{"DFS", "inv", output, 3, centroid};
+        PreprocessRevCentroid(mapData, width, height, p);
+      }
+      else {
+        string output = getMapName(mpath) + "-" + to_string(centroid) + ".out";
+        Parameters p{"DFS", "inv", output, 3, centroid};
+        PreprocessCentroid(mapData, width, height, p);
+      }
+      auto etime = std::chrono::steady_clock::now();
+      double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+      out << mapname << "," << itype << "," << centroid << "," << tcost << endl;
+    }
+  }
+
   TEST_CASE("dijkstra", "[.pre]") {
     int repeat = 10;
     int queries = 1000;
