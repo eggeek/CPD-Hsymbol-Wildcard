@@ -89,7 +89,7 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
       print(xticks)
       plt.xticks(xticks[0], xticks[1])
     if yticks is not None:
-      plt.yticks(yticks)
+      plt.yticks(yticks[0], yticks[1])
 
     n = len(xs)
     for i in range(n):
@@ -102,9 +102,9 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
             ax.plot(x, y, label=labels[i])
     ax.legend(labels)
     if loc == 'in':
-      ax.legend(loc='best', fancybox=True, framealpha=0, prop={'size': 16})
+      ax.legend(loc='best', fancybox=True, framealpha=0, prop={'size': 14})
     else:
-      ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), ncol=3, fancybox=True, prop={'size': 16})
+      ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=4, fancybox=True, prop={'size': 16})
     plt.grid(True)
     if saveto is not None:
         fig.savefig(saveto, bbox_inches='tight')
