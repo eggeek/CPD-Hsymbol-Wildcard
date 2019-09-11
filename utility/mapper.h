@@ -5,15 +5,11 @@
 #include "order.h"
 #include "jps.h"
 #include "constants.h"
+#include "coord.h"
 using namespace std;
 
 struct ClosestMove {
   int move[4][4][2];
-};
-
-struct xyLoc {
-  int16_t x;
-  int16_t y;
 };
 
 class Mapper{

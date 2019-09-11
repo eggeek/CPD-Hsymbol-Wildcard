@@ -83,6 +83,7 @@ set(SOURCE_FILES
     utility/cut_utility.cpp
     utility/prefer_zero_cut.h
     utility/prefer_zero_cut.cpp
+    utility/coord.h
     competitors/focal.h
     )
 

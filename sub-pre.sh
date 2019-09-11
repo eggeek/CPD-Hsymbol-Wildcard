@@ -10,8 +10,8 @@ room-100-10
 
 map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
-order="DFS"
-cs=(0 2 4 8 16 32)
+order="FRACTAL"
+cs=(0)
 
 run_cpd() {
   echo "----- Preprocess CPD -----" 
@@ -20,7 +20,7 @@ run_cpd() {
     mpath="${map_dir}${i}.map"
     spath="${scen_dir}${i}.map.scen"
     for c in "${cs[@]}"; do
-      cmd="./bin/main -P -M ${mpath} -L 3 --centroid ${c}"
+      cmd="./bin/main -P -M ${mpath} -L 3 --order ${order} --centroid ${c}"
       echo $cmd
       eval $cmd
     done

@@ -4,6 +4,7 @@
 #include "adj_array.h"
 #include "cut_utility.h"
 #include "vec_io.h"
+#include "coord.h"
 #include <cassert>
 #include <string>
 #include <utility>
@@ -205,6 +206,8 @@ void compute_cut_order(
     compute_cut_order(id_begin, std::move(lower), std::move(lower_to_top_level), algo, order, lower_deg, higher_deg);
   }
 }
+
+NodeOrdering compute_fractal_order(const std::vector<xyLoc> nodes);
 
 template<class CutAlgo>
 NodeOrdering compute_cut_order(const ListGraph&g, const CutAlgo&algo){

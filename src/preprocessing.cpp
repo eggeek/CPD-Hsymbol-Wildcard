@@ -137,12 +137,17 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Computing node order\n");
   NodeOrdering order;
 
+  vector<xyLoc> nodes(mapper.node_count());
+  for (int i=0; i<mapper.node_count(); i++) nodes[i] = mapper(i);
+
   if (p.otype == "DFS")
     order = compute_real_dfs_order(extract_graph(mapper));
   else if (p.otype == "CUT")
     order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
+  else if (p.otype == "FRACTAL")
+    order = compute_fractal_order(nodes);
   mapper.reorder(order);
 
   printf("Computing Row Order\n");
@@ -253,12 +258,17 @@ void PreprocessCentroid(vector<bool>& bits, int width, int height, const Paramet
   printf("Computing node order\n");
   NodeOrdering order;
 
+  vector<xyLoc> nodes(mapper.node_count());
+  for (int i=0; i<mapper.node_count(); i++) nodes[i] = mapper(i);
+
   if (p.otype == "DFS")
     order = compute_real_dfs_order(extract_graph(mapper));
   else if (p.otype == "CUT")
     order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
+  else if (p.otype == "FRACTAL")
+    order = compute_fractal_order(nodes);
   mapper.reorder(order);
   printf("Computing centroids\n");
   vector<int> cents = compute_centroid(mapper, p.centroid);
@@ -365,12 +375,18 @@ void PreprocessRevCentroid(vector<bool>& bits, int width, int height, const Para
   printf("Computing node order\n");
   NodeOrdering order;
 
+  vector<xyLoc> nodes(mapper.node_count());
+  for (int i=0; i<mapper.node_count(); i++) nodes[i] = mapper(i);
+
   if (p.otype == "DFS")
     order = compute_real_dfs_order(extract_graph(mapper));
   else if (p.otype == "CUT")
     order = compute_cut_order(extract_graph(mapper), prefer_zero_cut(balanced_min_cut));
   else if (p.otype == "SPLIT")
     order = compute_split_dfs_order(extract_graph(mapper));
+  else if (p.otype == "FRACTAL")
+    order = compute_fractal_order(nodes);
+
   mapper.reorder(order);
   printf("Computing centroids\n");
   vector<int> cents = compute_centroid(mapper, p.centroid);
