@@ -19,18 +19,6 @@ namespace TEST_PREPROCESS {
   int height, width;
   vector<bool> mapData;
 
-  TEST_CASE("rwcard", "[.pre]") {
-    int cnt = 0, hLevel = 0;
-    ifstream file(default_testcase_path + "rwcard.in");
-    while (file >> mpath >> hLevel) {
-      string output = getMapName(mpath) + "-" + to_string(hLevel) + ".out";
-      LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"DFS", "rect", output, hLevel, 0};
-      PreprocessRectWildcard(mapData, width, height, p);
-      cnt++;
-    }
-  }
-
   TEST_CASE("split-order", "[order]") {
     ifstream file(default_testcase_path + "split-order.in");
     while (file >> mpath) {

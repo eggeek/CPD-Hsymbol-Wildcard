@@ -47,4 +47,3 @@ struct Index {
 void PreprocessMap(vector<bool> &bits, int width, int height, const Parameters& p);
 void PreprocessCentroid(vector<bool> &bits, int width, int height, const Parameters& p);
 void PreprocessRevCentroid(vector<bool>& bits, int width, int height, const Parameters& p);
-void PreprocessRectWildcard(vector<bool> &bits, int width, int height, const Parameters& p);
