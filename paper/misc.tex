@@ -1,0 +1,49 @@
+\section{Finding Optimal Paths: NOTIN FINAL PAPER}
+
+We can use the CPD for centroids 
+to generate an admissible heuristic in order to find optimal paths.
+Let $h(s,t) = len(sp(s,\centroid(t))) + 
+                                len(sp(t,\centroid(t)) - 2 \delta$.
+By Theorem~\ref{thm:centroid} we know that $len(sp(s,t)) \geq h(s,t)$ so
+it defines an \emph{admissible heuristic}.
+
+By marking each node $s$ visited in the search with $len(s,\centroid(t))$
+we can quickly compute this heuristic value \textsf{h$_{CPD}$}($s$,$t$),
+as defined in Algorithm~\ref{alg:CPDhuer}.
+
+\begin{algorithm}
+%\textsf{h$_{CPD}$}($s$, $t$) \\
+%   {$d_1 \gets \textsf{dist}(s,\centroid(t))$ \\
+%    $d_2 \gets \textsf{dist}(t,\centroid(t))$ \\
+%    \Return $d_1 + d_2 - 2 \delta$
+%    }
+%~\\
+%\textsf{dist}($s$,$t$) \\
+   {\If{$h[s] \neq \bot$}
+     {\Return $h[s]$}
+    $m \gets \textsf{CPD}(s,ct)$ \\
+    $r \gets \textsf{dist}(m(s),ct)$ \\
+    $h[s] \gets w(s,m(s)) + r$ \\
+    \Return $h[s]$
+   }    
+\caption{Return an admissible heuristic value 
+\textsf{h$_{CPD}$}($s$,$t$) = \textsf{dist}($s$,$\centroid(t)$) + \textsf{dist}($t$,$\centroid(t)$) $- 2\delta$
+for a path form $s$ to $t$, where \textsf{dist}($s$,$ct$) is defined by the pseudo-code below, assuming $h[s]$ is initialized to $\bot$ for each new target $t$.}
+\label{alg:CPDhuer}
+\end{algorithm}
+
+
+
+
+\section{Other Stuff: which probably isnt in the paper}
+
+A set of nodes $N$ in a gridmap $G$ are said to be \emph{heuristically convex}
+if every path from $s \in N$ to $t \in N$ following the heuristic only 
+uses nodes in $N$. 
+
+A heuristically convex 
+set of nodes $N$ in a gridmap $G$ are said to be \emph{heuristically optimal}
+if every path from $s \in N$ to $t \in N$ following the heuristic only 
+is optimal in length.
+
+\pjs{How do we find heuristically convex optimal regions $N$?}
