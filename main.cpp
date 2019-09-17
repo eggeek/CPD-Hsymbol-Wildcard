@@ -6,58 +6,72 @@
 #include <chrono>
 #include <unistd.h>
 #include "ScenarioLoader.h"
-#include "Entry.h"
+#include "preprocessing.h"
+#include "query.h"
+#include "loader.h"
 #include "jpsp_oracle.h"
 #include "constants.h"
 #include "timer.h"
+#include "rect_wildcard.h"
+
+namespace po = boost::program_options;
+po::variables_map vm;
+const int repeat = 5;
 
 class Stats {
 public:
-  std::vector<double> time;// = std::vector<double>(3);
-  std::vector<double> time20moves;// = std::vector<double>(3);
   std::vector<double> srcTime;// = std::vector<double>(3);
-  std::vector<double> srcTime20moves;// = std::vector<double>(3);
-  double pathcost;
-  std::vector<xyLoc> path;
+  Counter c;
 
-  string to_string() {
+  double GetTotalTime() {
+    return std::accumulate(srcTime.begin(), srcTime.end(), 0.0) / (double)repeat;
+  }
+
+  static string header() {
+    return "map,scenid,tcost,distance,expect,steps,access,r,itype";
+  }
+  string to_string(double expect) {
     std::ostringstream res;
-    sort(time.begin(), time.end());
-    sort(time20moves.begin(), time20moves.end());
     sort(srcTime.begin(), srcTime.end());
-    sort(srcTime20moves.begin(), srcTime20moves.end());
-    // get the mean
-    //res << time[time.size() / 2] << ",";
-    //res << time20moves[time20moves.size() / 2] << ",";
-    res << srcTime[srcTime.size() / 2] << ",";
-    res << srcTime20moves[srcTime20moves.size() / 2] << ",";
-    res << pathcost << "," << path.size();
+    res << GetTotalTime() << ",";
+    res << c.pathcost << "," << expect << "," << c.steps << "," << c.access_cnt;
     return res.str();
   }
 };
 
-string getMapName(string filename) {
-  auto pos = filename.find_last_of('/');
-  const string mapfile = filename.substr(pos + 1);
-  auto suff = mapfile.find('.');
-  return mapfile.substr(0, suff);
-}
+class SubOptStats {
+public:
+  std::vector<double> srcTime;
+  Counter c;
 
-void argHelp(char **argv) {
-  printf("Invalid Arguments\nUsage %s <flags> <map> <scenario>\n", argv[0]);
-  printf("Flags:\n");
-  printf("\t-full : Preprocess map and run scenario\n");
-  printf("\t-pre : Preprocess map\n");
-  printf("\t-run : Run scenario without preprocessing\n");
-  printf("\t[hLevel] : int (defualt=1)\n");
-  printf("\t\t0: no H symbol\n");
-  printf("\t\t1: H symbol with level1 heuristic function\n");
-  printf("\t\t2: H symbol with level2 heuristic function\n");
-  printf("\t\t3: H symbol with level3 heuristic function\n");
-}
+  double GetTotalTime() {
+    return std::accumulate(srcTime.begin(), srcTime.end(), 0.0) / (double)repeat;
+  }
 
-void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+  static string header() {
+    return "map,scenid,tcost,distance,expect,steps,access,r,itype";
+  }
+
+  string to_string(double expect) {
+    std::ostringstream res;
+    sort(srcTime.begin(), srcTime.end());
+    res << GetTotalTime() << ",";
+    res << c.pathcost << "," << expect << "," << c.steps << "," << c.access_cnt;
+    return res.str();
+  }
+};
+
+void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
+  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit);
+  if (ref.p.itype == "vanilla")
+    runner = GetPathCostSRC;
+  else if (ref.p.itype == "rect")
+    runner = GetRectWildCardCost;
+  else if (ref.p.itype == "inv")
+    runner = GetInvCPDCost;
+
+  Extracter e;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -65,60 +79,124 @@ void GetExperimentsSRCTime(void* ref, ScenarioLoader& scen, std::vector<Stats>& 
     s.y = scen.GetNthExperiment(x).GetStartY();
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
+    exps[x].c = Counter{0, 0, 0};
+    e.reset(ref.graph.node_count());
     auto stime = std::chrono::steady_clock::now();
-      double pathcost = GetPathCostSRC(ref, s, g, hLevel);
+      exps[x].c.pathcost = runner(ref, s, g, hLevel, exps[x].c, e, -1);
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    //  double pathcost = GetPathCostSRC(ref, s, g);
-    //t.stop();
-    //double tcost = t.elapsed_time_nano();
     exps[x].srcTime.push_back(tcost);
-    if (fabs(pathcost - dist) > warthog::EPS) {
-      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, pathcost);
+    if (fabs(exps[x].c.pathcost - dist) > warthog::EPS) {
+      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, exps[x].c.pathcost);
       assert(false);
     }
   }
 }
 
-void GetExperimentsSRCTime20Moves(void* ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
+void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<SubOptStats>& exps, const Parameters& p) {
   warthog::timer t;
+  double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e1, Extracter& e2, int limit);
+  if (ref.p.itype == "vanilla")
+    runner = GetForwardCentroidCost;
+  else if (ref.p.itype == "inv")
+    runner = GetInvCentroidCost;
+
+  Extracter e1, e2;
   for (int x=0; x<scen.GetNumExperiments(); x++) {
+    double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
     s.x = scen.GetNthExperiment(x).GetStartX();
     s.y = scen.GetNthExperiment(x).GetStartY();
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
+    exps[x].c = Counter{0, 0, 0};
+    e1.reset(ref.graph.node_count());
+    e2.reset(ref.graph.node_count());
     auto stime = std::chrono::steady_clock::now();
-      GetPathCostSRC(ref, s, g, hLevel, 20);
+      exps[x].c.pathcost = runner(ref, s, g, p.hLevel, exps[x].c, e1, e2, -1);
     auto etime = std::chrono::steady_clock::now();
     double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-    //t.start();
-    // GetPathCostSRC(ref, s, g, 20);
-    //t.stop();
-    //double tcost = t.elapsed_time_nano();
-    exps[x].srcTime20moves.push_back(tcost);
+    exps[x].srcTime.push_back(tcost);
+    if (fabs(exps[x].c.pathcost - dist) > warthog::EPS + 2*p.centroid) {
+      printf("experiment: %d, expect: %.5f, actual: %.5f\n", x, dist, exps[x].c.pathcost);
+      assert(false);
+    }
   }
+}
+
+void OptimalExperiments(int repeat, const Index& data,
+    const string& outfname,
+    const string& spath,
+    const string& filename) {
+  ScenarioLoader scen(spath.c_str());
+  std::vector<Stats> experimentStats;
+  int total_exp = scen.GetNumExperiments();
+  experimentStats.resize(total_exp);
+  for (int i=0; i<repeat; i++) {
+    GetExperimentsSRCTime(data, scen, experimentStats, data.p.hLevel);
+  }
+
+  std::ofstream out;
+  string header = Stats::header();
+  out.open (outfname.c_str(), std::ios::app);
+  out << header << std::endl;
+  string mapname = getMapName(string(filename));
+  for (unsigned int x = 0; x < experimentStats.size(); x++) {
+    double expect = scen.GetNthExperiment(x).GetDistance();
+    out << mapname << "," << x << "," <<  experimentStats[x].to_string(expect) << ","
+        << data.p.centroid << "," << (data.p.itype=="inv"?"backward":"forward") << std::endl;
+  }
+  out.close();
+}
+
+void SubOptExperiments(int repeat, const Index& data,
+    const string& outfname,
+    const string& spath,
+    const string& filename) {
+
+  ScenarioLoader scen(spath.c_str());
+  std::vector<SubOptStats> experimentStats;
+  int total_exp = scen.GetNumExperiments();
+  experimentStats.resize(total_exp);
+  for (int i=0; i<repeat; i++) {
+    GetSubOptExperimentsSRCTime(data, scen, experimentStats, data.p);
+  }
+
+  std::ofstream out;
+  string header = SubOptStats::header();
+  out.open (outfname.c_str(), std::ios::app);
+  out << header << std::endl;
+  string mapname = getMapName(string(filename));
+  for (unsigned int x = 0; x < experimentStats.size(); x++) {
+    double expect = scen.GetNthExperiment(x).GetDistance();
+    out << mapname << "," << x << "," <<  experimentStats[x].to_string(expect) << ","
+        << data.p.centroid << "," << (data.p.itype=="inv"? "backward": "forward") << std::endl;
+  }
+  out.close();
 }
 
 int main(int argc, char **argv) {
   // process command line
-  string mpath, spath;
-  int pre=0, run=0, hLevel=1;
+  string mpath, spath, indexpath, outfname, otype, itype;
+  int pre=0, run=0, hLevel=1, centroid=0;
 
-  namespace po = boost::program_options;
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,H", "help message")
     ("full,F", "preprocess map then run scenario")
     ("preprocess,P", "preprocess map")
     ("run,R", "run scenario without preprocessing")
-    ("hLevel,L", po::value<int>(&hLevel)->default_value(1), "Level of heuristic")
+    ("cnum", "report number of centroids")
+    ("hLevel,L", po::value<int>(&hLevel)->default_value(0), "Level of heuristic")
     ("map,M", po::value<string>(&mpath)->required(), "path of map")
-    ("scen,S", po::value<string>(&spath)->required(), "path of scenario")
+    ("scen,S", po::value<string>(&spath), "path of scenario")
+    ("index,I", po::value<string>(&indexpath), "path of index")
+    ("type,T", po::value<string>(&itype)->default_value("vanilla"), "type of cpd")
+    ("output,O", po::value<string>(&outfname), "output path")
+    ("order", po::value<string>(&otype)->default_value("DFS"), "type of ordering")
+    ("centroid,C", po::value<int>(&centroid)->default_value(0), "using centroid cpd")
   ;
 
-  po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
 
   if (vm.count("help")) {
@@ -130,48 +208,52 @@ int main(int argc, char **argv) {
   if (vm.count("full"))       pre = run = true;
   if (vm.count("preprocess")) pre = true;
   if (vm.count("run"))        run = true;
+  if (run) {
+    if (!vm.count("index") || !vm.count("scen")) {
+      std::cout << "require index & scen path" << endl;
+    }
+  }
   // done
 
   char filename[255];
-  string outfname;
   std::vector<xyLoc> thePath;
   std::vector<bool> mapData;
   int width, height;
 
   LoadMap(mpath.c_str(), mapData, width, height);
-  sprintf(filename, "./index_data/%s.map-%s-%d", getMapName(mpath).c_str() , GetName(), hLevel);
+  string centroid_desc = centroid?"c"+to_string(centroid): "opt";
+  sprintf(filename, "./index_data/%s.map-%s-%d-%s", getMapName(mpath).c_str() , otype.c_str(),
+      hLevel, centroid_desc.c_str());
 
-  if (pre)
-    PreprocessMap(mapData, width, height, filename, hLevel);
+  if (pre) {
+    Parameters p{otype, itype, filename, hLevel, centroid};
+    if (!centroid)
+      PreprocessMap(mapData, width, height, p);
+    else
+      PreprocessCentroid(mapData, width, height, p);
+  }
   
   if (!run)
     return 0;
-  outfname = "outputs/" + getMapName(filename) + "-" + std::to_string(hLevel) + ".txt";
 
-
-  void *reference = PrepareForSearch(mapData, width, height, filename);
-
-  ScenarioLoader scen(spath.c_str());
-
-  std::vector<Stats> experimentStats;
-  int total_exp = scen.GetNumExperiments();
-  experimentStats.resize(total_exp);
-  int repeat = 10;
-
-  for (int i=0; i<repeat; i++) {
-    GetExperimentsSRCTime(reference, scen, experimentStats, hLevel);
-    GetExperimentsSRCTime20Moves(reference, scen, experimentStats, hLevel);
+  Index data;
+  data = LoadIndexData(mapData, width, height, indexpath.c_str());
+  if (vm.count("cnum")) {
+    if (data.p.centroid)
+      cout << data.mapper.centroid_nums() << endl;
+    else
+      cout << data.mapper.node_count() << endl;
+    return 0;
   }
 
-  std::ofstream out;
-  //string header = "map,scenid,total,20move,total-src,20move-src,distance,path_size,hLevel";
-  string header = "map,scenid,total-src,20move-src,distance,path_size,hLevel";
-  out.open (outfname.c_str(), std::ios::app);
-  out << header << std::endl;
-  string mapname = getMapName(string(filename));
-  for (unsigned int x = 0; x < experimentStats.size(); x++) {
-    out << mapname << "," << x << "," <<  experimentStats[x].to_string() << "," << hLevel << std::endl;
-  }
-  out.close();
+  if (!vm.count("output"))
+    outfname = "outputs/" + getMapName(filename) + "-" + 
+               std::to_string(data.p.hLevel) + 
+               (data.p.centroid?"-subopt":"-opt") + ".txt";
+
+  if (!data.p.centroid)
+    OptimalExperiments(repeat, data, outfname, spath, filename);
+  else
+    SubOptExperiments(repeat, data, outfname, spath, filename);
   return 0;
 }

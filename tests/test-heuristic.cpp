@@ -1,7 +1,6 @@
 #include <vector>
 #include "catch.hpp"
-#include "Entry.h"
-#include "cpd.h"
+#include "loader.h"
 #include "mapper.h"
 #include "dijkstra.h"
 #include "visualizer.h"

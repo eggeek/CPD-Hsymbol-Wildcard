@@ -7,3 +7,9 @@
 cmake-build/*
 .idea/*
 bin/*
+index_data
+index_data/*
+competitors/tree/index_data/*
+competitors/tree/test
+.*
+**/__pycache__

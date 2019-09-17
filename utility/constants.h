@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <cmath>
 #include <climits>
+#include <unordered_map>
 #include <stdint.h>
 
 namespace warthog
@@ -32,7 +33,7 @@ namespace warthog
   static const double DBL_ONE_OVER_TWO = 0.5;
   static const double DBL_ONE_OVER_ROOT_TWO = 1.0/DBL_ROOT_TWO;//0.707106781f;
   static const double DBL_ROOT_TWO_OVER_FOUR = DBL_ROOT_TWO*0.25;
-  static const double EPS = 1e-3;
+  static const double EPS = 1e-1;
   static const warthog::cost_t ONE = 10000;
   static const warthog::cost_t TWO = 20000;
   static const warthog::cost_t ROOT_TWO = DBL_ROOT_TWO * ONE;
@@ -53,15 +54,24 @@ namespace warthog
   static const uint16_t HMASK = 0x0100;
   static const uint16_t OCTILE = 0xFF;
 
-  // graph mapper
+  // mask to int
+  static const std::unordered_map<int, int> m2i = {
+    {1<<0, 0}, {1<<1, 1}, {1<<2, 2}, {1<<3, 3},
+    {1<<4, 4}, {1<<5, 5}, {1<<6, 6}, {1<<7, 7},
+    {1<<8, 8}, {1<<9, 9}, {1<<10, 10}, {1<<11, 11},
+    {1<<12, 12}, {1<<13, 13}, {1<<14, 14}, {1<<15, 15},
+  };
+
+  // graph mapper              0, 1, 2, 3, 4,  5, 6, 7
   static const int16_t dx[] = {0, 0, 1, -1, 1, -1, 1, -1};
   static const int16_t dy[] = {-1, 1, 0, 0, -1, -1, 1, 1};
   static const int dw[] = {1000, 1000, 1000, 1000, 1414, 1414, 1414, 1414};
   static const double doublew[] = {1.0, 1.0, 1.0, 1.0, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO, DBL_ROOT_TWO};
   // Clockwise start with north
-  static const int CW[] = {0, 4, 2, 1, 7, 3, 5};
+  static const int CW[] = {0, 4, 2, 6, 1, 7, 3, 5};
   // Counter Clockwise start with north
-  static const int CCW[] = {0, 5, 3, 7, 1, 2, 4};
+  static const int CCW[] = {0, 5, 3, 7, 1, 6, 2, 4};
+  static const int INV_MOVE[] = {1, 0, 3, 2, 7, 6, 5, 4};
   static const int INVALID_MOVE = 15;
   static const int v2i[3][3] = {
     // 0~7 represent valid octile moves direction and 
@@ -70,6 +80,10 @@ namespace warthog
     {5, 3, 7},
     {0, INVALID_MOVE, 1},
     {4, 2, 6}
+  };
+
+  static inline int lowb(int mask) {
+    return mask & (-mask);
   };
 }
 

@@ -11,7 +11,7 @@ namespace Hsymbol {
  *
  *            S
  *
- *            |    
+ *            |
  *         3  |  0
  * x- W ------|-------- E x+
  *         2  |  1
@@ -158,12 +158,77 @@ static inline void encode(const int source, vector<unsigned short>& allowed, con
   }
 }
 
+static inline void encode_inv(const int target, vector<unsigned short>& inv_allowed, const Mapper& mapper,
+    int hLevel) {
+  for (int v=0; v<(int)inv_allowed.size(); v++) if (v != target) {
+    int hmove = get_heuristic_move(v, target, mapper, hLevel);
+    if (inv_allowed[v] & (1<<hmove))
+      inv_allowed[v] |= warthog::HMASK;
+  }
+}
+
 static inline int decode(int s, int t, const Mapper& mapper, int hLevel) {
   return get_heuristic_move(s, t, mapper, hLevel);
 }
 
 static inline int decode(int s, int t, const Mapper& mapper, int (*func) (int, int, const Mapper&) ) {
   return func(s, t, mapper);
+}
+
+static inline int decode_extr_move(xyLoc s, xyLoc t, int move, const Mapper& mapper) {
+  const int* order;
+  if (t.y > s.y) order = warthog::CCW;
+  else order = warthog::CW;
+  int begin = -1;
+  for (int i=0; i<8; i++) if (order[i] == move) {
+    begin = i;
+    break;
+  }
+  for (int i=1; i<8; i++) {
+    int m = order[(begin + i) % 8];
+    int nxtx = s.x + warthog::dx[m];
+    int nxty = s.y + warthog::dy[m];
+    int id = mapper(xyLoc{(int16_t)nxtx, (int16_t)nxty});
+    if (id == -1) continue;
+    else return m;
+  }
+  return move;
+}
+
+
+static inline int get_closest_valid_move(int source, int move, const Mapper& mapper) {
+  int pruned = mapper.get_pruned_neighbor(source);
+  if (pruned & (1<<move)) return move;
+  int idx = -1;
+  for (int i=0; i<8; i++) if (warthog::CCW[i] == move) {
+    idx = i;
+    break;
+  }
+  assert(idx != -1);
+  if (idx == -1)
+    cerr << "can't find move" << endl;
+  for (int i=1; i<=4; i++) {
+    int m1, m2;
+    m1 = warthog::CCW[(idx+i) % 8];
+    if ((pruned & (1<<m1))) return m1;
+    m2 = warthog::CCW[(idx-i+8) % 8];
+    if ((pruned & (1<<m2))) return m2;
+  }
+  return -1;
+}
+
+
+static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_allowed, const Mapper& mapper) {
+  for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
+    int pruned = mapper.get_pruned_neighbor(s);
+    int extra_mask = 0;
+    for (int j=0; j<8; j++) if (!((1<<j) & pruned)) {
+      int m = get_closest_valid_move(s, j, mapper);
+      assert(m != -1);
+      if ((1<<m) & inv_allowed[s]) extra_mask |= 1<<j;
+    }
+    inv_allowed[s] |= extra_mask;
+  }
 }
 
 };

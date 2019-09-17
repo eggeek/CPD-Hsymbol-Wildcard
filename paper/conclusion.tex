@@ -1,0 +1,17 @@
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+
+CPDs provide the state-of-the-art solution for path planning, 
+but they may be unattractive because of substantial overhead required to construct and store them.
+In this paper we explore the use of bounded suboptimal CPDs
+based on centroids, 
+that significantly reduces the precomputation time.
+Applying this to standard forward CPDs fails to significantly reduce the memory requirements, which let us to introduce reverse CPDs.  
+Reverse CPDs for centroids allow us to reduce the memory footprint of CPDs while bounding the suboptimality of paths returned. The resulting approach leads to faster path extraction than forward 
+CPDs and, in practice, to much smaller difference in path length than the suboptimality bound guarantees. 
+\ignore{
+In future work, we can try to make improvement on compression of reverse CPDs by using other 
+heuristic ordering or  introducing other heuristic symbols. 
+There is a work that use CPDs as admissible heuristic function on path planning on changing cost graph~\cite{ijcai2019-167},
+and we can also try to apply centroid-reverse CPDs on such problem.
+}

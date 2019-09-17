@@ -1,11 +1,11 @@
-#ifndef MAPPER_H
-#define MAPPER_H
+#pragma once
 #include <vector>
-#include <cstdint>
+#include <iostream>
 #include "list_graph.h"
-#include "Entry.h"
 #include "order.h"
+#include "jps.h"
 #include "constants.h"
+#include "coord.h"
 using namespace std;
 
 struct ClosestMove {
@@ -29,8 +29,9 @@ public:
         }else{
           pos_to_node_[x+y*width_] = -1;
         }
-    //init_jps_tiles();
+    init_jps_tiles();
     init_neighbors();
+    init_pruned_neighbors();
     initClosestMove();
   }
 
@@ -60,18 +61,40 @@ public:
         x = order.to_new(x);
       }
     }
+    assert(fa.empty());
     std::vector<xyLoc>new_node_to_pos_(node_count_);
-    //std::vector<int> new_tiles(node_count_);
+    std::vector<int> new_tiles(node_count_);
     std::vector<int> new_neighbors(node_count_);
+    vector<int> new_pruned_neighbors(node_count_);
+    vector<int> new_rank(centroids_rank.size());
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];
       new_neighbors[new_node] = neighbors[old_node];
-      //new_tiles[new_node] = jps_tiles[old_node];
+      new_tiles[new_node] = jps_tiles[old_node];
+      new_pruned_neighbors[new_node] = pruned_neighbors[old_node];
     }
     new_node_to_pos_.swap(node_to_pos_);
-    //new_tiles.swap(jps_tiles);
+    new_tiles.swap(jps_tiles);
     new_neighbors.swap(neighbors);
+    new_pruned_neighbors.swap(pruned_neighbors);
+  }
+
+  int get_pseudo_obs(int s) const {
+    int mask = 0;
+    xyLoc sloc = this->operator()(s);
+    for (int i=0; i<8; i++) if ((1<<i) & get_neighbor(s)) {
+      int x = sloc.x + warthog::dx[i];
+      int y = sloc.y + warthog::dy[i];
+      int nxt = this->operator()({(int16_t)x, (int16_t)y});
+      assert(nxt != -1);
+      int d = 1<<i;
+      int tile = get_jps_tiles(nxt);
+      int suc = warthog::jps::compute_successors((warthog::jps::direction)d, tile);
+      if (suc == 0)
+        mask |= d;
+    }
+    return mask;
   }
 
   static inline uint32_t str2tiles(const vector<string>& map) {
@@ -144,9 +167,35 @@ public:
     return this->neighbors[x];
   }
 
+  int get_pruned_neighbor(int x) const {
+    return this->pruned_neighbors[x];
+  }
+
+  int get_centroid_rank(int x) const {
+    return this->centroids_rank[x];
+  }
+
+  const vector<int>& get_fa() const {
+    return fa;
+  }
+
   inline int get_valid_move(int s, int quad, int part, int no_diagnonal) const {
     //return getClosestMove(this->neighbors[s], quad, part, onaxis);
     return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
+  }
+
+  int centroid_nums() const {
+    return centroids.size();
+  }
+
+  void set_centroids(const vector<int>& fa) {
+    this->fa = vector<int>(fa.begin(), fa.end());
+    centroids.clear();
+    for (int i=0; i<(int)fa.size(); i++) if (fa[i] == i) centroids.push_back(i);
+    centroids_rank = vector<int>(node_count_, -1);
+    for (int i=0; i<(int)centroids.size(); i++) {
+      centroids_rank[centroids[i]] = i;
+    }
   }
 
 private:
@@ -155,6 +204,10 @@ private:
   std::vector<xyLoc>node_to_pos_;
   vector<int> jps_tiles;
   vector<int> neighbors;
+  vector<int> pruned_neighbors;
+  vector<int> fa;
+  vector<int> centroids;
+  vector<int> centroids_rank;
   vector<ClosestMove> mem;
 
   void init_neighbors() {
@@ -174,6 +227,14 @@ private:
             this->operator()(p2) != -1 ) mask |= 1<<d;
       }
       neighbors[i] = mask;
+    }
+  }
+
+  void init_pruned_neighbors() {
+    pruned_neighbors.resize(node_count_);
+    for (int i=0; i<node_count_; i++) {
+      int pseudo_obs = get_pseudo_obs(i);
+      pruned_neighbors[i] = get_neighbor(i) ^ pseudo_obs;
     }
   }
 
@@ -306,6 +367,3 @@ static inline int iabs(int num) {
 }
 
 void dump_map(const Mapper&map, const char*file);
-
-#endif
-

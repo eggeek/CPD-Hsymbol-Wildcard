@@ -1,0 +1,10 @@
+./tests/maps/arena.map 0
+6 12
+./tests/maps/arena.map 1
+6 12
+./maps/brc000d.map 0
+10 34
+./maps/brc000d.map 1
+10 34
+./tests/maps/arena.map 0
+1 13

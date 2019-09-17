@@ -90,7 +90,11 @@ flags = [
 '-I',
 'third_party',
 '-I',
-'utility'
+'utility',
+'-I',
+'src/CPDs',
+'-I',
+'competitors'
 ]
 
 

@@ -1,0 +1,5 @@
+./tests/maps/test.map inv 3 1 9
+./maps/dao/brc101d.map inv 3 146 591
+./maps/dao/brc101d.map vanilla 3 146 591
+./maps/dao/brc000d.map inv 3 156 152
+./maps/dao/brc000d.map vanilla 3 156 152

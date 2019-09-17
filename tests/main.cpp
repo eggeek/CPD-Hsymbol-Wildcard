@@ -1,12 +1,11 @@
 #define CATCH_CONFIG_RUNNER
 #include <vector>
 #include "catch.hpp"
-#include "Entry.h"
-#include "cpd.h"
 #include "mapper.h"
 #include "dijkstra.h"
 #include "visualizer.h"
 #include "jps.h"
+#include "vec_io.h"
 using namespace std;
 
 namespace TEST_MAIN {
@@ -14,6 +13,18 @@ namespace TEST_MAIN {
 string mpath;
 int height, width;
 vector<bool> mapData;
+
+TEST_CASE("string_io") {
+  string fname = "string_io.data";
+  string s = "test3423fsdf^&%^&$__!";
+  FILE* f = fopen(fname.c_str(), "wb");
+  save_string(f, s);
+  fclose(f);
+
+  f = fopen(fname.c_str(), "r");
+  string s2 = load_string(f);
+  REQUIRE(s2 == s);
+}
 
 TEST_CASE("canonical_succ") {
   uint32_t tiles, succ;
@@ -129,7 +140,7 @@ TEST_CASE("canonical_succ") {
 
 
 int main(int argv, char* args[]) {
-	cout << "Running test cases..." << endl;
+	cerr << "Running test cases..." << endl;
 	Catch::Session session;
 	int res = session.run(argv, args);
   return res;
