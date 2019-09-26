@@ -41,7 +41,7 @@ inline void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &
     }
 }
 
-inline void LoadVanillaCPD(Index& data, FILE* f) {
+inline void LoadFwdCPD(Index& data, FILE* f) {
   data.square_sides = load_vector<int>(f);
   NodeOrdering order;
   order.load(f);
@@ -50,7 +50,7 @@ inline void LoadVanillaCPD(Index& data, FILE* f) {
   data.graph = AdjGraph(extract_graph(data.mapper));
 }
 
-inline void LoadVanillaCentroidsCPD(Index& data, FILE* f) {
+inline void LoadFwdCentroidsCPD(Index& data, FILE* f) {
   vector<int> centroids;
   data.square_sides = load_vector<int>(f);
   centroids = load_vector<int>(f);
@@ -103,9 +103,9 @@ inline Index LoadIndexData(vector<bool>& bits, int w, int h, const char* fname) 
   FILE* f = fopen(fname, "rb");
   data.p.load(f);
 
-  if (data.p.itype == "vanilla") {
-    if (data.p.centroid) LoadVanillaCentroidsCPD(data, f);
-    else LoadVanillaCPD(data, f);
+  if (data.p.itype == "fwd") {
+    if (data.p.centroid) LoadFwdCentroidsCPD(data, f);
+    else LoadFwdCPD(data, f);
   }
   else if (data.p.itype == "inv") {
     if (data.p.centroid) LoadInvCentroidsCPD(data, f);

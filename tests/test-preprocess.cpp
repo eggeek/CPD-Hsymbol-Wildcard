@@ -55,8 +55,8 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> centroid) {
       string output = getMapName(mpath) + "-" + to_string(centroid) + "-centroid.out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"DFS", "vanilla", output, 3, centroid};
-      PreprocessCentroid(mapData, width, height, p);
+      Parameters p{"DFS", "fwd", output, 3, centroid};
+      PreprocessMap(mapData, width, height, p);
     }
   }
 
@@ -84,19 +84,19 @@ namespace TEST_PREPROCESS {
         }
         else {
           string output = getMapName(mpath) + "-opt.out";
-          Parameters p{"DFS", "vanilla", output, 3, centroid};
+          Parameters p{"DFS", "fwd", output, 3, centroid};
           PreprocessMap(mapData, width, height, p);
         }
       }
       else if (itype == "inv") {
         string output = getMapName(mpath) + "-" + to_string(centroid) + "-inv.out";
         Parameters p{"DFS", "inv", output, 3, centroid};
-        PreprocessRevCentroid(mapData, width, height, p);
+        PreprocessMap(mapData, width, height, p);
       }
       else {
         string output = getMapName(mpath) + "-" + to_string(centroid) + ".out";
-        Parameters p{"DFS", "vanilla", output, 3, centroid};
-        PreprocessCentroid(mapData, width, height, p);
+        Parameters p{"DFS", "fwd", output, 3, centroid};
+        PreprocessMap(mapData, width, height, p);
       }
       auto etime = std::chrono::steady_clock::now();
       double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();

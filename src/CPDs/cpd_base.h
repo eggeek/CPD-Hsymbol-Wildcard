@@ -22,8 +22,9 @@ public:
   //! them.
   void append_row(int source_node, const std::vector<unsigned short>&first_move,
                   const Mapper& mapper, const int side);
-
   void append_rows(const CPDBASE&other);
+  void append_compressed_cpd_row(vector<int> compressed_row);
+
   //! Get the first move. 
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 
@@ -80,6 +81,10 @@ public:
 
   const vector<int>& get_begin() const {
     return begin;
+  }
+
+  vector<int> get_ith_compressed_row(int i) {
+    return vector<int>(entry.begin()+begin[i], entry.begin()+begin[i+1]);
   }
 
   int get_heuristic_cnt(int row) const {

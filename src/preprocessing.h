@@ -10,7 +10,7 @@ using namespace std;
 
 struct Parameters {
   string otype; // ordering type: dfs, split, cut
-  string itype; // index type: vanilla, rect, inv
+  string itype; // index type: fwd, rect, inv
   string filename;
   int hLevel; // heuristic level: 0, 1, 2, 3
   int centroid;
@@ -44,6 +44,4 @@ struct Index {
   Index(){}
 };
 
-void PreprocessMap(vector<bool> &bits, int width, int height, const Parameters& p);
-void PreprocessCentroid(vector<bool> &bits, int width, int height, const Parameters& p);
-void PreprocessRevCentroid(vector<bool>& bits, int width, int height, const Parameters& p);
+void PreprocessMap(vector<bool>& bits, int width, int height, const Parameters& p);

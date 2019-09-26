@@ -64,7 +64,7 @@ public:
 void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<Stats>& exps, int hLevel) {
   warthog::timer t;
   double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e, int limit);
-  if (ref.p.itype == "vanilla")
+  if (ref.p.itype == "fwd")
     runner = GetPathCostSRC;
   else if (ref.p.itype == "rect")
     runner = GetRectWildCardCost;
@@ -96,7 +96,7 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
 void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<SubOptStats>& exps, const Parameters& p) {
   warthog::timer t;
   double (*runner)(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c, Extracter& e1, Extracter& e2, int limit);
-  if (ref.p.itype == "vanilla")
+  if (ref.p.itype == "fwd")
     runner = GetForwardCentroidCost;
   else if (ref.p.itype == "inv")
     runner = GetInvCentroidCost;
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
     ("map,M", po::value<string>(&mpath)->required(), "path of map")
     ("scen,S", po::value<string>(&spath), "path of scenario")
     ("index,I", po::value<string>(&indexpath), "path of index")
-    ("type,T", po::value<string>(&itype)->default_value("vanilla"), "type of cpd")
+    ("type,T", po::value<string>(&itype)->default_value("fwd"), "type of cpd")
     ("output,O", po::value<string>(&outfname), "output path")
     ("order", po::value<string>(&otype)->default_value("DFS"), "type of ordering")
     ("centroid,C", po::value<int>(&centroid)->default_value(0), "using centroid cpd")
@@ -227,10 +227,7 @@ int main(int argc, char **argv) {
 
   if (pre) {
     Parameters p{otype, itype, filename, hLevel, centroid};
-    if (!centroid)
-      PreprocessMap(mapData, width, height, p);
-    else
-      PreprocessCentroid(mapData, width, height, p);
+    PreprocessMap(mapData, width, height, p);
   }
   
   if (!run)
