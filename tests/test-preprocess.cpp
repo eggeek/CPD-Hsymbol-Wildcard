@@ -4,6 +4,7 @@
 #include <chrono>
 #include <time.h>
 #include <algorithm>
+#include <random>
 #include "catch.hpp"
 #include "dijkstra.h"
 #include "preprocessing.h"
@@ -121,7 +122,8 @@ namespace TEST_PREPROCESS {
       arr.resize(mapper.node_count());
       for (int i=0; i<(int)arr.size(); i++) 
         arr[i] = i;
-      std::random_shuffle(arr.begin(), arr.end());
+      unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+      std::shuffle(arr.begin(), arr.end(), std::default_random_engine(seed));
       queries = min(queries, mapper.node_count());
       Dijkstra dij(g, mapper);
 

@@ -99,6 +99,18 @@ public:
     return hcnt;
   }
 
+  int get_centroid_cnt(int row) const {
+    int ccnt = 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::CENTMASK)) {
+        int node_begin = entry[i]>>4;
+        int node_end = i+1==begin[row+1]?node_count(): entry[i+1]>>4;
+        ccnt += node_end - node_begin;
+      }
+    }
+    return ccnt;
+  }
+
   int get_heuristic_run(int row) const {
     int hrun= 0;
     for (int i=begin[row]; i<begin[row+1]; i++) {
@@ -107,18 +119,26 @@ public:
     return hrun;
   }
 
+  int get_centroid_run(int row) const {
+    int crun= 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::CENTMASK)) crun++;
+    }
+    return crun;
+  }
+
   static unsigned short find_first_allowed_out_arc(unsigned short allowed) {
     return warthog::m2i.at(warthog::lowb(allowed));
   };
 
-protected:
-  std::vector<int>begin;
-  std::vector<int>entry;
-
   bool is_in_square(
     int x, int side, int source_node,
     const Mapper& mapper) const;
-  
+ 
+protected:
+  std::vector<int>begin;
+  std::vector<int>entry;
+ 
   int get_allowed(
     int x, int s, int side,
     const vector<unsigned short>& fmoves,

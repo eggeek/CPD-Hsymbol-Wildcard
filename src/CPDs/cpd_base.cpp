@@ -40,8 +40,8 @@ void CPDBASE::append_rows(const CPDBASE&other){
 }
 
 void CPDBASE::append_compressed_cpd_row(vector<int> compressed_row) {
-  begin.push_back(compressed_row.size());
   std::copy(compressed_row.begin(), compressed_row.end(), back_inserter(entry));
+  begin.push_back(entry.size());
 }
 
 vector<int>::const_iterator CPDBASE::get_first_iter(int lhs, int rhs, int t) const {

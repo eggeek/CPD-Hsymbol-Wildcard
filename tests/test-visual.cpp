@@ -418,20 +418,25 @@ TEST_CASE("inspect-runs", "[.cpd]") {
   while (file >> mpath >> index_path) {
     LoadMap(mpath.c_str(), mapData, width, height);
     Index data = LoadIndexData(mapData, width, height, index_path.c_str());
-    xyLoc loc = data.mapper(130977);
-    cout << loc.x << "," << loc.y << endl;
-    //ofstream output(
-    //    getMapName(mpath) + "-" + 
-    //    (data.p.centroid?"subopt": "opt") + "-" + 
-    //    data.p.itype + "-inspect.out");
-    //string header = "row,runs,hrun,hcnt,map";
-    //output << header << endl;
-    //for (int i=0; i<data.cpd.node_count(); i++) {
-    //  int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
-    //  int hcnt = data.cpd.get_heuristic_cnt(i);
-    //  int hrun = data.cpd.get_heuristic_run(i);
-    //  output << i << "," << runs << "," << hrun << "," << hcnt<< "," << getMapName(mpath) << endl;
-    //}
+    ofstream output(
+        getMapName(mpath) + "-" + 
+        (data.p.centroid?"subopt": "opt") + "-" + 
+        data.p.itype + "-inspect.out");
+    string header = "row,runs,hrun,hcnt,crun,ccnt,cx,cy,x,y,map";
+    output << header << endl;
+    for (int i=0; i<data.cpd.node_count(); i++) {
+      int runs = data.cpd.get_begin()[i+1] - data.cpd.get_begin()[i];
+      int hcnt = data.cpd.get_heuristic_cnt(i);
+      int hrun = data.cpd.get_heuristic_run(i);
+      int crun = data.cpd.get_centroid_run(i);
+      int ccnt = data.cpd.get_centroid_cnt(i);
+      int cid = data.mapper.get_fa()[i];
+      xyLoc loc = data.mapper(i);
+      xyLoc c = data.mapper(cid);
+      output << i << "," << runs << "," << hrun << "," << hcnt<< "," 
+             << crun << "," << ccnt << "," << c.x << "," << c.y << "," 
+             << loc.x << "," << loc.y << "," << getMapName(mpath) << endl;
+    }
   }
 }
 
@@ -451,7 +456,65 @@ TEST_CASE("inspect-row", "[.cpd]") {
     cerr << "#cpd: " << begin[id+1] - begin[id] << endl;
     output << header << endl;
     print_entries(s.x, s.y, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data.mapper, output, 8);
+    for (int i=0; i<data.mapper.node_count(); i++) {
+      xyLoc loc = data.mapper(i);
+      int latt = loc.x, lont = loc.y;
+      int move = data.cpd.get_first_move(data.mapper(s), i);
+      int pch = move;
+      int mask = 1<<move;
+      output << s.x << "," << s.y << "," << latt << "," << lont << "," << pch << ","
+          << mask2hexcolor(mask) << "," << mask << endl;
+    }
     print_obstacle(s.x, s.y, data.mapper, flag, output);
+  }
+}
+
+TEST_CASE("inspect-fwd-centroid-symbol") {
+  ifstream file(default_testcase_path + "inspect-fwd-centroid-symbol.in");
+  xyLoc s, t;
+  int centroid;
+  string outpath;
+  while (file >> mpath >> centroid >> s.x >> s.y >> t.x >> t.y) {
+    ofstream output("fwd-centroid-symbol-" + getMapName(mpath) + "-c" + to_string(centroid) + ".out");
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Mapper mapper(mapData, width, height);
+    printf("computing centroid.\n");
+    vector<int> cents = compute_centroid(mapper, centroid);
+    AdjGraph g(extract_graph(mapper));
+    int sid = mapper(s);
+    int tid = mapper(t);
+    int cid = mapper.get_fa()[sid];
+    vector<vector<bool>> flag(height+1, vector<bool>(width+1, false));
+
+
+    string header = "lats,lons,latt,lont,pch,hex,mask";
+    output << header << endl;
+
+    Dijkstra dij(g, mapper);
+    vector<unsigned short> fc;
+
+    dij.run(cid, 3);
+    fc = dij.get_allowed();
+
+    int mask = fc[tid];
+    output << t.x << "," << t.y << "," << s.x << "," << s.y << "," << 20 << ","
+           << mask2hexcolor(0) << "," << fc[tid] << endl;
+
+    for (int i=0; i<g.node_count(); i++) if (mapper.get_fa()[i] == cid) {
+      dij.run(i, 3);
+      vector<unsigned short> f = dij.get_allowed();
+      int mask = f[tid] & fc[tid];
+      xyLoc loc = mapper(i);
+      while (mask) {
+        int pch = warthog::m2i.at(warthog::lowb(mask));
+        output << t.x << "," << t.y << ", " << loc.x << "," << loc.y << "," << pch << ","
+               << mask2hexcolor(f[tid]) << "," << f[tid] << endl;
+        mask -= 1<<pch;
+      }
+      output << t.x << "," << t.y << ", " << loc.x << "," << loc.y << "," << 9 << ","
+             << "#4DB3E6" << "," << f[tid] << endl;
+    }
+    print_obstacle(s.x, s.y, mapper, flag, output);
   }
 }
 

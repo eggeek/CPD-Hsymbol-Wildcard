@@ -52,6 +52,7 @@ namespace warthog
   static const uint16_t ALLMOVE = 0x7FFF;
   static const uint16_t NOMOVE = 0x8000;
   static const uint16_t HMASK = 0x0100;
+  static const uint16_t CENTMASK = 0x0200;
   static const uint16_t OCTILE = 0xFF;
 
   // mask to int

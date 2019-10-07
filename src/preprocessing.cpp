@@ -62,6 +62,22 @@ void reportProgress(int& progress, int tot) {
 }
 
 
+void add_centroid_symbol(int source, vector<unsigned short>& fmoves,
+    const Mapper& mapper, const vector<int>& cents_rank, const CPD_CENTROID& cpd,
+    const vector<int>& square_sides) {
+  for (int i=0; i<mapper.node_count(); i++) {
+    int cid = cents_rank[mapper.get_fa()[source]];
+    int side = square_sides[cid];
+    int m;
+    if (cpd.is_in_square(i, side, mapper.get_fa()[source], mapper))
+      m = warthog::HMASK;
+    else 
+      m = cpd.get_first_move(cid, i);
+    if (fmoves[i] & (1<<m)) fmoves[i] |= warthog::CENTMASK;
+  }
+}
+
+
 void PreprocessFwd(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Parameters& p) {
   CPDBASE cpd;
   vector<int> square_sides;
@@ -75,19 +91,19 @@ void PreprocessFwd(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
   #pragma omp parallel
   {
     const int thread_count = omp_get_num_threads();
-    const int thread_id = omp_get_thread_num();
+    const int tid = omp_get_thread_num();
     const int node_count = g.node_count();
 
-    int node_begin = (node_count*thread_id) / thread_count;
-    int node_end = (node_count*(thread_id+1)) / thread_count;
+    int node_begin = (node_count*tid) / thread_count;
+    int node_end = (node_count*(tid+1)) / thread_count;
 
     AdjGraph thread_adj_g(g);
     Dijkstra thread_dij(thread_adj_g, mapper);
     Mapper thread_mapper = mapper;
 
     for(int source_node=node_begin; source_node < node_end; source_node++) {
-      thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
-      thread_cpd[thread_id].append_row(source_node, thread_dij.get_allowed(), thread_mapper, thread_square_side[thread_id].back());
+      thread_dij.run(source_node, p.hLevel, thread_square_side[tid]);
+      thread_cpd[tid].append_row(source_node, thread_dij.get_allowed(), thread_mapper, thread_square_side[tid].back());
       #pragma omp critical 
       reportProgress(progress, g.node_count());
     }
@@ -110,32 +126,77 @@ void PreprocessFwd(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
 }
 
 
-void PreprocessFwdCentroid(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Parameters& p) {
+void PreprocessFwdCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cents, AdjGraph& g, const Parameters& p) {
   CPD_CENTROID cpd;
+  CPD_CENTROID cents_cpd;
   vector<int> square_sides;
+  vector<int> cents_square_sides;
 
   printf("Using %d threads\n", omp_get_max_threads());
-  vector<CPD_CENTROID>thread_cpd(omp_get_max_threads());
-  vector<vector<int>> thread_square_side(omp_get_max_threads());
+
+  vector<CPD_CENTROID> cents_cpdT(omp_get_max_threads());
+  vector<vector<int>>  cents_square_sideT(omp_get_max_threads());
+
+  vector<int> cents_rank(mapper.node_count(), -1);
+  for (int i=0; i<(int)cents.size(); i++) cents_rank[cents[i]] = i;
 
   int progress = 0;
 
+  printf("Computing CPD of Centroids.\n");
   #pragma omp parallel
   {
     const int thread_count = omp_get_num_threads();
-    const int thread_id = omp_get_thread_num();
-    const int node_count = g.node_count();
+    const int tid = omp_get_thread_num();
+    const int node_count = cents.size();
 
-    int node_begin = (node_count*thread_id) / thread_count;
-    int node_end = (node_count*(thread_id+1)) / thread_count;
+    int node_begin = (node_count*tid) / thread_count;
+    int node_end = (node_count*(tid+1)) / thread_count;
 
     AdjGraph thread_adj_g(g);
     Dijkstra thread_dij(thread_adj_g, mapper);
-    Mapper thread_mapper = mapper;
+    const Mapper& thread_mapper = mapper;
+
+    for (int i=node_begin; i<node_end; i++) {
+      thread_dij.run(cents[i], p.hLevel, cents_square_sideT[tid]);
+      cents_cpdT[tid].append_row_forward(cents[i], thread_dij.get_allowed(), thread_mapper, cents_square_sideT[tid].back());
+      #pragma omp critical
+      reportProgress(progress, cents.size());
+    }
+  }
+  for (auto& x: cents_cpdT) cents_cpd.append_rows(x);
+  for (auto& x: cents_square_sideT) cents_square_sides.insert(cents_square_sides.end(), x.begin(), x.end());
+
+  vector<CPD_CENTROID>thread_cpd(omp_get_max_threads());
+  vector<vector<int>> thread_square_side(omp_get_max_threads());
+
+  printf("Computing rest of CPD\n");
+  progress = 0;
+  #pragma omp parallel
+  {
+    const int thread_count = omp_get_num_threads();
+    const int tid = omp_get_thread_num();
+    const int node_count = g.node_count();
+
+    int node_begin = (node_count*tid) / thread_count;
+    int node_end = (node_count*(tid+1)) / thread_count;
+
+    AdjGraph thread_adj_g(g);
+    Dijkstra thread_dij(thread_adj_g, mapper);
+    const Mapper& thread_mapper = mapper;
 
     for(int source_node=node_begin; source_node < node_end; source_node++) {
-      thread_dij.run(source_node, p.hLevel, thread_square_side[thread_id]);
-      thread_cpd[thread_id].append_row_forward(source_node, thread_dij.get_allowed(), thread_mapper, *(thread_square_side[thread_id].end()-1));
+      if (thread_mapper.get_fa()[source_node] == source_node) {
+        assert(cents_rank[source_node] != -1);
+        vector<int> compressed_row = cents_cpd.get_ith_compressed_row(cents_rank[source_node]);
+        thread_square_side[tid].push_back(cents_square_sides[cents_rank[source_node]]);
+        thread_cpd[tid].append_compressed_cpd_row(compressed_row);
+      }
+      else {
+        thread_dij.run(source_node, p.hLevel, thread_square_side[tid]);
+        vector<unsigned short> fmoves = thread_dij.get_allowed();
+        add_centroid_symbol(source_node, fmoves, thread_mapper, cents_rank, cents_cpd, cents_square_sides);
+        thread_cpd[tid].append_row_forward(source_node, fmoves, thread_mapper, thread_square_side[tid].back());
+      }
       #pragma omp critical 
       reportProgress(progress, g.node_count());
     }
@@ -167,11 +228,11 @@ void PreprocessRev(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
   #pragma omp parallel
   {
     const int thread_count = omp_get_num_threads();
-    const int thread_id = omp_get_thread_num();
+    const int tid = omp_get_thread_num();
     const int node_count = g.node_count();
 
-    int node_begin = (node_count*thread_id) / thread_count;
-    int node_end = (node_count*(thread_id+1)) / thread_count;
+    int node_begin = (node_count*tid) / thread_count;
+    int node_end = (node_count*(tid+1)) / thread_count;
 
     AdjGraph thread_adj_g(g);
     Dijkstra thread_dij(thread_adj_g, mapper);
@@ -179,7 +240,7 @@ void PreprocessRev(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
 
     for(int source_node=node_begin; source_node < node_end; source_node++){
       thread_dij.run(source_node, p.hLevel);
-      thread_cpd[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+      thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
       #pragma omp critical 
       reportProgress(progress, g.node_count());
     }
@@ -210,11 +271,11 @@ void PreprocessRevCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
   #pragma omp parallel
   {
     const int thread_count = omp_get_num_threads();
-    const int thread_id = omp_get_thread_num();
+    const int tid = omp_get_thread_num();
     const int node_count = g.node_count();
 
-    int node_begin = (node_count*thread_id) / thread_count;
-    int node_end = (node_count*(thread_id+1)) / thread_count;
+    int node_begin = (node_count*tid) / thread_count;
+    int node_end = (node_count*(tid+1)) / thread_count;
 
     AdjGraph thread_adj_g(g);
     Dijkstra thread_dij(thread_adj_g, mapper);
@@ -223,7 +284,7 @@ void PreprocessRevCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
     for(int source_node=node_begin; source_node < node_end; source_node++){
       if (mapper.get_fa()[source_node] == source_node) {
         thread_dij.run(source_node, p.hLevel);
-        thread_cpd[thread_id].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+        thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
       }
       #pragma omp critical 
       reportProgress(progress, cents.size());
@@ -244,16 +305,6 @@ void PreprocessRevCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
   cpd.save(f);
   fclose(f);
   printf("Done\n");
-}
-
-
-void add_centroid_symbol(int source, vector<unsigned short>& fmoves,
-    const Mapper& mapper, const vector<int>& cents_rank, const CPD_CENTROID& cpd) {
-  for (int i=0; i<mapper.node_count(); i++) {
-    int cid = cents_rank[mapper.get_fa()[source]];
-    int m = cpd.get_first_move(cid, i);
-    if (fmoves[i] & m) fmoves[i] |= warthog::CENTMASK;
-  }
 }
 
 
@@ -285,13 +336,12 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
   printf("Computing first-move matrix, hLevel: %d\n", p.hLevel);
   if (p.itype == "fwd") {
     vector<int> square_sides;
-    if (p.centroid) PreprocessFwdCentroid(mapper, order, g, p);
+    if (p.centroid) PreprocessFwdCentroid(mapper, order, cents, g, p);
     else PreprocessFwd(mapper, order, g, p);
   }
   else if (p.itype == "inv") {
     if (p.centroid) PreprocessRevCentroid(mapper, order, cents, g, p);
     else PreprocessRev(mapper, order, g, p);
-    
   }
   else { assert(false); exit(1); }
 }

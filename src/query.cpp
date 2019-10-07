@@ -53,6 +53,14 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
     }
     // no path exist
     if (move == 0xF) break;
+    if ((1<<move) == warthog::CENTMASK) {
+      int cent = state.mapper.get_fa()[current_source];
+      move = state.cpd.get_first_move(cent, current_target);
+      c.access_cnt++;
+      if (is_in_square(cent, current_target)) {
+        move = next_move(current_source, current_target);
+      }
+    }
     if (!(state.mapper.get_neighbor(current_source) & (1<<move))) {
       assert(hLevel == 3);
       move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
