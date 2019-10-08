@@ -67,7 +67,6 @@ set(SOURCE_FILES
     utility/binary_search.h
     utility/constants.h
     utility/heap.h
-    utility/mapper.cpp
     utility/mapper.h
     utility/range.h
     utility/ScenarioLoader.cpp
