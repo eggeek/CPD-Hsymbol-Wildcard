@@ -100,7 +100,7 @@ endif()
 set(TESTING_FILES
     tests/test-operations.cpp
     tests/test-heuristic.cpp
-    tests/test-visual.cpp
+    tests/gen-visual.cpp
     tests/test-preprocess.cpp
     tests/test-query.cpp
     tests/test-load.cpp
@@ -116,14 +116,20 @@ add_executable(focal
   ${SOURCE_FILES}
   competitors/focal.cpp)
 
+add_executable(visualGen
+  ${SOURCE_FILES}
+  visualGen.cpp)
+
 if (omp_lib)
   target_link_libraries(main ${omp_lib})
+  target_link_libraries(visualGen ${omp_lib})
   target_link_libraries(testing ${omp_lib})
   target_link_libraries(focal ${omp_lib})
 endif()
 
 if (metis_lib)
   target_link_libraries(main ${metis_lib})
+  target_link_libraries(visualGen ${metis_lib})
   target_link_libraries(testing ${metis_lib})
   target_link_libraries(focal ${metis_lib})
 endif()
