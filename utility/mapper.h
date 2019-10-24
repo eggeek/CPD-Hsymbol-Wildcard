@@ -366,7 +366,7 @@ static inline int iabs(int num) {
   return (num ^ mask) - mask;
 }
 
-void dump_map(const Mapper&map, const char*file){
+static inline void dump_map(const Mapper&map, const char*file){
   FILE* f = fopen(file, "w");
 
   for(int y=0; y<map.height(); ++y){

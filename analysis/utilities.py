@@ -8,7 +8,7 @@ styles = {}
 
 def parse_index_name(iname):
     # parse '*.map-DFS-3-c4-inv' to itype="inv", d=4, hlevel=3
-    # or '*.map-DFS-3-c4' to itype="vanilla", d=4, hlevel=3
+    # or '*.map-DFS-3-c4' to itype="fwd", d=4, hlevel=3
     ps = iname.split('-')
     itype = "forward"
     if ps[-1] == "inv":
