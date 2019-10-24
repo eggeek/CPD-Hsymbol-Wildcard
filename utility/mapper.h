@@ -181,7 +181,7 @@ public:
 
   inline int get_valid_move(int s, int quad, int part, int no_diagnonal) const {
     //return getClosestMove(this->neighbors[s], quad, part, onaxis);
-    return this->mem[this->neighbors[s]].move[quad][part][no_diagnonal];
+    return this->mem[this->pruned_neighbors[s]].move[quad][part][no_diagnonal];
   }
 
   int centroid_nums() const {
