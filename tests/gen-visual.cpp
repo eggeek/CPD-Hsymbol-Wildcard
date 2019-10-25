@@ -27,7 +27,7 @@ namespace GEN_VISUAL {
       if (flag[y][x]) continue;
       if (mapper(xyLoc{(int16_t)x, (int16_t)y}) != -1) continue;
       flag[y][x] = true;
-      output << -1 << "," << x << "," << y << "," << -1 << "," << 0 << endl;
+      output << -1 << "," << x << "," << y << "," << -1 << ",-1,0" << endl;
     }
   }
 
@@ -101,11 +101,13 @@ namespace GEN_VISUAL {
       Mapper mapper(mapData, width, height);
       vector<int> cents = compute_centroid(mapper, sizec);
       vector<vector<bool>> flag(height, vector<bool>(width, false));
-
-      string header = "sx,sy,latt,lont,pch,hex,mask";
       output << header << endl;
       print_obstacle(mapper, flag, output);
       print_centroids(0, cents, mapper, flag, output);
+      for (int i=0; i<mapper.node_count(); i++) {
+        xyLoc loc = mapper(i);
+        output << "0," << loc.x << "," << loc.y << "," << i << "," << mapper.get_fa()[i] << ",0" << endl;
+      }
     }
   }
 
