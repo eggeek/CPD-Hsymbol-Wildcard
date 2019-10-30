@@ -125,6 +125,8 @@ static inline int get_heuristic_move3(int s, int t, const Mapper& mapper) {
   xyLoc tloc = mapper(t);
   int dx = tloc.x - sloc.x;
   int dy = tloc.y - sloc.y;
+  if (abs(dx) == 1 && abs(dy) == 1 && (mapper.get_neighbor(s) & (1<<warthog::v2i[dx+1][dy+1])))
+    return warthog::v2i[dx+1][dy+1];
   int quad = quadrant[signbit(dx) + 1][signbit(dy) + 1];
   int part = get_coord_part(dx, dy);
   //int no_diagonal= (dx == 0) | (dy == 0);
