@@ -84,8 +84,9 @@ vector<int>::const_iterator CPDBASE::get_interval(int s, int t, int& lhs, int& r
 bool CPDBASE::is_in_square(int x, int side, int source_node, const Mapper& mapper) const {
   xyLoc loc_source = mapper.operator()(source_node);
   xyLoc loc_x = mapper.operator()(x);
-  int dx = abs(loc_source.x - loc_x.x);
-  int dy = abs(loc_source.y- loc_x.y);
+  int dx = abs((int)loc_source.x - (int)loc_x.x);
+  int dy = abs((int)loc_source.y- (int)loc_x.y);
+  assert(side >= 1);
   if((dx <= (side-1)/2)&&(dy<= (side-1)/2))
   {
     return true;

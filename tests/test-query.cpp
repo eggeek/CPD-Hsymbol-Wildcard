@@ -20,6 +20,7 @@ namespace TEST_QUERY{
   TEST_CASE("rw-query", "[.run-rw]") {
     ifstream file(default_testcase_path + "rw-query.in");
     while (file >> mpath >> indexpath >> spath) {
+      cerr << "Testing: " << indexpath << endl;
       string output = "rw-query" + getIndexName(indexpath) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
@@ -43,6 +44,7 @@ namespace TEST_QUERY{
   TEST_CASE("inv-query", "[.run]") {
     ifstream file(default_testcase_path + "inv-query.in");
     while (file >> mpath >> indexpath >> spath) {
+      cerr << "Testing: " << indexpath << endl;
       string output = "inv-query-" + getIndexName(indexpath) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
@@ -66,6 +68,7 @@ namespace TEST_QUERY{
   TEST_CASE("inv-centroid-query", "[.run]") {
     ifstream file(default_testcase_path + "inv-centroid-query.in");
     while (file >> mpath >> indexpath >> spath) {
+      cerr << "Testing: " << indexpath << endl;
       string output = "inv-centroid-" + getIndexName(indexpath) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());

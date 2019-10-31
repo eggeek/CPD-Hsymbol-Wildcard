@@ -30,21 +30,12 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
       return false;
   };
 
-  auto next_move = [&](int current_source, int current_target)
-  {
-      xyLoc cs = state.mapper.operator()(current_source);
-      xyLoc ct = state.mapper.operator()(current_target);
-      int vx = signbit(ct.x - cs.x);
-      int vy = signbit(ct.y - cs.y);
-      return warthog::v2i[1+vx][1+vy];
-  };
-
   //cerr << "(" << s.x << "," << s.y << ")" << endl;
   while (current_source != current_target) {
     int move;
     if(is_in_square(current_source, current_target))
     {
-      move = next_move(current_source, current_target);
+      move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
     }
     else
     {
@@ -55,15 +46,11 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
     if (move == 0xF) break;
     if ((1<<move) == warthog::CENTMASK) {
       int cent = state.mapper.get_fa()[current_source];
-      move = state.cpd.get_first_move(cent, current_target);
+      if (is_in_square(cent, current_target))
+        move = warthog::m2i.at(warthog::HMASK);
+      else 
+        move = state.cpd.get_first_move(cent, current_target);
       c.access_cnt++;
-      if (is_in_square(cent, current_target)) {
-        move = next_move(current_source, current_target);
-      }
-    }
-    if (!(state.mapper.get_neighbor(current_source) & (1<<move))) {
-      assert(hLevel == 3);
-      move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
     }
     if ((1 << move) == warthog::HMASK) {
       move = Hsymbol::decode(current_source, current_target, state.mapper, heuristic_func);
@@ -71,7 +58,6 @@ double GetPathCostSRC(const Index& state, xyLoc s, xyLoc t, int hLevel, Counter&
     cost += warthog::doublew[move];
     s.x += dx[move];
     s.y += dy[move];
-    //cerr << "(" << s.x << "," << s.y << ")" << endl;
     e.add(move);
     c.steps++;
     if (limit != -1 && limit <= c.steps)
@@ -115,15 +101,6 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Coun
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
 
-  auto next_move = [&](int current_source, int current_target)
-  {
-      xyLoc cs = data.mapper.operator()(current_source);
-      xyLoc ct = data.mapper.operator()(current_target);
-      int vx = signbit(ct.x - cs.x);
-      int vy = signbit(ct.y - cs.y);
-      return warthog::v2i[1+vx][1+vy];
-  };
-
   auto is_in_square = [&](int current_source, int current_target)
   {
       int side = data.square_sides[current_source];
@@ -141,10 +118,7 @@ double GetRectWildCardCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Coun
   auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
 
     if (is_in_square(sid, tid)) {
-      move = next_move(sid, tid);
-      if ((1<<move) == warthog::HMASK) {
-        move = Hsymbol::decode(sid, tid, data.mapper, heuristic_func);
-      }
+      move = Hsymbol::decode(sid, tid, data.mapper, heuristic_func);
     }
     else {
       const RectInfo* rect = data.rwobj.get_rects(sid, data.mapper, target);
@@ -198,29 +172,6 @@ double GetInvCPDCost(const Index& data, xyLoc s, xyLoc t, int hLevel, Counter& c
   const int16_t* dy = warthog::dy;
   double cost = 0.0;
   vector<int>::const_iterator it = data.cpd.get_entry().end();
-
-  auto next_move = [&](int current_source, int current_target)
-  {
-      xyLoc cs = data.mapper.operator()(current_source);
-      xyLoc ct = data.mapper.operator()(current_target);
-      int vx = signbit(ct.x - cs.x);
-      int vy = signbit(ct.y - cs.y);
-      return warthog::v2i[1+vx][1+vy];
-  };
-
-  auto is_in_square = [&](int current_source, int current_target)
-  {
-      int side = data.square_sides[current_source];
-      xyLoc loc_source = data.mapper.operator()(current_source);
-      xyLoc loc_x = data.mapper.operator()(current_target);
-      int dx = iabs(loc_source.x - loc_x.x);
-      int dy = iabs(loc_source.y- loc_x.y);
-      if(( (dx<<1) <= (side-1)) && ( (dy<<1) <= (side-1)))
-      {
-        return true;
-      }
-      return false;
-  };
 
   auto to_next_pos = [&](xyLoc& source, xyLoc& target, int& sid, int& tid) {
     

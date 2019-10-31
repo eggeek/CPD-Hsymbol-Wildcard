@@ -21,13 +21,28 @@ namespace GEN_VISUAL {
   int height, width;
   vector<bool> mapData;
 
+  struct Row {
+    int rowid, x, y, order, cid, side, mask;
+    string header = "rowid,x,y,order,cid,side,mask";
+    Row() {};
+
+    string to_string() {
+      std::ostringstream ss;
+      ss << rowid << "," << x << "," << y << "," << order << "," << cid << "," 
+           << side << "," << mask;
+      return ss.str();
+    }
+  };
+
   void print_obstacle(const Mapper& mapper, vector<vector<bool>>& flag, ofstream& output) {
     for (int y=0; y<height; y++)
     for (int x=0; x<width; x++) {
       if (flag[y][x]) continue;
       if (mapper(xyLoc{(int16_t)x, (int16_t)y}) != -1) continue;
       flag[y][x] = true;
-      output << -1 << "," << x << "," << y << "," << -1 << ",-1,0" << endl;
+      Row r;
+      r.rowid = -1, r.x = x, r.y = y, r.order = -1, r.cid = -1, r.mask = -1, r.side = -1;
+      output << r.to_string() << endl;
     }
   }
 
@@ -43,7 +58,9 @@ namespace GEN_VISUAL {
       if (flag[ty][tx]) continue;
       flag[ty][tx] = true;
       int cid = mapper.get_fa().empty()? -1: mapper.get_fa()[i];
-      output << rowid << "," << tx << "," << ty << "," << i << "," << cid << "," << move << endl;
+      Row r;
+      r.rowid = rowid, r.x = tx, r.y = ty, r.order = i, r.cid = cid, r.mask = -1;
+      output << r.to_string() << endl;
     }
   }
 
@@ -54,7 +71,9 @@ namespace GEN_VISUAL {
       if (flag[loc.y][loc.x]) continue;
       flag[loc.y][loc.x] = true;
       int cid = mapper.get_fa()[i];
-      output << rowid << "," << loc.x << "," << loc.y << "," << i << "," << cid << "," << -1 << endl;
+      Row r;
+      r.rowid = rowid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = -1;
+      output << r.to_string() << endl;
     }
   }
 
@@ -67,7 +86,9 @@ namespace GEN_VISUAL {
       if (flag[loc.y][loc.x]) continue;
       flag[loc.y][loc.x] = true;
       int cid = mapper.get_fa().empty()?-1: mapper.get_fa()[i];
-      output << rowid << "," << loc.x << "," << loc.y << "," << i << "," << cid << "," << fmoves[i] << endl;
+      Row r;
+      r.rowid = rowid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = fmoves[i];
+      output << r.to_string() << endl;
     }
   }
 
@@ -84,7 +105,7 @@ namespace GEN_VISUAL {
       Dijkstra dij(g, mapper);
       vector<int> sides;
       const auto& fmoves = dij.run(mapper(s), hLevel, sides);
-      output << header << endl;
+      output << Row().header << endl;
       vector<vector<bool>> flag(height+1, vector<bool>(width+1, false));
       print_obstacle(mapper, flag, output);
       print_fmoves(mapper(s), mapper, flag, fmoves, output);
@@ -101,7 +122,7 @@ namespace GEN_VISUAL {
       Mapper mapper(mapData, width, height);
       vector<int> cents = compute_centroid(mapper, sizec);
       vector<vector<bool>> flag(height, vector<bool>(width, false));
-      output << header << endl;
+      output << Row().header << endl;
       print_obstacle(mapper, flag, output);
       print_centroids(0, cents, mapper, flag, output);
       for (int i=0; i<mapper.node_count(); i++) {
@@ -153,16 +174,18 @@ TEST_CASE("inspect-row", "[.cpd-inspect]") {
     auto begin = data.cpd.get_begin();
     int id = data.mapper(s);
     cerr << "#cpd: " << begin[id+1] - begin[id] << endl;
-    output << header << endl;
+    output << Row().header << endl;
     print_entries(sid, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data.mapper, output);
     for (int i=0; i<data.mapper.node_count(); i++) {
       xyLoc loc = data.mapper(i);
       int move = data.cpd.get_first_move(sid, i);
       //int hmove = Hsymbol::get_heuristic_move(sid, i, data.mapper, 3);
       int mask = 1<<move;
-      int cid = data.p.centroid? data.mapper.get_fa()[i]: -1;
-      output << sid << "," << loc.x << "," << loc.y << "," << i << ","
-             << cid << "," << mask << endl;
+      int cid = (data.p.centroid | data.p.csymbol)? data.mapper.get_fa()[i]: -1;
+      Row r;
+      r.rowid = sid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = mask;
+      r.side = data.square_sides[i];
+      output << r.to_string() << endl;
     }
     print_obstacle(data.mapper, flag, output);
   }
@@ -183,7 +206,7 @@ TEST_CASE("inspect-rev-centroid-row", "[.cpd-inspect]") {
     auto begin = data.cpd.get_begin();
     int rid = data.mapper.get_centroid_rank(cid);
     cerr << "#cpd: " << begin[rid+1] - begin[rid] << endl;
-    output << header << endl;
+    output << Row().header << endl;
     for (int i=0; i<data.mapper.node_count(); i++) {
       xyLoc loc = data.mapper(i);
       if (abs(loc.x - s.x) + abs(loc.y - s.y) > 5 * data.p.centroid)
@@ -196,8 +219,9 @@ TEST_CASE("inspect-rev-centroid-row", "[.cpd-inspect]") {
       //int hmove = Hsymbol::get_heuristic_move(sid, i, data.mapper, 3);
       int mask = 1<<move;
       cid = data.mapper.get_fa()[i];
-      output << sid << "," << loc.x << "," << loc.y << "," << i << ","
-             << cid << "," << mask << endl;
+      Row r;
+      r.rowid = sid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = mask;
+      output << r.to_string() << endl;
     }
     print_obstacle(data.mapper, flag, output);
   }
@@ -220,7 +244,7 @@ TEST_CASE("inspect-fwd-centroid-symbol") {
     vector<vector<bool>> flag(height+1, vector<bool>(width+1, false));
 
 
-    output << header << endl;
+    output << Row().header << endl;
 
     Dijkstra dij(g, mapper);
     vector<unsigned short> fc, fs;
@@ -234,8 +258,11 @@ TEST_CASE("inspect-fwd-centroid-symbol") {
     for (int i=0; i<g.node_count(); i++) if (i != sid && i != cid) {
       int mask = fs[i] & fc[i];
       xyLoc loc = mapper(i);
-      if (mask)
-        output << sid << "," << loc.x << "," << loc.y << "," << i << "," << cid << "," << mask << endl;
+      if (mask) {
+        Row r;
+        r.rowid = sid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = mask;
+        output << r.to_string() << endl;
+      }
     }
     print_obstacle(mapper, flag, output);
   }

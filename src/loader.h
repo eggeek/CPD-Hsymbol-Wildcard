@@ -50,6 +50,18 @@ inline void LoadFwdCPD(Index& data, FILE* f) {
   data.graph = AdjGraph(extract_graph(data.mapper));
 }
 
+inline void LoadFwdCsymbolCPD(Index& data, FILE* f) {
+  vector<int> centroids;
+  data.square_sides = load_vector<int>(f);
+  centroids = load_vector<int>(f);
+  NodeOrdering order;
+  order.load(f);
+  data.cpd.load(f);
+  data.mapper.reorder(order);
+  data.mapper.set_centroids(centroids);
+  data.graph = AdjGraph(extract_graph(data.mapper));
+}
+
 inline void LoadFwdCentroidsCPD(Index& data, FILE* f) {
   vector<int> centroids;
   data.square_sides = load_vector<int>(f);
@@ -105,6 +117,7 @@ inline Index LoadIndexData(vector<bool>& bits, int w, int h, const char* fname) 
 
   if (data.p.itype == "fwd") {
     if (data.p.centroid) LoadFwdCentroidsCPD(data, f);
+    else if (data.p.csymbol) LoadFwdCsymbolCPD(data, f);
     else LoadFwdCPD(data, f);
   }
   else if (data.p.itype == "inv") {
