@@ -178,7 +178,7 @@ void SubOptExperiments(int repeat, const Index& data,
 int main(int argc, char **argv) {
   // process command line
   string mpath, spath, indexpath, outfname, otype, itype;
-  int pre=0, run=0, hLevel=1, centroid=0;
+  int pre=0, run=0, hLevel=1, centroid=0, csymbol=0;
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -195,6 +195,7 @@ int main(int argc, char **argv) {
     ("output,O", po::value<string>(&outfname), "output path")
     ("order", po::value<string>(&otype)->default_value("DFS"), "type of ordering")
     ("centroid,C", po::value<int>(&centroid)->default_value(0), "using centroid cpd")
+    ("csymbol", po::value<int>(&csymbol)->default_value(0), "using centroid symbol")
   ;
 
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -221,12 +222,18 @@ int main(int argc, char **argv) {
   int width, height;
 
   LoadMap(mpath.c_str(), mapData, width, height);
-  string centroid_desc = centroid?"c"+to_string(centroid): "opt";
+  string centroid_desc;
+  if (centroid)
+    centroid_desc = "c"+to_string(centroid);
+  else if (csymbol)
+    centroid_desc = "cs"+to_string(csymbol) + "-opt";
+  else
+    centroid_desc = "opt";
   sprintf(filename, "./index_data/%s.map-%s-%d-%s", getMapName(mpath).c_str() , otype.c_str(),
       hLevel, centroid_desc.c_str());
 
   if (pre) {
-    Parameters p{otype, itype, filename, hLevel, centroid};
+    Parameters p{otype, itype, filename, hLevel, centroid, csymbol};
     PreprocessMap(mapData, width, height, p);
   }
   
