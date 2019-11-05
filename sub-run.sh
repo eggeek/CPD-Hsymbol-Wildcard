@@ -1,18 +1,17 @@
 #!/bin/bash
 map_names=(
 Aurora
-ca_cavern1_haunted
-maze-100-1
-orz300d
-random-100-33
-room-100-10
+orz103d
+maze-400-4
+room-400-40
+random-400-33
 )
 
 map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 out_dir="./outputs/cpd/"
 order="DFS"
-cs=(0 2 4 8 16 32 64)
+cs=(64 32 16 8 4 2 0)
 
 
 run_cpd() {
