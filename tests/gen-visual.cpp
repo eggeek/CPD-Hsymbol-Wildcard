@@ -129,7 +129,10 @@ namespace GEN_VISUAL {
       print_centroids(0, cents, mapper, flag, output);
       for (int i=0; i<mapper.node_count(); i++) {
         xyLoc loc = mapper(i);
-        output << "0," << loc.x << "," << loc.y << "," << i << "," << mapper.get_fa()[i] << ",0" << endl;
+        Row r;
+        r.rowid = 0, r.x = loc.x , r.y = loc.y, r.order = i, r.cid = mapper.get_fa()[i];
+        r.mask = 0, r.entry = 0;
+        output << r.to_string() << endl;
       }
     }
   }
