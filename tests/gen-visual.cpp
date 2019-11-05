@@ -23,13 +23,14 @@ namespace GEN_VISUAL {
 
   struct Row {
     int rowid, x, y, order, cid, side, mask;
-    string header = "rowid,x,y,order,cid,side,mask";
+    bool entry = false;
+    string header = "rowid,x,y,order,cid,side,mask,entry";
     Row() {};
 
     string to_string() {
       std::ostringstream ss;
       ss << rowid << "," << x << "," << y << "," << order << "," << cid << "," 
-           << side << "," << mask;
+           << side << "," << mask << "," << entry;
       return ss.str();
     }
   };
@@ -48,18 +49,19 @@ namespace GEN_VISUAL {
 
   void print_entries(int rowid, vector<vector<bool>>& flag,
       const vector<int>& entries,
-      const Mapper& mapper, ofstream& output) {
+      const Index& data, ofstream& output) {
 
     for (int i: entries) {
       int id = i >> 4;
       int move = i & 0xF;
-      xyLoc loc = mapper(id);
+      xyLoc loc = data.mapper(id);
       int tx = loc.x, ty = loc.y;
       if (flag[ty][tx]) continue;
       flag[ty][tx] = true;
-      int cid = mapper.get_fa().empty()? -1: mapper.get_fa()[i];
+      int cid = data.mapper.get_fa().empty()? -1: data.mapper.get_fa()[i];
       Row r;
-      r.rowid = rowid, r.x = tx, r.y = ty, r.order = i, r.cid = cid, r.mask = -1;
+      r.rowid = rowid, r.x = tx, r.y = ty, r.order = id, r.cid = cid, r.mask = 1<<move;
+      r.entry = true;
       output << r.to_string() << endl;
     }
   }
@@ -140,7 +142,7 @@ TEST_CASE("inspect-runs", "[.cpd-statistic]") {
     Index data = LoadIndexData(mapData, width, height, index_path.c_str());
     ofstream output(
         getMapName(mpath) + "-" + 
-        (data.p.centroid?"subopt": "opt") + "-" + 
+        ((data.p.centroid | data.p.csymbol)?"subopt": "opt") + "-" + 
         data.p.itype + "-inspect.out");
     string header = "row,runs,hrun,hcnt,crun,ccnt,cx,cy,x,y,map";
     output << header << endl;
@@ -175,9 +177,10 @@ TEST_CASE("inspect-row", "[.cpd-inspect]") {
     int id = data.mapper(s);
     cerr << "#cpd: " << begin[id+1] - begin[id] << endl;
     output << Row().header << endl;
-    print_entries(sid, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data.mapper, output);
+    print_entries(sid, flag, vector<int>(entry.begin()+begin[id], entry.begin()+begin[id+1]), data, output);
     for (int i=0; i<data.mapper.node_count(); i++) {
       xyLoc loc = data.mapper(i);
+      if (flag[loc.y][loc.x]) continue;
       int move = data.cpd.get_first_move(sid, i);
       //int hmove = Hsymbol::get_heuristic_move(sid, i, data.mapper, 3);
       int mask = 1<<move;
@@ -185,6 +188,7 @@ TEST_CASE("inspect-row", "[.cpd-inspect]") {
       Row r;
       r.rowid = sid, r.x = loc.x, r.y = loc.y, r.order = i, r.cid = cid, r.mask = mask;
       r.side = data.square_sides[i];
+      r.entry = false;
       output << r.to_string() << endl;
     }
     print_obstacle(data.mapper, flag, output);

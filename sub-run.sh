@@ -1,6 +1,6 @@
 #!/bin/bash
 map_names=(
-Archipelago
+Aurora
 ca_cavern1_haunted
 maze-100-1
 orz300d
@@ -12,7 +12,7 @@ map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
 out_dir="./outputs/cpd/"
 order="DFS"
-cs=(0 2 4 8 16 32)
+cs=(0 2 4 8 16 32 64)
 
 
 run_cpd() {

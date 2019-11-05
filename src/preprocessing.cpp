@@ -190,7 +190,7 @@ void PreprocessRev(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
 
     for(int source_node=node_begin; source_node < node_end; source_node++){
       thread_dij.run_extra(source_node, p.hLevel);
-      thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+      thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 1);
       #pragma omp critical 
       reportProgress(progress, g.node_count());
     }
@@ -234,7 +234,7 @@ void PreprocessRevCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
     for(int source_node=node_begin; source_node < node_end; source_node++){
       if (mapper.get_fa()[source_node] == source_node) {
         thread_dij.run_extra(source_node, p.hLevel);
-        thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 0);
+        thread_cpd[tid].append_row(source_node, thread_dij.get_inv_allowed(), thread_mapper, 1);
         #pragma omp critical 
         reportProgress(progress, cents.size());
       }

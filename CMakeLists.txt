@@ -4,19 +4,28 @@ project(CPD-Hsymbol-Wildcard)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-DUSE_PARALLELISM -DEXTRACT_ALL_AT_ONCE")
 
+
 if(APPLE)
+  # labptop
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
   find_library(metis_lib metis "/usr/local/opt" )
   find_library(omp_lib omp "/usr/local/opt")
 else(APPLE)
+  # monarch
   if (EXISTS "/home/szha414/metis")
     set(metis_lib "/home/szha414/metis/lib/libmetis.a")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/home/szha414/metis/include -fopenmp -lboost_program_options")
+  # nectar
+  elseif(EXISTS "/home/ubuntu")
+    set(metis_lib "/usr/lib/x86_64-linux-gnu/libmetis.so")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include -fopenmp")
   else()
+  # monash pc
     set(metis_lib "/lib/libmetis.so")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include -fopenmp -lboost_program_options")
   endif()
 endif(APPLE)
+
 set(DEV_CXX_FLAGS "-g -ggdb -O0 -fno-omit-frame-pointer")
 set(RELEASE_CXX_FLAGS "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DEV_CXX_FLAGS}")
