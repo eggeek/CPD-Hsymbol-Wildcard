@@ -219,12 +219,8 @@ static inline vector<int> compute_centroid(Mapper& mapper, int r) {
   while (!c1.empty()) {
     Candidate c = c1.top(); c1.pop();
     if (c.dist > vis[c.id]) continue;
-    if (c.border < (double)r-2.0) continue;
     if (fa[c.id] != -1) continue;
-    if (fabs(c.border-r+2.0)<warthog::EPS)
-      centroid_area<priority_queue<Candidate, vector<Candidate>>>(c.id, r, fa, vis, mapper, dists, &c1);
-    else
-      centroid_area<priority_queue<Candidate, vector<Candidate>>>(c.id, 2.0*r-2, fa, vis, mapper, dists, &c1);
+    centroid_area<priority_queue<Candidate, vector<Candidate>>>(c.id, 2.0*r-2, fa, vis, mapper, dists, &c1);
     centroids.push_back(c.id);
   }
 
