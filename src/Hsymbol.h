@@ -224,6 +224,7 @@ static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_all
   for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
     int pruned = mapper.get_pruned_neighbor(s);
     int extra_mask = 0;
+    if (pruned == 0) continue;
     for (int j=0; j<8; j++) if (!((1<<j) & pruned)) {
       int m = get_closest_valid_move(s, j, mapper);
       assert(m != -1);
