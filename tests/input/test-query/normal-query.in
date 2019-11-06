@@ -1,1 +1,3 @@
-./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-cs4-opt ./scens/dao/brc101d.map.scen
+./maps/arena.map ./index_data/arena.map-DFS-3-opt ./scens/arena.map.scen
+./maps/brc000d.map ./index_data/brc000d.map-DFS-3-opt ./scens/brc000d.map.scen
+./maps/dao/brc101d.map ./index_data/brc101d.map-DFS-3-opt ./scens/dao/brc101d.map.scen

@@ -1,4 +1,6 @@
-./maps/arena.map 4
-./maps/brc000d.map 4
+./maps/dao/brc101d.map 2
 ./maps/dao/brc101d.map 4
-./maps/gppc/ca_cavern1_haunted.map 64
+./maps/dao/brc101d.map 8
+./maps/dao/brc101d.map 16
+./maps/dao/brc101d.map 32
+./maps/dao/brc101d.map 64
