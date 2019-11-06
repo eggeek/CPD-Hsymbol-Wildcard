@@ -99,7 +99,7 @@ void PreprocessFwd(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
     square_sides.insert(square_sides.end(), x.begin(), x.end());
 
   printf("Saving data to %s\n", p.filename.c_str());
-  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  printf("begin size: %zu, entry size: %zu\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
   p.save(f);
   save_vector(f, square_sides);
@@ -158,7 +158,7 @@ void PreprocessFwdCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
     square_sides.insert(square_sides.end(), x.begin(), x.end());
 
   printf("Saving data to %s\n", p.filename.c_str());
-  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  printf("begin size: %zu, entry size: %zu\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
   p.save(f);
   save_vector(f, square_sides);
@@ -200,7 +200,7 @@ void PreprocessRev(Mapper& mapper, NodeOrdering& order, AdjGraph& g, const Param
 
   string fname = p.filename + "-inv";
   printf("Saving data to %s\n", fname.c_str());
-  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  printf("begin size: %zu, entry size: %zu\n", cpd.entry_count(), cpd.get_entry_size());
   FILE* f = fopen(fname.c_str(), "wb");
   p.save(f);
   order.save(f);
@@ -247,7 +247,7 @@ void PreprocessRevCentroid(Mapper& mapper, NodeOrdering& order, vector<int>& cen
   FILE*f;
   string fname = p.filename + "-inv";
   printf("Saving data to %s\n", fname.c_str());
-  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  printf("begin size: %zu, entry size: %zu\n", cpd.entry_count(), cpd.get_entry_size());
   f = fopen(fname.c_str(), "wb");
   p.save(f);
   save_vector(f, mapper.get_fa());
@@ -350,7 +350,7 @@ void PreprocessFwdCsymbol(Mapper& mapper, const NodeOrdering& order,
   for (auto& x: thread_square_side) square_sides.insert(square_sides.end(), x.begin(), x.end());
 
   printf("Saving data to %s\n", p.filename.c_str());
-  printf("begin size: %d, entry size: %d\n", cpd.entry_count(), cpd.get_entry_size());
+  printf("begin size: %zu, entry size: %zu\n", cpd.entry_count(), cpd.get_entry_size());
   FILE*f = fopen(p.filename.c_str(), "wb");
   p.save(f);
   save_vector(f, square_sides);

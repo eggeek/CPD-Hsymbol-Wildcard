@@ -51,7 +51,7 @@ public:
     return begin.size()-1;
   }
 
-  int entry_count()const{
+  size_t entry_count()const{
     return entry.size();
   }
 
@@ -72,7 +72,7 @@ public:
     entry = load_vector<int>(f);
   }
 
-  int get_entry_size() {
+  size_t get_entry_size() {
     return entry.size();
   }
   const vector<int>& get_entry() const {
