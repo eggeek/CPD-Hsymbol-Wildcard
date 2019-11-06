@@ -210,7 +210,7 @@ static inline vector<int> compute_centroid(Mapper& mapper, int r) {
   }
   vector<double> dists = flood_fill(seeds, mapper);
   for (int i=0; i<mapper.node_count(); i++) {
-    assert(i < max(height, width));
+    assert(dists[i] < max(height, width));
   }
   priority_queue<Candidate, vector<Candidate>> c1;
   for (int i=0; i<mapper.node_count(); i++) {
