@@ -95,6 +95,7 @@ namespace TEST_QUERY{
   TEST_CASE("forward-centroid-query", "[.run]") {
     ifstream file(default_testcase_path + "forward-centroid-query.in");
     while (file >> mpath >> indexpath >> spath) {
+      cerr << "Testing: " << indexpath << endl;
       string output = "forward-centroid-" + getIndexName(indexpath) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
@@ -148,6 +149,7 @@ namespace TEST_QUERY{
     ifstream file(default_testcase_path + "focal-search.in");
     int L = 0;
     while (file >> mpath >> spath >> L) {
+      cerr << "Testing: " << mpath.c_str() << endl;
       string output = "focal-search-" + getMapName(mpath) + ".out";
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
