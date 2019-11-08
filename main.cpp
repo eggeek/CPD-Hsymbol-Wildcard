@@ -72,6 +72,7 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
     runner = GetInvCPDCost;
 
   Extracter e;
+  e.init(ref.graph.node_count());
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -80,7 +81,7 @@ void GetExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::vector<S
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
     exps[x].c = Counter{0, 0, 0};
-    e.reset(ref.graph.node_count());
+    e.reset(x);
     auto stime = std::chrono::steady_clock::now();
       exps[x].c.pathcost = runner(ref, s, g, hLevel, exps[x].c, e, -1);
     auto etime = std::chrono::steady_clock::now();
@@ -102,6 +103,8 @@ void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::ve
     runner = GetInvCentroidCost;
 
   Extracter e1, e2;
+  e1.init(ref.graph.node_count());
+  e2.init(ref.graph.node_count());
   for (int x=0; x<scen.GetNumExperiments(); x++) {
     double dist = scen.GetNthExperiment(x).GetDistance();
     xyLoc s, g;
@@ -110,8 +113,7 @@ void GetSubOptExperimentsSRCTime(const Index& ref, ScenarioLoader& scen, std::ve
     g.x = scen.GetNthExperiment(x).GetGoalX();
     g.y = scen.GetNthExperiment(x).GetGoalY();
     exps[x].c = Counter{0, 0, 0};
-    e1.reset(ref.graph.node_count());
-    e2.reset(ref.graph.node_count());
+    e1.reset(x), e2.reset(x);
     auto stime = std::chrono::steady_clock::now();
       exps[x].c.pathcost = runner(ref, s, g, p.hLevel, exps[x].c, e1, e2, -1);
     auto etime = std::chrono::steady_clock::now();

@@ -49,6 +49,9 @@ namespace TEST_QUERY{
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
       ScenarioLoader scens(spath.c_str());
+
+      Extracter e;
+      e.init(data.graph.node_count());
       for (int i=0; i<scens.GetNumExperiments(); i++) {
         double dist = scens.GetNthExperiment(i).GetDistance();
         xyLoc s, g;
@@ -57,10 +60,10 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        Extracter e;
-        e.reset(data.graph.node_count());
+        e.reset(i);
         c.pathcost = GetInvCPDCost(data, s, g, data.p.hLevel, c, e);
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
+        REQUIRE(c.pathcost - dist <= warthog::EPS);
+        REQUIRE(c.pathcost - dist > -warthog::EPS);
       }
     }
   }
@@ -73,6 +76,9 @@ namespace TEST_QUERY{
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
       ScenarioLoader scens(spath.c_str());
+      Extracter e1, e2;
+      e1.init(data.graph.node_count());
+      e2.init(data.graph.node_count());
       for (int i=0; i<scens.GetNumExperiments(); i++) {
         double dist = scens.GetNthExperiment(i).GetDistance();
         xyLoc s, g;
@@ -81,13 +87,12 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        Extracter e1, e2;
-        e1.reset(data.graph.node_count());
-        e2.reset(data.graph.node_count());
+        e1.reset(i), e2.reset(i);
         c.pathcost = GetInvCentroidCost(data, s, g, data.p.hLevel, c, e1, e2);
         int l = data.p.centroid;
         double ub = 2.0 * l;
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + ub);
+        REQUIRE(c.pathcost - dist <= warthog::EPS + ub);
+        REQUIRE(c.pathcost - dist >= -warthog::EPS);
       }
     }
   }
@@ -100,6 +105,9 @@ namespace TEST_QUERY{
       LoadMap(mpath.c_str(), mapData, width, height);
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
       ScenarioLoader scens(spath.c_str());
+      Extracter e1, e2;
+      e1.init(data.graph.node_count());
+      e2.init(data.graph.node_count());
       for (int i=0; i<scens.GetNumExperiments(); i++) {
         double dist = scens.GetNthExperiment(i).GetDistance();
         xyLoc s, g;
@@ -108,13 +116,12 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        Extracter e1, e2;
-        e1.reset(data.graph.node_count());
-        e2.reset(data.graph.node_count());
+        e1.reset(i), e2.reset(i);
         c.pathcost = GetForwardCentroidCost(data, s, g, data.p.hLevel, c, e1, e2);
         int l = data.p.centroid;
         double ub = 2.0 * l;
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + ub);
+        REQUIRE(c.pathcost - dist <= warthog::EPS + ub);
+        REQUIRE(c.pathcost - dist >= -warthog::EPS);
       }
     }
   }
@@ -129,6 +136,8 @@ namespace TEST_QUERY{
       Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
       CPD cpd;
       ScenarioLoader scens(spath.c_str());
+      Extracter e;
+      e.init(data.graph.node_count());
       for (int i=0; i<scens.GetNumExperiments(); i++) {
         double dist = scens.GetNthExperiment(i).GetDistance();
         xyLoc s, g;
@@ -137,10 +146,10 @@ namespace TEST_QUERY{
         g.x = scens.GetNthExperiment(i).GetGoalX();
         g.y = scens.GetNthExperiment(i).GetGoalY();
         Counter c = Counter{0, 0, 0};
-        Extracter e;
-        e.reset(data.graph.node_count());
+        e.reset(i);
         c.pathcost = GetPathCostSRC(data, s, g, data.p.hLevel, c, e);
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS);
+        REQUIRE(c.pathcost - dist <= warthog::EPS);
+        REQUIRE(c.pathcost - dist >= -warthog::EPS);
       }
     }
   }
@@ -168,7 +177,9 @@ namespace TEST_QUERY{
         fs.reset();
         c.pathcost = (double)fs.run(mapper(s), mapper(g), L);
         c.steps = fs.extract_path(mapper(s), mapper(g));
-        REQUIRE(fabs(c.pathcost - dist) <= warthog::EPS + (double)L);
+        double diff = c.pathcost - dist;
+        REQUIRE(diff <= warthog::EPS + (double)L);
+        REQUIRE(diff >= -warthog::EPS);
       }
     }
   }
