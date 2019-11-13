@@ -285,8 +285,12 @@ TEST_CASE("cnums") {
     LoadMap(mpath.c_str(), mapData, width, height);
     Index data = LoadIndexData(mapData, width, height, index_path.c_str());
     int cnums = 0;
-    for (int i=0; i<data.mapper.node_count(); i++) if (data.mapper.get_fa()[i] == i) cnums++;
-    output << getMapName(mpath) << "," << data.p.csymbol << "," << cnums << endl;
+    if (data.p.centroid) {
+      for (int i=0; i<data.mapper.node_count(); i++) if (data.mapper.get_fa()[i] == i) cnums++;
+    }
+    else
+      cnums = data.mapper.node_count();
+    output << getMapName(mpath) << "," << data.p.centroid << "," << cnums << endl;
   }
 }
 
