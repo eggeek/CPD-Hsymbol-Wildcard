@@ -275,4 +275,19 @@ TEST_CASE("inspect-fwd-centroid-symbol") {
   }
 }
 
+TEST_CASE("cnums") {
+  ifstream file(default_testcase_path + "cnums.in");
+  string index_path;
+  ofstream output("cnums.out");
+  string header = "map,r,size";
+  output << header << endl;
+  while (file >> mpath >> index_path) {
+    LoadMap(mpath.c_str(), mapData, width, height);
+    Index data = LoadIndexData(mapData, width, height, index_path.c_str());
+    int cnums = 0;
+    for (int i=0; i<data.mapper.node_count(); i++) if (data.mapper.get_fa()[i] == i) cnums++;
+    output << getMapName(mpath) << "," << data.p.csymbol << "," << cnums << endl;
+  }
+}
+
 }
