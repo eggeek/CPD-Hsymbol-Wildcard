@@ -279,7 +279,7 @@ TEST_CASE("cnums") {
   ifstream file(default_testcase_path + "cnums.in");
   string index_path;
   ofstream output("cnums.out");
-  string header = "map,r,size";
+  string header = "map,r,cnums,size";
   output << header << endl;
   while (file >> mpath >> index_path) {
     LoadMap(mpath.c_str(), mapData, width, height);
@@ -290,7 +290,8 @@ TEST_CASE("cnums") {
     }
     else
       cnums = data.mapper.node_count();
-    output << getMapName(mpath) << "," << data.p.centroid << "," << cnums << endl;
+    output << getMapName(mpath) << "," << data.p.centroid << "," << cnums << "," 
+           << data.mapper.node_count() << endl;
   }
 }
 
