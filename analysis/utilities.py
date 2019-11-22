@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 import os
 
 alias = {}
@@ -55,11 +56,11 @@ def load_files(paths):
     res = pd.concat(frames)
     return res
 
-def gen_xy(df=None, colx='', coly='', ignore=True, limit=20):
+def gen_xy(df=None, colx='', coly='', ignore=True, limit=20, aggregate=np.average):
     tg = df.groupby(colx)
     x = []
     y = []
-    for k, v in tg[coly].apply(lambda _: np.average(_)).items():
+    for k, v in tg[coly].apply(lambda _: aggregate(_)).items():
         if ignore and tg.size()[int(k)] < limit:
             continue
         x.append(int(k))
@@ -68,7 +69,7 @@ def gen_xy(df=None, colx='', coly='', ignore=True, limit=20):
 
 def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None, 
                yscale='log', xscale=None, ylim=None, xlim=None, saveto=None, xticks=None, yticks=None,
-               loc='out'):
+               loc='out', **kw):
     
     fig, ax = plt.subplots()
     ax.set_xlabel(xlabel)
@@ -87,16 +88,16 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
         ax.set_xlim(xlim)
     if xticks is not None:
       print(xticks)
-      plt.xticks(xticks[0], xticks[1])
+      plt.xticks(xticks)
     if yticks is not None:
-      plt.yticks(yticks[0], yticks[1])
+      plt.yticks(yticks)
 
     n = len(xs)
     for i in range(n):
         x = xs[i]
         y = ys[i]
         if styles.get(labels[i]) is not None:
-            plt.plot(x, y, styles[labels[i]], label=labels[i])
+            plt.plot(x, y, styles[labels[i]], label=labels[i], markersize=5)
         else:
             # ax.scatter(x, y)
             ax.plot(x, y, label=labels[i])
@@ -104,7 +105,8 @@ def plot_graph(xlabel='', ylabel='', xs=[[]], ys=[[]], labels=[], color=None,
     if loc == 'in':
       ax.legend(loc='best', fancybox=True, framealpha=0, prop={'size': 14})
     else:
-      ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=4, fancybox=True, prop={'size': 16})
+      bbox_to_anchor = kw.get("bbox_to_anchor", (0.5, 1.4))
+      ax.legend(loc='upper center', bbox_to_anchor=bbox_to_anchor, ncol=4, fancybox=True, prop={'size': 16})
     plt.grid(True)
     if saveto is not None:
         fig.savefig(saveto, bbox_inches='tight')
