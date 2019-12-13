@@ -1,19 +1,16 @@
 * `./index_data`: stores all precomputed CPDs (untracked)
-  * index file names are in format `*-RLE-{int}`, where `{int}` indicates the heuristic level
-    of H symbol
-    * `*-RLE-0`: no H symbol
-    * `*-RLE-1`: simple heuristic function
+  * index file names are in format `{mapname}-{order}-{int}-opt` or `{mapname}-{order}-{int}-c{int}`, where 
+  * `{mapname}` is the name of the map, e.g. `AcrosstheCape.map`
+  * `{order}` is the ordering, e.g. `DFS` or `CUT`
+  * `{int}` indicates the heuristic level, usually is `3`
+  * `c{int}` indicates the size of centroid, e.g. `c3` means the radius of centroid is 3
+  * `opt` indicates it's a full optimal CPD (size of centroid is `0`)
 
-* `extract_size.sh`: extracts the size of each index file and output by stdout
-* `run_all.sh`: run all scenarios with index, results are stored in
-  `output/{mapname}-{int}.txt`
-  * where `{int}` indicates the heuristic level
+* `all-pre.sh`: precompute all index
+* `all-run.sh`: run all scenarios with precomputed index
 
 * run test: `./bin/test`
 * examples of run a single scenario
-  * `./bin/main -run maps/arena.map scens/arena.map.scen`
-  * `./bin/main -run 0 maps/arena.map scens/arena.map.scen` (heuristic level is `0`)
-  * `./bin/main -run 1 maps/arena.map scens/arena.map.scen` (heuristic level is `1`)
-  * `./bin/main -full maps/arena.map scens/arena.map.scen` (create index and run)
-  * `./bin/main -pre maps/arena.map scens/arena.map.scen` (only create index)
-
+  * `./bin/main -F -M maps/arena.map -S scens/arena.map.scen -L 3`: precompute and run
+  * `./bin/main -P -M maps/arena.map -L 3`: precompute only
+  * `./bin/main -R -M maps/arena.map -S scens/arena.map.scen`: run with precomputed index

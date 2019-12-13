@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <strings.h>
 #include <unistd.h>
 #include "ScenarioLoader.h"
 #include "preprocessing.h"
@@ -192,7 +193,7 @@ int main(int argc, char **argv) {
     ("hLevel,L", po::value<int>(&hLevel)->default_value(0), "Level of heuristic")
     ("map,M", po::value<string>(&mpath)->required(), "path of map")
     ("scen,S", po::value<string>(&spath), "path of scenario")
-    ("index,I", po::value<string>(&indexpath), "path of index")
+    ("index,I", po::value<string>(&indexpath)->default_value(""), "path of index")
     ("type,T", po::value<string>(&itype)->default_value("fwd"), "type of cpd")
     ("output,O", po::value<string>(&outfname), "output path")
     ("order", po::value<string>(&otype)->default_value("DFS"), "type of ordering")
@@ -243,6 +244,9 @@ int main(int argc, char **argv) {
     return 0;
 
   Index data;
+  if (indexpath == "") {
+    indexpath = string(filename);
+  }
   data = LoadIndexData(mapData, width, height, indexpath.c_str());
   if (vm.count("cnum")) {
     if (data.p.centroid)
