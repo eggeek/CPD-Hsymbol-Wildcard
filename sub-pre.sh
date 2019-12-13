@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 map_names=(
-Archipelago
-ca_cavern1_haunted
-maze-100-1
-orz300d
-random-100-33
-room-100-10
+Aurora
+orz103d
+maze-400-4
+room-400-40
+random-400-33
 )
 
 map_dir="./maps/gppc/"
 scen_dir="./scens/gppc/"
-order="FRACTAL"
-cs=(0)
+order="DFS"
+cs=(64 32 16 8 4 2 0)
 
 run_cpd() {
   echo "----- Preprocess CPD -----" 
@@ -19,6 +18,13 @@ run_cpd() {
   for i in "${map_names[@]}"; do
     mpath="${map_dir}${i}.map"
     spath="${scen_dir}${i}.map.scen"
+
+    for c in "${cs[@]}"; do
+      cmd="./bin/main -P -M ${mpath} -L 3 --order ${order} --centroid ${c} -T inv"
+      echo $cmd
+      eval $cmd
+    done
+
     for c in "${cs[@]}"; do
       cmd="./bin/main -P -M ${mpath} -L 3 --order ${order} --centroid ${c}"
       echo $cmd

@@ -10,16 +10,35 @@ struct Counter {
 
 struct Extracter {
   vector<int> moves;
+  vector<int> vis;
   int steps;
+  int scenid;
+  int last;
 
-  void reset(int size) {
+  void init(int size) {
     moves.resize(size);
+    vis.resize(size);
+    fill(vis.begin(), vis.end(), -1);
+    scenid = -1;
     steps = 0;
+  }
+
+  void reset(int id) {
+    steps = 0;
+    scenid = id;
   }
 
   void add(int move) {
     moves[steps++] = move;
     assert(steps <= (int)moves.size());
+  }
+
+  void mark(int locid) {
+    vis[locid] = scenid;
+  }
+
+  inline bool isVis(int locid) {
+    return vis[locid] == scenid;
   }
 };
 

@@ -67,6 +67,22 @@ TEST_CASE("Hmove2", "[hsymbol]") {
   }
 }
 
+TEST_CASE("Hmove3", "[hsymbol]") {
+  ifstream file(default_testcase_path + "hmoves3_0.in");
+  xyLoc s, t;
+  int expected;
+  int hLevel = 3;
+  while (LoadScen(file, s, t)) {
+    file >> expected;
+    cout << height << " " << width << endl;
+    Mapper mapper(mapData, width, height);
+    int hmove = Hsymbol::get_heuristic_move3(mapper(s), mapper(t), mapper);
+    printf("expected (%d): ", expected); Mapper::set2direct(expected);
+    printf("actual (%d): ", (1<< hmove)); Mapper::set2direct(1<<hmove);
+    REQUIRE((1<< hmove) == expected);
+  }
+}
+
 TEST_CASE("badcase", "[.findworst]") {
   mpath = "./tests/maps/arena.map";
   LoadMap(mpath.c_str(), mapData, width, height);

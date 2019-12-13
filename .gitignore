@@ -13,3 +13,5 @@ competitors/tree/index_data/*
 competitors/tree/test
 .*
 **/__pycache__
+temp/*
+*/.ipynb_checkpoints/*

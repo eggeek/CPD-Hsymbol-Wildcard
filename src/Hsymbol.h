@@ -123,8 +123,10 @@ static inline int get_heuristic_move3(int s, int t, const Mapper& mapper) {
   int move = warthog::INVALID_MOVE;
   xyLoc sloc = mapper(s);
   xyLoc tloc = mapper(t);
-  int dx = tloc.x - sloc.x;
-  int dy = tloc.y - sloc.y;
+  int dx = (int)tloc.x - (int)sloc.x;
+  int dy = (int)tloc.y - (int)sloc.y;
+  if (iabs(dx) <= 1 && iabs(dy) <= 1 && (mapper.get_neighbor(s) & (1<<warthog::v2i[dx+1][dy+1])))
+    return warthog::v2i[dx+1][dy+1];
   int quad = quadrant[signbit(dx) + 1][signbit(dy) + 1];
   int part = get_coord_part(dx, dy);
   //int no_diagonal= (dx == 0) | (dy == 0);
@@ -222,6 +224,7 @@ static inline void add_extr_inv_move(int target, vector<unsigned short>& inv_all
   for (int s=0; s<(int)inv_allowed.size(); s++) if (s != target) {
     int pruned = mapper.get_pruned_neighbor(s);
     int extra_mask = 0;
+    if (pruned == 0) continue;
     for (int j=0; j<8; j++) if (!((1<<j) & pruned)) {
       int m = get_closest_valid_move(s, j, mapper);
       assert(m != -1);

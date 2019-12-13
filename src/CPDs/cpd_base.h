@@ -22,8 +22,9 @@ public:
   //! them.
   void append_row(int source_node, const std::vector<unsigned short>&first_move,
                   const Mapper& mapper, const int side);
-
   void append_rows(const CPDBASE&other);
+  void append_compressed_cpd_row(vector<int> compressed_row);
+
   //! Get the first move. 
   //! An ID of 0xF means that there is no path. 
   //! If source_node == target_node then return value is undefined. 
@@ -50,7 +51,7 @@ public:
     return begin.size()-1;
   }
 
-  int entry_count()const{
+  size_t entry_count()const{
     return entry.size();
   }
 
@@ -71,7 +72,7 @@ public:
     entry = load_vector<int>(f);
   }
 
-  int get_entry_size() {
+  size_t get_entry_size() {
     return entry.size();
   }
   const vector<int>& get_entry() const {
@@ -80,6 +81,10 @@ public:
 
   const vector<int>& get_begin() const {
     return begin;
+  }
+
+  vector<int> get_ith_compressed_row(int i) {
+    return vector<int>(entry.begin()+begin[i], entry.begin()+begin[i+1]);
   }
 
   int get_heuristic_cnt(int row) const {
@@ -94,6 +99,18 @@ public:
     return hcnt;
   }
 
+  int get_centroid_cnt(int row) const {
+    int ccnt = 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::CENTMASK)) {
+        int node_begin = entry[i]>>4;
+        int node_end = i+1==begin[row+1]?node_count(): entry[i+1]>>4;
+        ccnt += node_end - node_begin;
+      }
+    }
+    return ccnt;
+  }
+
   int get_heuristic_run(int row) const {
     int hrun= 0;
     for (int i=begin[row]; i<begin[row+1]; i++) {
@@ -102,18 +119,26 @@ public:
     return hrun;
   }
 
+  int get_centroid_run(int row) const {
+    int crun= 0;
+    for (int i=begin[row]; i<begin[row+1]; i++) {
+      if ((1<<(entry[i]&0xF) == warthog::CENTMASK)) crun++;
+    }
+    return crun;
+  }
+
   static unsigned short find_first_allowed_out_arc(unsigned short allowed) {
     return warthog::m2i.at(warthog::lowb(allowed));
   };
 
-protected:
-  std::vector<int>begin;
-  std::vector<int>entry;
-
   bool is_in_square(
     int x, int side, int source_node,
     const Mapper& mapper) const;
-  
+ 
+protected:
+  std::vector<int>begin;
+  std::vector<int>entry;
+ 
   int get_allowed(
     int x, int s, int side,
     const vector<unsigned short>& fmoves,

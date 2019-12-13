@@ -1,0 +1,3 @@
+[submodule "CPD-Visualizer"]
+	path = CPD-Visualizer
+	url = git@github.com:eggeek/CPD-Visualizer.git

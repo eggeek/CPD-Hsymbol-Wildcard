@@ -20,7 +20,7 @@ namespace TEST_LOAD {
 
       FILE* f = fopen(indexpath.c_str(), "rb");
       data.p.load(f);
-      if (data.p.itype == "vanilla") {
+      if (data.p.itype == "fwd") {
         data.square_sides = load_vector<int>(f);
         REQUIRE((int)data.square_sides.size() == data.mapper.node_count());
       }

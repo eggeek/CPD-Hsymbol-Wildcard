@@ -6,28 +6,35 @@ order="DFS"
 cs=(0 2 4 8 16 32 64)
 
 run_cpd() {
-  echo "----- Preprocess CPD -----" 
+  echo "----- Preprocess CPD -----".
   # precompute cpd
   for i in "${map_names[@]}"; do
     mpath="${map_dir}${i}"
     spath="${scen_dir}${i}.scen"
     for c in "${cs[@]}"; do
-      cmd="./bin/main -P -M ${mpath} -L 3 --centroid ${c}"
-      if [ $c -ne 0 ]
-      then
-        cpdpath="./index_data/${i}-DFS-3-c${c}"
-      else
-        cpdpath="./index_data/${i}-DFS-3-opt"
-      fi
-      invcpdpath="$cpdpath-inv"
+    cmd="./bin/main -P -M ${mpath} -L 3 --centroid ${c}"
+    if [ $c -ne 0 ]
+    then
+     cpdpath="./index_data/${i}-DFS-3-c${c}"
+    else
+     cpdpath="./index_data/${i}-DFS-3-opt"
+    fi
+    invcpdpath="$cpdpath-inv"
 
-      if [ ! -f "$cpdpath" ] || [ ! -f "$invcpdpath" ]; then
-        echo $cmd
-        eval $cmd
-      fi
+    if [ ! -f "$cpdpath" ]; then
+     echo $cmd
+     eval $cmd
+    fi
+
+    if [ ! -f "$invcpdpath" ]; then
+      cmd=$cmd" -T inv"
+      echo $cmd
+      eval $cmd
+    fi
     done
   done
 }
+
 
 run_tree() {
   echo "----- Preprocess competitor: tree -----" 

@@ -4,6 +4,8 @@
 #include <chrono>
 #include <time.h>
 #include <algorithm>
+#include <random>
+#include <square_wildcard.h>
 #include "catch.hpp"
 #include "dijkstra.h"
 #include "preprocessing.h"
@@ -55,8 +57,8 @@ namespace TEST_PREPROCESS {
     while (file >> mpath >> centroid) {
       string output = getMapName(mpath) + "-" + to_string(centroid) + "-centroid.out";
       LoadMap(mpath.c_str(), mapData, width, height);
-      Parameters p{"DFS", "vanilla", output, 3, centroid};
-      PreprocessCentroid(mapData, width, height, p);
+      Parameters p{"DFS", "fwd", output, 3, centroid};
+      PreprocessMap(mapData, width, height, p);
     }
   }
 
@@ -84,23 +86,82 @@ namespace TEST_PREPROCESS {
         }
         else {
           string output = getMapName(mpath) + "-opt.out";
-          Parameters p{"DFS", "vanilla", output, 3, centroid};
+          Parameters p{"DFS", "fwd", output, 3, centroid};
           PreprocessMap(mapData, width, height, p);
         }
       }
       else if (itype == "inv") {
         string output = getMapName(mpath) + "-" + to_string(centroid) + "-inv.out";
         Parameters p{"DFS", "inv", output, 3, centroid};
-        PreprocessRevCentroid(mapData, width, height, p);
+        PreprocessMap(mapData, width, height, p);
       }
       else {
         string output = getMapName(mpath) + "-" + to_string(centroid) + ".out";
-        Parameters p{"DFS", "vanilla", output, 3, centroid};
-        PreprocessCentroid(mapData, width, height, p);
+        Parameters p{"DFS", "fwd", output, 3, centroid};
+        PreprocessMap(mapData, width, height, p);
       }
       auto etime = std::chrono::steady_clock::now();
       double tcost = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
       out << mapname << "," << itype << "," << centroid << "," << tcost << endl;
+    }
+  }
+
+  TEST_CASE("square-wildcard", "[.pre]") {
+    ifstream file(default_testcase_path + "square-wildcard.in");
+    xyLoc s;
+    int hLevel = 3;
+    while (file >> mpath >> s.x >> s.y) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Mapper mapper(mapData, width, height);
+      AdjGraph g(extract_graph(mapper));
+      Dijkstra dij(g, mapper);
+      dij.run(mapper(s), hLevel);
+      SquareWildcard sq(mapper, s);
+      int side = sq.computeMaxSquare(dij.get_allowed());
+    }
+  }
+
+  TEST_CASE("csymbol", "[.computed]") {
+    ifstream file(default_testcase_path + "centroid-symbol.in");
+    xyLoc s;
+    string indexpath;
+    int hLevel = 3;
+    while (file >> mpath >> indexpath) {
+      LoadMap(mpath.c_str(), mapData, width, height);
+      Index data = LoadIndexData(mapData, width, height, indexpath.c_str());
+      REQUIRE(data.p.csymbol > 0);
+      Mapper mapper = data.mapper;
+      AdjGraph g(extract_graph(mapper));
+      Dijkstra dij(g, mapper);
+      Dijkstra dijc(g, mapper);
+      while (file >> s.x >> s.y) {
+        if (s.x == 0 && s.y == 0) break;
+        int sid = data.mapper(s);
+        int cent = data.mapper.get_fa()[sid];
+        vector<int> temp_sides, temp_sidesc;
+
+        dij.run(sid, hLevel, temp_sides);
+        REQUIRE(data.square_sides[sid] == temp_sides.back());
+
+        dijc.run(cent, hLevel, temp_sidesc);
+        REQUIRE(data.square_sides[cent] == temp_sidesc.back());
+
+        for (int i=0; i<data.mapper.node_count(); i++) if (i != sid) {
+          xyLoc loc = data.mapper(i);
+          int m = data.cpd.get_first_move(sid, i);
+          if ((1<<m) != warthog::CENTMASK) continue;
+          if (data.cpd.is_in_square(i, data.square_sides[sid], sid, data.mapper)) continue;
+          int side = data.square_sides[cent];
+          int move;
+          if (data.cpd.is_in_square(i, side, cent, data.mapper))
+            move = warthog::m2i.at(warthog::HMASK);
+          else
+            move = data.cpd.get_first_move(cent, i);
+          int mask1 = dij.get_allowed()[i];
+          int mask2 = dijc.get_allowed()[i];
+          REQUIRE((mask1 & (1<<move)) > 0);
+        }
+      }
     }
   }
 
@@ -121,7 +182,8 @@ namespace TEST_PREPROCESS {
       arr.resize(mapper.node_count());
       for (int i=0; i<(int)arr.size(); i++) 
         arr[i] = i;
-      std::random_shuffle(arr.begin(), arr.end());
+      unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+      std::shuffle(arr.begin(), arr.end(), std::default_random_engine(seed));
       queries = min(queries, mapper.node_count());
       Dijkstra dij(g, mapper);
 
