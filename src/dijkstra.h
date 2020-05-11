@@ -1,5 +1,4 @@
-#ifndef DIJKSTRA_H
-#define DIJKSTRA_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -131,6 +130,8 @@ public:
     return allowed;
   }
 
+  const vector<int>& get_dist() const { return dist; }
+
 private:
   const AdjGraph&g;
   min_id_heap<int>q;
@@ -139,5 +140,3 @@ private:
   std::vector<unsigned short>inv_allowed;
   const Mapper& mapper;
 };
-
-#endif
