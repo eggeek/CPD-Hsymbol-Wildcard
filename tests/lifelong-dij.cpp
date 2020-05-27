@@ -58,11 +58,12 @@ namespace TEST_LIFELONG_DIJ {
 
   TEST_CASE("ll-dij-pre-pair", "[run-ll-dij]") {
     vector<tuple<string, int, int>> argvs = {
-      //{"./maps/brc000d.map",      5488, 5614},
-      //{"./tests/maps/test.map",   0, 1      },
+      {"./tests/maps/test.map",   24, 35      },
+      {"./tests/maps/arena.map",  1, 2      },
       {"./tests/maps/arena.map",  744, 540  },
-      {"./tests/maps/arena.map",  540, 744},
-      //{"./tests/maps/arena.map",  0, 1      }
+      {"./tests/maps/arena.map",  540, 744  },
+      {"./maps/brc000d.map",      5488, 5614},
+      {"./maps/brc000d.map",     5614, 5487},
     };
 
     for (auto& argv: argvs) {
@@ -88,7 +89,7 @@ namespace TEST_LIFELONG_DIJ {
       const vector<int>& dist_lldij = lldij.get_dist();
       for (int i=0; i<g.node_count(); i++) {
         if (dist_dij[i] != dist_lldij[i])
-          lldij.inq.p(mapper(i).x, mapper(i).y, s1, i, s1, 256);
+          lldij.inq.p(mapper(i).x, mapper(i).y, s1, i, s1, 512);
         REQUIRE(dist_dij[i] == dist_lldij[i]);
       }
     }
@@ -96,10 +97,12 @@ namespace TEST_LIFELONG_DIJ {
 
   TEST_CASE("ll-dij-pre-list", "[run-ll-dij]") {
     vector<tuple<string, vector<int>>> argvs = {
-      //{"./tests/maps/arena.map", {0,1,2,3,4,5,6,7,8,9,10,11,41}},
+      {"./maps/dao/den204d.map", {1493, 1550, 1651}},
+      {"./tests/maps/arena.map", {0,1,2,3,4,5,6,7,8,9,10,11,41}},
       {"./maps/brc000d.map",     {5488, 5614, 5487, 5360, 5243, 5242, 5131, 5130, 5020, 5019, 4910, 4909}},
       {"./maps/bg/AR0205SR.map", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 36}},
-      //{"./tests/maps/arena.map", {3,4}},
+      {"./tests/maps/arena.map", {3,4}},
+      {"./maps/gppc/AcrosstheCape.map", {0, 1, 3, 4, 5, 6, 7, 8, 9, 10}},
     };
     for (auto& argv: argvs) {
       string mpath = get<0>(argv);
@@ -135,10 +138,13 @@ namespace TEST_LIFELONG_DIJ {
         const auto& dist_dij = dij.get_dist();
         const auto& dist_lldij = lldij.get_dist();
         for (int j=0; j<g.node_count(); j++) {
+          if (dist_dij[j] != dist_lldij[j])
+            lldij.inq.p(mapper(j).x, mapper(j).y, sources[i], j, sources[i], 512);
           REQUIRE(dist_dij[j] == dist_lldij[j]);
         }
       }
-      cerr << "dij tcost: " << dij_cost << ", lldij tcost: " << lldij_cost << endl;
+      cerr << "dij tcost: " << dij_cost << ", lldij tcost: " << lldij_cost 
+           << ", speed up: " << (dij_cost - lldij_cost) / dij_cost << endl;
       cerr << "==============" << endl;
     }
   }

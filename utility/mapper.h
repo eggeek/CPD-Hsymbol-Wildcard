@@ -48,11 +48,16 @@ public:
   } 
 
   xyLoc operator()(int x)const{ return node_to_pos_[x]; }
-  int operator()(xyLoc p)const{ 
-    if(p.x < 0 || p.x >= width_ || p.y < 0 || p.y >= height_)
+
+  inline int operator()(const int& x, const int& y) const {
+    if (x < 0 || x >= width_ || y < 0 || y >= height_)
       return -1;
     else
-      return pos_to_node_[p.x + p.y*width_];
+      return pos_to_node_[x + y*width_];
+  }
+
+  inline int operator()(const xyLoc& p) const {
+    return (*this)(p.x, p.y);
   }
 
   void reorder(const NodeOrdering&order){
