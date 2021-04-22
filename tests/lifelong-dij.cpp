@@ -6,6 +6,7 @@
 #include "mapper.h"
 #include <limits>
 #include <tuple>
+#include <chrono>
 using namespace std;
 
 namespace TEST_LIFELONG_DIJ {
@@ -27,125 +28,134 @@ namespace TEST_LIFELONG_DIJ {
         if (dist[i] + a.weight == dist[a.target]) succ[i] |= 1 << a.direction;
       }
     }
+  } 
+
+  void get_path(int s, int t, Dijkstra& dij, AdjGraph& g, vector<int>& path) {
+    dij.run(s, 0);
+    path.clear();
+    int d = dij.get_dist()[t]; 
+    int cur = t;
+    while (d > 0) {
+      path.push_back(cur);
+      int pre = -1;
+      for (auto a: g.out(cur)) if (dij.get_dist()[a.target] + a.weight == d) {
+        pre = a.target;
+        d -= a.weight;
+        break;
+      }
+      assert(pre != -1);
+      cur = pre;
+    }
+    path.push_back(s);
+    reverse(path.begin(), path.end());
   }
 
-  TEST_CASE("ll-dij-trivial", "[run-ll-dij]") {
-    for (string mpath: { 
-        "./tests/maps/test.map", 
-        "./tests/maps/arena.map", 
-        "./maps/brc000d.map"
-    }) {
-      LoadMap(mpath.c_str(), mapData, width, height);
-      Mapper mapper(mapData, width, height);
-      AdjGraph g(extract_graph(mapper));
-      Dijkstra dij(g, mapper);
-      LifeLongDijkstra lldij(g, mapper);
-
-      vector<int> succ(g.node_count(), 0);
-      vector<int> dist(g.node_count(), numeric_limits<int>::max());
-
-      int s = 0;
-      lldij.run(s, dist, succ);
-      dij.run(s, 0);
-
-      const vector<int>& dist_dij = dij.get_dist();
-      const vector<int>& dist_lldij = lldij.get_dist();
-      for (int i=0; i<g.node_count(); i++) {
-        REQUIRE(dist_dij[i] == dist_lldij[i]);
+  void build_pa(vector<int>& pa, const vector<int>& dist, const AdjGraph& g) {
+    fill(pa.begin(), pa.end(), -1);
+    for (int i=0; i<g.node_count(); i++) {
+      for (auto& a: g.out(i)) {
+        if (dist[i] + a.weight == dist[a.target]) 
+          pa[a.target] = i;
       }
     }
   }
 
-  TEST_CASE("ll-dij-pre-pair", "[run-ll-dij]") {
-    vector<tuple<string, int, int>> argvs = {
-      {"./tests/maps/test.map",   24, 35      },
-      {"./tests/maps/arena.map",  1, 2      },
-      {"./tests/maps/arena.map",  744, 540  },
-      {"./tests/maps/arena.map",  540, 744  },
-      {"./maps/brc000d.map",      5488, 5614},
-      {"./maps/brc000d.map",     5614, 5487},
-    };
+  void validate_dist(const vector<int>& dist, 
+    const vector<int>& dist_ll, const AdjGraph& g) {
+    for (int i=0; i<g.node_count(); i++) {
+      REQUIRE(dist[i] == dist_ll[i]);
+    }
+  }
 
-    for (auto& argv: argvs) {
-      string mpath = get<0>(argv);
-      int s0 = get<1>(argv), s1 = get<2>(argv);
-      LoadMap(mpath.c_str(), mapData, width, height);
-      Mapper mapper(mapData, width, height);
-      AdjGraph g(extract_graph(mapper));
-      Dijkstra dij(g, mapper);
-      LifeLongDijkstra lldij(g, mapper);
+  void validate_pa(
+    const vector<int>& pa, const vector<int>& dist,
+    const vector<int>& pa_ll, const vector<int>& dist_ll,
+    const AdjGraph& g) {
+    int n = pa.size();
+    REQUIRE(dist.size() == n);
+    REQUIRE(pa_ll.size() == n);
+    REQUIRE(dist_ll.size() == n);
 
-      vector<int> succ(g.node_count());
-      dij.run(s0, 0);
-      cerr << "building succ" << endl;
-      fill(succ.begin(), succ.end(), 0);
-      build_succ(succ, dij.get_dist(), g);
-
-      cerr << "running lifelong dij" << endl;
-      lldij.run(s1, dij.get_dist(), succ);
-
-      dij.run(s1, 0);
-      const vector<int>& dist_dij = dij.get_dist();
-      const vector<int>& dist_lldij = lldij.get_dist();
-      for (int i=0; i<g.node_count(); i++) {
-        if (dist_dij[i] != dist_lldij[i])
-          lldij.inq.p(mapper(i).x, mapper(i).y, s1, i, s1, 512);
-        REQUIRE(dist_dij[i] == dist_lldij[i]);
+    for (int i=0; i<n; i++) {
+      for (auto& a: g.out(i)) 
+      if (pa[a.target] == i) {
+        REQUIRE(dist[i] + a.weight == dist[a.target]);
+      }
+      for (auto& a: g.out(i)) 
+      if (pa_ll[a.target] == i) {
+        assert(dist_ll[i] + a.weight == dist_ll[a.target]);
+        REQUIRE(dist_ll[i] + a.weight == dist_ll[a.target]);
       }
     }
   }
 
-  TEST_CASE("ll-dij-pre-list", "[run-ll-dij]") {
+  TEST_CASE("ll-dij") {
     vector<tuple<string, vector<int>>> argvs = {
-      {"./maps/dao/den204d.map", {1493, 1550, 1651}},
-      {"./tests/maps/arena.map", {0,1,2,3,4,5,6,7,8,9,10,11,41}},
-      {"./maps/brc000d.map",     {5488, 5614, 5487, 5360, 5243, 5242, 5131, 5130, 5020, 5019, 4910, 4909}},
-      {"./maps/bg/AR0205SR.map", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 36}},
+      {"./maps/dao/den204d.map", {1493, 1550}},
       {"./tests/maps/arena.map", {3,4}},
-      {"./maps/gppc/AcrosstheCape.map", {0, 1, 3, 4, 5, 6, 7, 8, 9, 10}},
+      {"./maps/gppc/AcrosstheCape.map", {2312, 23256}},
+      {"./maps/brc000d.map",     {5488, 4909}},
     };
+
     for (auto& argv: argvs) {
-      string mpath = get<0>(argv);
-      vector<int> sources = get<1>(argv);
+      string& mpath = get<0>(argv);
+      vector<int> nodes = get<1>(argv);
+      vector<int> succ, pa;
+      vector<xyLoc> coord;
+      vector<int> dist, lldist;
+
+
       LoadMap(mpath.c_str(), mapData, width, height);
       Mapper mapper(mapData, width, height);
       AdjGraph g(extract_graph(mapper));
+      coord.resize(g.node_count());
+      succ.resize(g.node_count());
+      pa.resize(g.node_count());
       Dijkstra dij(g, mapper);
       LifeLongDijkstra lldij(g, mapper);
-      vector<int> succ(g.node_count());
 
-      cerr << ">>>>> Map: " << mpath << ", size: " << g.node_count() << endl;
-      double lldij_cost = 0, dij_cost = 0;
-      auto stime = std::chrono::steady_clock::now();
-      dij.run(sources[0], 0);
-      auto etime = std::chrono::steady_clock::now();
-      double init = std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-      lldij_cost += init;
-      dij_cost += init;
-      cerr << "init: (" << mapper(sources[0]).x << ", " << mapper(sources[0]).y << ")" << endl;
-      for (int i=1; i<(int)sources.size(); i++) {
-        cerr << "(" << mapper(sources[i]).x << ", " << mapper(sources[i]).y << ")" << endl;
+      if (nodes.size() == 2) {
+        get_path(nodes[0], nodes[1], dij, g, nodes);
+      }
+
+      double lldij_cost = 0, dij_cost = 0, avg_prop = 0, avg_expan = 0;
+      dij.run(nodes[0], 0);
+      dist = vector<int>(dij.get_dist());
+      build_pa(pa, dist, g);
+      lldij.set_pa(pa);
+
+      for (int i=1; i<(int)nodes.size(); i++) {
+
+        auto stime = std::chrono::steady_clock::now();
+        dij.run(nodes[i], 0);
+        auto etime = std::chrono::steady_clock::now();
+        dij_cost += std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
+
         stime = std::chrono::steady_clock::now();
-        build_succ(succ, dij.get_dist(), g);
-        lldij.run(sources[i], dij.get_dist(), succ);
+        lldij.init(dist, nodes[i], dist[nodes[i]]);
+        auto res = lldij.run(nodes[i], dist);
         etime = std::chrono::steady_clock::now();
+        avg_prop += res.first;
+        avg_expan += res.second;
+
         lldij_cost += std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
 
-        stime = std::chrono::steady_clock::now();
-        dij.run(sources[i], 0);
-        etime = std::chrono::steady_clock::now();
-        dij_cost += std::chrono::duration_cast<std::chrono::nanoseconds>(etime - stime).count();
-        const auto& dist_dij = dij.get_dist();
-        const auto& dist_lldij = lldij.get_dist();
-        for (int j=0; j<g.node_count(); j++) {
-          if (dist_dij[j] != dist_lldij[j])
-            lldij.inq.p(mapper(j).x, mapper(j).y, sources[i], j, sources[i], 512);
-          REQUIRE(dist_dij[j] == dist_lldij[j]);
-        }
+        // Checking
+        dist = vector<int>(dij.get_dist());
+        lldist = vector<int>(lldij.get_dist());
+        build_pa(pa, dist, g);
+        validate_dist(dist, lldist, g);
+        validate_pa(pa, dist, lldij.get_pa(), lldist, g);
       }
       cerr << "dij tcost: " << dij_cost << ", lldij tcost: " << lldij_cost 
-           << ", speed up: " << (dij_cost - lldij_cost) / dij_cost << endl;
+           << ", speed up: " << dij_cost / lldij_cost
+           << ", #node: " << nodes.size()
+           << ", avg propagate: " << avg_prop / (double)nodes.size()
+           << ", v: " << g.node_count()
+           << ", avg expan: " << avg_expan / (double)nodes.size() << endl;
       cerr << "==============" << endl;
     }
   }
+
+
 }
