@@ -50,12 +50,12 @@ namespace TEST_LIFELONG_DIJ {
     reverse(path.begin(), path.end());
   }
 
-  void build_pa(vector<int>& pa, const vector<int>& dist, const AdjGraph& g) {
-    fill(pa.begin(), pa.end(), -1);
+  void build_from_direction(vector<int>& from_direction, const vector<int>& dist, const AdjGraph& g) {
+    fill(from_direction.begin(), from_direction.end(), -1);
     for (int i=0; i<g.node_count(); i++) {
       for (auto& a: g.out(i)) {
         if (dist[i] + a.weight == dist[a.target]) 
-          pa[a.target] = i;
+          from_direction[a.target] = a.direction;
       }
     }
   }
@@ -67,22 +67,22 @@ namespace TEST_LIFELONG_DIJ {
     }
   }
 
-  void validate_pa(
-    const vector<int>& pa, const vector<int>& dist,
-    const vector<int>& pa_ll, const vector<int>& dist_ll,
+  void validate_from_direction(
+    const vector<int>& fromd, const vector<int>& dist,
+    const vector<int>& fromd_ll, const vector<int>& dist_ll,
     const AdjGraph& g) {
-    int n = pa.size();
+    int n = fromd.size();
     REQUIRE(dist.size() == n);
-    REQUIRE(pa_ll.size() == n);
+    REQUIRE(fromd_ll.size() == n);
     REQUIRE(dist_ll.size() == n);
 
     for (int i=0; i<n; i++) {
       for (auto& a: g.out(i)) 
-      if (pa[a.target] == i) {
+      if (fromd[a.target] == a.direction) {
         REQUIRE(dist[i] + a.weight == dist[a.target]);
       }
       for (auto& a: g.out(i)) 
-      if (pa_ll[a.target] == i) {
+      if (fromd_ll[a.target] == a.direction) {
         assert(dist_ll[i] + a.weight == dist_ll[a.target]);
         REQUIRE(dist_ll[i] + a.weight == dist_ll[a.target]);
       }
@@ -100,7 +100,7 @@ namespace TEST_LIFELONG_DIJ {
     for (auto& argv: argvs) {
       string& mpath = get<0>(argv);
       vector<int> nodes = get<1>(argv);
-      vector<int> succ, pa;
+      vector<int> succ, from_direction;
       vector<xyLoc> coord;
       vector<int> dist, lldist;
 
@@ -110,7 +110,7 @@ namespace TEST_LIFELONG_DIJ {
       AdjGraph g(extract_graph(mapper));
       coord.resize(g.node_count());
       succ.resize(g.node_count());
-      pa.resize(g.node_count());
+      from_direction.resize(g.node_count());
       Dijkstra dij(g, mapper);
       LifeLongDijkstra lldij(g, mapper);
 
@@ -121,8 +121,8 @@ namespace TEST_LIFELONG_DIJ {
       double lldij_cost = 0, dij_cost = 0, avg_prop = 0, avg_expan = 0;
       dij.run(nodes[0], 0);
       dist = vector<int>(dij.get_dist());
-      build_pa(pa, dist, g);
-      lldij.set_pa(pa);
+      build_from_direction(from_direction, dist, g);
+      lldij.set_from_direction(from_direction);
 
       for (int i=1; i<(int)nodes.size(); i++) {
 
@@ -143,9 +143,9 @@ namespace TEST_LIFELONG_DIJ {
         // Checking
         dist = vector<int>(dij.get_dist());
         lldist = vector<int>(lldij.get_dist());
-        build_pa(pa, dist, g);
+        build_from_direction(from_direction, dist, g);
         validate_dist(dist, lldist, g);
-        validate_pa(pa, dist, lldij.get_pa(), lldist, g);
+        validate_from_direction(from_direction, dist, lldij.get_from_direction(), lldist, g);
       }
       cerr << "dij tcost: " << dij_cost << ", lldij tcost: " << lldij_cost 
            << ", speed up: " << dij_cost / lldij_cost
