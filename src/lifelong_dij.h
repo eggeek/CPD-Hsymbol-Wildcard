@@ -25,7 +25,7 @@ public:
   LifeLongDijkstra(const AdjGraph& g, const Mapper& mapper): g(g), mapper(mapper) {
     q = min_id_heap<int>(g.node_count());
     dist.resize(g.node_count());
-    pa.resize(g.node_count());
+    from_direction.resize(g.node_count());
     nodes.resize(g.node_count());
     propa_q.resize(g.node_count());
     to_repair.resize(g.node_count() << 3);
@@ -51,8 +51,12 @@ public:
       int idx = 0;
       for (int i=0; i<propa_q_idx; i++) {
         int v = propa_q[i];
+        int d = 1 << from_direction[v];
+        uint32_t neighbor = warthog::jps::compute_successors((warthog::jps::direction)d,
+          mapper.get_jps_tiles(v));
         for (auto& a: g.out(v)) {
-          if (pa[a.target] != v &&
+          if ((neighbor & (1 << a.direction)) &&
+              from_direction[a.target] != a.direction &&
               min(old_dist(a.target, dist0), dist[a.target]) >= dist[v] + a.weight) 
           to_repair[idx++] = {v, a};
         }
@@ -73,9 +77,14 @@ public:
     else {
       for (int i=0; i<propa_q_idx; i++) {
         int v = propa_q[i];
+
+        int d = 1 << from_direction[v];
+        uint32_t neighbor = warthog::jps::compute_successors((warthog::jps::direction)d,
+          mapper.get_jps_tiles(v));
         for (auto& a: g.out(v)) {
-          if (pa[a.target] != v &&
-              min(old_dist(a.target, dist0), dist[a.target]) >= dist[v] + a.weight) 
+          if ((neighbor & (1 << a.direction)) &&
+              from_direction[a.target] != a.direction &&
+              min(old_dist(a.target, dist0), dist[a.target]) > dist[v] + a.weight) 
             reach(a, v, dist[v] + a.weight);
         }
       }
@@ -90,7 +99,7 @@ public:
       int cur = propa_q[front++];
       propa_q[propa_q_idx++] = cur;
       for (auto& a: g.out(cur))
-      if (pa[a.target] == cur && 
+      if (from_direction[a.target] == a.direction && 
          // dist[a.target] may be modified by `repair_dist`
          (dist[cur] + a.weight < dist[a.target])) {
 
@@ -101,15 +110,15 @@ public:
     }
   }
 
-  void set_pa(const vector<int>& pa0) {
-    pa = vector<int>(pa0.begin(), pa0.end());
+  void set_from_direction(const vector<int>& from_direction0) {
+    from_direction = vector<int>(from_direction0.begin(), from_direction0.end());
   }
 
   void init(const vector<int>& dist0, int newS, int delta) {
     tot_prop = 0, pop_num = 0, valid_pop = 0;
     this->delta = delta;
     if (delta == INF) {
-      fill(pa.begin(), pa.end(), -1);
+      fill(from_direction.begin(), from_direction.end(), -1);
       fill(dist.begin(), dist.end(), INF);
     }
     else {
@@ -132,7 +141,7 @@ public:
       assert(nodes[cid].dist >= dist[cid]);
       if (nodes[cid].dist != dist[cid]) continue;
       valid_pop++;
-      pa[cid] = c.pid;
+      from_direction[cid] = c.from_direction;
 
       // we can control the propagation by setting up variable `f`
       // larger `f` results in more normal expansion at the beginning
@@ -145,8 +154,14 @@ public:
         repair_dist(dist0);
       }
       else {
+        // does the canonical dijkstra working?
+        
+        int d = 1 << nodes[cid].from_direction;
+        uint32_t neighbor = warthog::jps::compute_successors((warthog::jps::direction)d,
+          mapper.get_jps_tiles(cid));
         for (const auto& a: g.out(cid)) 
-        if (dist[a.target] > dist[cid] + a.weight)
+        if ((neighbor & (1 << a.direction)) &&
+            dist[a.target] > dist[cid] + a.weight)
             reach(a, cid, dist[cid] + a.weight);
       }
     }
@@ -157,14 +172,15 @@ public:
   }
 
   vector<int>& get_dist() { return dist; }
-  const vector<int>& get_pa() { return pa; }
+  const vector<int>& get_from_direction() { return from_direction; }
 
 private:
   const AdjGraph& g;
   const Mapper& mapper;
   min_id_heap<int> q;
   vector<int> dist;
-  vector<int> pa;
+  vector<int> from_direction;
+  vector<unsigned short>inv_allowed;
 
   vector<int> propa_q;
   int propa_q_idx;
