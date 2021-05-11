@@ -49,6 +49,15 @@ private:
   std::vector<OutArc>out_arc;
 };
 
+inline void build_from_direction(std::vector<int>& from_direction, const std::vector<int>& dist, const AdjGraph& g) {
+  fill(from_direction.begin(), from_direction.end(), -1);
+  for (int i=0; i<g.node_count(); i++) {
+    for (auto& a: g.out(i)) {
+      if (dist[i] + a.weight == dist[a.target]) 
+        from_direction[a.target] = a.direction;
+    }
+  }
+}
 #endif
 
 

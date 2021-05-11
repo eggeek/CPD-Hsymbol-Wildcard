@@ -3,12 +3,15 @@
 #include "list_graph.h"
 #include "adj_array.h"
 #include "cut_utility.h"
+#include "adj_graph.h"
 #include "vec_io.h"
 #include "coord.h"
 #include <cassert>
 #include <string>
 #include <utility>
 #include <stdexcept>
+
+class Mapper;
 
 class NodeOrdering{
 public:
@@ -135,6 +138,7 @@ bool operator!=(const NodeOrdering&l, const NodeOrdering&r){
   return !(l == r);
 }
 
+NodeOrdering compute_dij_dfs_order(const Mapper& mapper, int s);
 NodeOrdering compute_real_dfs_order(const ListGraph&g);
 NodeOrdering compute_split_dfs_order(const ListGraph& g);
 

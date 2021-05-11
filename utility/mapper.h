@@ -349,7 +349,7 @@ ListGraph extract_graph(const Mapper&mapper){
   ListGraph g(mapper.node_count());
   for(int u=0; u<mapper.node_count(); ++u){
     auto u_pos = mapper(u);
-    for(int d = 0; d<8; ++d){
+    for(int d: {4,5,6,7,0,1,2,3}){
       xyLoc v_pos = {static_cast<std::int16_t>(u_pos.x + dx[d]), static_cast<std::int16_t>(u_pos.y + dy[d])};
       int v = mapper(v_pos);
       xyLoc p1 = xyLoc{u_pos.x, static_cast<std::int16_t>(u_pos.y+dy[d])};

@@ -94,6 +94,7 @@ public:
   void propagate_dist(int v,  const vector<int>& dist0) {
     //cerr << "propagate v: " << v << ", dist: " << dist[v] << endl;
     int front = 0, tail = 0;
+    int f = 1;
     propa_q[tail++] = v;
     while (front < tail) {
       int cur = propa_q[front++];
@@ -103,9 +104,13 @@ public:
          // dist[a.target] may be modified by `repair_dist`
          (dist[cur] + a.weight < dist[a.target])) {
 
-         // this can be written by only one thread, so it is safe.
-        dist[a.target] = dist[cur] + a.weight;
-        propa_q[tail++] = a.target;
+        if (dist[cur] < (dist[v] << f)) {
+           // this can be written by only one thread, so it is safe.
+          dist[a.target] = dist[cur] + a.weight;
+          propa_q[tail++] = a.target;
+        } else {
+          reach(a, cur, dist[cur] + a.weight);
+        }
       }
     }
   }
