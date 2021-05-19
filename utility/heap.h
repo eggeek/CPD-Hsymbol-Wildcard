@@ -169,6 +169,10 @@ public:
     return heap[0].id;
   }
 
+  int get_top() {
+    return heap[0].id;
+  }
+
   int pop(){
     assert(!empty() && "heap is not empty");
 

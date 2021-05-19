@@ -1,6 +1,8 @@
 #include "order.h"
 #include "constants.h"
 #include "coord.h"
+#include "mapper.h"
+#include "dijkstra.h"
 #include <fstream>
 #include <stdexcept>
 #include <utility>
@@ -10,6 +12,35 @@
 using namespace std;
 
 // compile with -O3 -DNDEBUG
+
+NodeOrdering compute_dij_dfs_order(const Mapper& mapper, int s) {
+  AdjGraph g = extract_graph(mapper);
+  NodeOrdering order(g.node_count());
+  Dijkstra dij(g, mapper);
+  std::stack<int> to_visit;
+  std::vector<bool> was_popped(g.node_count(), false);
+
+  int next_id = 0;
+  for (int i=0; i<g.node_count(); i++) {
+    int v = (s + i) % g.node_count();
+    if (was_popped[v]) continue;
+    to_visit.push(v);
+    std::vector<int> from_d(g.node_count(), 16);
+    dij.run(v, 0);
+    build_from_direction(from_d, dij.get_dist(), g);
+
+    while (!to_visit.empty()) {
+      int c = to_visit.top(); to_visit.pop();
+      was_popped[c] = true;
+      order.map(c, next_id++);
+      for (auto& a: g.out(c)) if (from_d[a.target] == a.direction) {
+        to_visit.push(a.target);
+      }
+    }
+  }
+  assert(order.is_complete());
+  return order;
+}
 
 NodeOrdering compute_real_dfs_order(const ListGraph&g){
 

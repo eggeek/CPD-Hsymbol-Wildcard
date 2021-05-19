@@ -48,11 +48,16 @@ public:
   } 
 
   xyLoc operator()(int x)const{ return node_to_pos_[x]; }
-  int operator()(xyLoc p)const{ 
-    if(p.x < 0 || p.x >= width_ || p.y < 0 || p.y >= height_)
+
+  inline int operator()(const int& x, const int& y) const {
+    if (x < 0 || x >= width_ || y < 0 || y >= height_)
       return -1;
     else
-      return pos_to_node_[p.x + p.y*width_];
+      return pos_to_node_[x + y*width_];
+  }
+
+  inline int operator()(const xyLoc& p) const {
+    return (*this)(p.x, p.y);
   }
 
   void reorder(const NodeOrdering&order){
@@ -344,7 +349,7 @@ ListGraph extract_graph(const Mapper&mapper){
   ListGraph g(mapper.node_count());
   for(int u=0; u<mapper.node_count(); ++u){
     auto u_pos = mapper(u);
-    for(int d = 0; d<8; ++d){
+    for(int d: {4,5,6,7,0,1,2,3}){
       xyLoc v_pos = {static_cast<std::int16_t>(u_pos.x + dx[d]), static_cast<std::int16_t>(u_pos.y + dy[d])};
       int v = mapper(v_pos);
       xyLoc p1 = xyLoc{u_pos.x, static_cast<std::int16_t>(u_pos.y+dy[d])};

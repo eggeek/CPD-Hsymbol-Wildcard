@@ -1,5 +1,4 @@
-#ifndef DIJKSTRA_H
-#define DIJKSTRA_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -53,18 +52,17 @@ public:
     while(!q.empty()){
       int x = q.pop();
 
-      /*
-      int ds = directions[x];
-      int neighbors = 0;
+      int ds = inv_allowed[x];
+      uint32_t neighbors = warthog::ALLMOVE;
       while (ds > 0) {
-        int d = ds & (-ds); //get the lowest bit
-        neighbors |= warthog::jps::compute_successors((warthog::jps::direction)d, mapper.get_jps_tiles(x));
-        ds -= d;
+        int lowb = warthog::lowb(ds);
+        int d = 1 << warthog::INV_MOVE[warthog::m2i.at(lowb)];
+        neighbors &= warthog::jps::compute_successors((warthog::jps::direction)d, mapper.get_jps_tiles(x));
+        ds -= lowb;
       }
-      */
 
       for(auto a:g.out(x)) {
-        //if (neighbors & (1 << a.direction))
+        if (neighbors & (1 << a.direction))
         reach(a, dist[x] + a.weight, allowed[x], 1 << (warthog::INV_MOVE[a.direction]));
       }
     }
@@ -131,6 +129,8 @@ public:
     return allowed;
   }
 
+  const vector<int>& get_dist() const { return dist; }
+
 private:
   const AdjGraph&g;
   min_id_heap<int>q;
@@ -139,5 +139,3 @@ private:
   std::vector<unsigned short>inv_allowed;
   const Mapper& mapper;
 };
-
-#endif

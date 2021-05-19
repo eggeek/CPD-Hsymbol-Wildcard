@@ -83,7 +83,7 @@ namespace warthog
     {4, 2, 6}
   };
 
-  static inline int lowb(int mask) {
+  static inline int lowb(const int& mask) {
     return mask & (-mask);
   };
 }
