@@ -21,6 +21,7 @@
 #include "cpd_base.h"
 #include "cpd_rect.h"
 #include "cpd_centroid.h"
+#include "FastMapGenerator.h"
 
 using namespace std;
 
@@ -371,6 +372,13 @@ void PreprocessMap(std::vector<bool> &bits, int width, int height, const Paramet
 
   printf("Computing node order\n");
   NodeOrdering order = compute_ordering(mapper, p);
+
+  if (p.hLevel == 4) {
+    printf("Computing fastmap\n");
+    AdjGraph g(extract_graph(mapper));
+    mapper.fmh = FastMapGenerator().CalcHeuristic(&g);
+  }
+
   mapper.reorder(order);
 
   vector<int> cents;

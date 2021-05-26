@@ -33,6 +33,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 
 include_directories(src)
 include_directories(src/CPDs)
+include_directories(src/fastmap)
 include_directories(tests)
 include_directories(third_party)
 include_directories(utility)
@@ -61,6 +62,10 @@ set(SOURCE_FILES
     src/CPDs/cpd_rect.h
     src/CPDs/cpd_rect.cpp
     src/CPDs/cpd_centroid.h
+    # fast map
+    src/fastmap/FastMapGenerator.h
+    src/fastmap/FastMapGenerator.cpp
+    src/fastmap/FastMapHeuristic.h
 
     third_party/gm_parser.cpp
     third_party/gm_parser.h
@@ -99,6 +104,9 @@ set(SOURCE_FILES
 add_executable(main
         ${SOURCE_FILES}
         main.cpp)
+add_executable(gen_fm
+        ${SOURCE_FILES}
+        gen_fastmap.cpp)
 
 find_package(Boost COMPONENTS program_options REQUIRED )
 if(Boost_FOUND)
@@ -123,19 +131,19 @@ add_executable(testing
         ${TESTING_FILES}
         tests/main.cpp)
 
-add_executable(focal
-  ${SOURCE_FILES}
-  competitors/focal.cpp)
+# add_executable(focal
+#   ${SOURCE_FILES}
+#   competitors/focal.cpp)
 
 if (omp_lib)
   target_link_libraries(main ${omp_lib})
   target_link_libraries(testing ${omp_lib})
-  target_link_libraries(focal ${omp_lib})
+  # target_link_libraries(focal ${omp_lib})
 endif()
 
 if (metis_lib)
   target_link_libraries(main ${metis_lib})
   target_link_libraries(testing ${metis_lib})
-  target_link_libraries(focal ${metis_lib})
+  target_link_libraries(gen_fm ${metis_lib})
 endif()
 

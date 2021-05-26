@@ -6,6 +6,7 @@
 #include "jps.h"
 #include "constants.h"
 #include "coord.h"
+#include "FastMapHeuristic.h"
 using namespace std;
 
 struct ClosestMove {
@@ -14,6 +15,7 @@ struct ClosestMove {
 
 class Mapper{
 public:
+  FastMapHeuristic* fmh;
   Mapper(){}
   Mapper(const std::vector<bool>&field, int width, int height):
     width_(width), 
@@ -72,6 +74,14 @@ public:
     std::vector<int> new_neighbors(node_count_);
     vector<int> new_pruned_neighbors(node_count_);
     vector<int> new_rank(centroids_rank.size());
+    if (fmh != nullptr) {
+      vector<vector<double>> new_coordinates(node_count_, vector<double>(fmh->num_coord));
+      for (int new_node=0; new_node<node_count(); ++new_node) {
+        int old_node = order.to_old(new_node);
+        new_coordinates[new_node] = vector<double>(fmh->coordinates[old_node]);
+      }
+      fmh->coordinates.swap(new_coordinates);
+    }
     for(int new_node=0; new_node<node_count(); ++new_node){
       int old_node = order.to_old(new_node);
       new_node_to_pos_[new_node] = node_to_pos_[old_node];

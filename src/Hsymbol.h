@@ -135,6 +135,26 @@ static inline int get_heuristic_move3(int s, int t, const Mapper& mapper) {
   return move;
 }
 
+static inline int get_fastmap_heuristic(const int s, const int t, const Mapper& mapper) {
+  int move = warthog::INVALID_MOVE;
+  assert(mapper.fmh != nullptr);
+  if (mapper.fmh == nullptr) return move;
+  double best = -1;
+  xyLoc sloc = mapper(s);
+  for (int i=0; i<8; i++) {
+    xyLoc nxt = xyLoc{(int16_t)(sloc.x + warthog::dx[i]), (int16_t)(sloc.y + warthog::dy[i])};
+    xyLoc p1 = xyLoc{sloc.x, (int16_t)(sloc.y + warthog::dy[i])};
+    xyLoc p2 = xyLoc{(int16_t)(sloc.x + warthog::dx[i]), sloc.y};
+    if (mapper(nxt) == -1 || mapper(p1) == -1 || mapper(p2) == -1) continue;
+    double hvalue = mapper.fmh->GetL1Distance(mapper(nxt), t) + warthog::dw[i];
+    if (best < 0 || best > hvalue) {
+      best = hvalue;
+      move = i;
+    }
+  }
+  return move;
+}
+
 static inline int get_heuristic_move(int s, int t, const Mapper& mapper, int hLevel) {
   int move = warthog::INVALID_MOVE;
   switch (hLevel) {
@@ -143,6 +163,8 @@ static inline int get_heuristic_move(int s, int t, const Mapper& mapper, int hLe
     case 2: move = get_heuristic_move2(s, t, mapper);
             break;
     case 3: move = get_heuristic_move3(s, t, mapper);
+            break;
+    case 4: move = get_fastmap_heuristic(s, t, mapper);
             break;
     default:
             cerr << "undefined hlevel" << endl;
